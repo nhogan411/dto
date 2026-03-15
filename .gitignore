@@ -1,0 +1,50 @@
+# Rails API (.gitignore patterns)
+apps/api/tmp/
+apps/api/log/
+apps/api/.env
+apps/api/.env.local
+apps/api/.env.*.local
+apps/api/*.sqlite3
+apps/api/public/system/
+apps/api/public/packs
+apps/api/public/packs-test
+apps/api/node_modules/
+apps/api/.bundle/
+apps/api/vendor/bundle/
+apps/api/.byebug_history
+apps/api/.DS_Store
+apps/api/coverage/
+
+# React Frontend (.gitignore patterns)
+apps/web/node_modules/
+apps/web/dist/
+apps/web/.env.local
+apps/web/.env.*.local
+apps/web/.DS_Store
+apps/web/coverage/
+apps/web/*.log
+apps/web/npm-debug.log*
+apps/web/yarn-debug.log*
+apps/web/yarn-error.log*
+apps/web/.vite/
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# Monorepo root level
+.ruby-version.lock
+
+.sisyphus
