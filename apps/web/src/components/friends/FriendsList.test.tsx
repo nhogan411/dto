@@ -38,8 +38,9 @@ describe('FriendsList', () => {
     (gameApi.gameApi.createGame as any).mockResolvedValue({
       data: { game: { id: 1, status: 'pending' } },
     });
-    const mockThunk = vi.fn();
-    mockThunk.unwrap = vi.fn().mockResolvedValue([]);
+    const mockThunk = Object.assign(vi.fn(), {
+      unwrap: vi.fn().mockResolvedValue([]),
+    });
     (dashboardSlice.fetchGamesThunk as any).mockReturnValue(mockThunk);
   });
 
@@ -61,7 +62,7 @@ describe('FriendsList', () => {
     fireEvent.click(inviteButtons[0]);
 
     await waitFor(() => {
-      expect(gameApi.gameApi.createGame).toHaveBeenCalledWith(1);
+      expect(gameApi.gameApi.createGame).toHaveBeenCalledWith(1, 86400);
     });
   });
 

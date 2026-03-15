@@ -21,7 +21,7 @@ export const FriendsList: React.FC = () => {
     setInvitingFriendId(friendId);
     setInviteErrors((prev) => ({ ...prev, [friendId]: null }));
     try {
-      await gameApi.createGame(friendId);
+      await gameApi.createGame(friendId, 86400);
       await dispatch(fetchGamesThunk()).unwrap();
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { errors?: string[] } } };
