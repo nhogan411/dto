@@ -12,7 +12,7 @@ import {
   markYourTurn,
 } from '../store/slices/notificationSlice';
 import { fetchFriendRequestsThunk, fetchFriendsThunk } from '../store/slices/friendsSlice';
-import { fetchGamesThunk, acceptGameThunk, declineGameThunk } from '../store/slices/dashboardSlice';
+import { fetchGamesThunk, declineGameThunk } from '../store/slices/dashboardSlice';
 import { gameApi } from '../api/game';
 
 interface NotificationChannelMessage {
@@ -120,13 +120,8 @@ export default function DashboardPage() {
     }
   };
 
-  const handleAcceptGame = async (gameId: number) => {
-    try {
-      await dispatch(acceptGameThunk(gameId)).unwrap();
-      navigate(`/games/${gameId}/lobby`);
-    } catch (err) {
-      console.error('Failed to accept game', err);
-    }
+  const handleAcceptGame = (gameId: number) => {
+    navigate(`/games/${gameId}/lobby`);
   };
 
   const handleDeclineGame = async (gameId: number) => {
@@ -265,9 +260,9 @@ export default function DashboardPage() {
           <div style={{ display: 'grid', gap: '1rem' }}>
             {pendingInvitations.map(game => (
               <div key={game.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2a2a2a', padding: '1rem', borderRadius: '6px' }}>
-                <div>
-                  <span style={{ fontWeight: 'bold' }}>Invitation from User #{game.challenger_id}</span>
-                </div>
+               <div>
+                   <span style={{ fontWeight: 'bold' }}>Invitation from {game.challenger_username || `User #${game.challenger_id}`}</span>
+                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button onClick={() => handleAcceptGame(game.id)} style={{ backgroundColor: '#4ade80', color: '#121212', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Accept</button>
                   <button onClick={() => handleDeclineGame(game.id)} style={{ backgroundColor: '#ef4444', color: '#fff', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Decline</button>
@@ -293,10 +288,13 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
           {activeGames.map(game => {
             const isMyTurn = game.current_turn_user_id === user?.id;
+            const opponentUsername = game.challenger_id === user?.id
+              ? (game.challenged_username || `User #${game.challenged_id}`)
+              : (game.challenger_username || `User #${game.challenger_id}`);
             return (
               <div key={game.id} style={{ backgroundColor: '#2a2a2a', padding: '1rem', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 'bold' }}>Game #{game.id}</span>
+                   <span style={{ fontWeight: 'bold' }}>Game #{game.id} vs {opponentUsername}</span>
                   <span style={{
                     padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 'bold',
                     backgroundColor: statusBadgeStyles[game.status].backgroundColor,
@@ -340,11 +338,14 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
           {completedGames.map(game => {
             const wonGame = game.winner_id !== null && game.winner_id === user?.id;
+            const opponentUsername = game.challenger_id === user?.id
+              ? (game.challenged_username || `User #${game.challenged_id}`)
+              : (game.challenger_username || `User #${game.challenger_id}`);
 
             return (
               <div key={game.id} style={{ backgroundColor: '#2a2a2a', padding: '1rem', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 'bold' }}>Game #{game.id}</span>
+                   <span style={{ fontWeight: 'bold' }}>Game #{game.id} vs {opponentUsername}</span>
                   <span style={{
                     padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 'bold',
                     backgroundColor: statusBadgeStyles[game.status].backgroundColor,
