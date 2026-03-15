@@ -19,6 +19,8 @@ export interface ApiGame {
   current_turn_user_id: number;
   challenger_id: number;
   challenged_id: number;
+  challenger_username: string;
+  challenged_username: string;
   characters: ApiCharacter[];
   turn_number: number;
   winner_id: number | null;

@@ -30,11 +30,6 @@ export const fetchGamesThunk = createAsyncThunk('dashboard/fetchGames', async ()
   return [] as ApiGame[];
 });
 
-export const acceptGameThunk = createAsyncThunk('dashboard/acceptGame', async (id: number) => {
-  const response = await gameApi.acceptGame(id);
-  return response.data.data.game;
-});
-
 export const declineGameThunk = createAsyncThunk('dashboard/declineGame', async (id: number) => {
   const response = await gameApi.declineGame(id);
   return response.data.data.game;
@@ -55,12 +50,6 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchGamesThunk.rejected, (state) => {
         state.gamesStatus = 'failed';
-      })
-      .addCase(acceptGameThunk.fulfilled, (state, action) => {
-        const index = state.games.findIndex((g) => g.id === action.payload.id);
-        if (index !== -1) {
-          state.games[index] = action.payload;
-        }
       })
       .addCase(declineGameThunk.fulfilled, (state, action) => {
         const index = state.games.findIndex((g) => g.id === action.payload.id);

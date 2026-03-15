@@ -59,20 +59,31 @@ RSpec.describe "Games", type: :request do
     let(:other_user) { create(:user) }
     let(:headers) { auth_headers(user) }
 
-    it "returns the current user's pending and active games" do
-      pending_game = create(:game, challenger: user, challenged: other_user, status: :pending)
-      active_game = create(:game, challenger: other_user, challenged: user, status: :active)
-      create(:game, challenger: user, challenged: other_user, status: :completed)
-      create(:game)
+   it "returns the current user's pending and active games" do
+     pending_game = create(:game, challenger: user, challenged: other_user, status: :pending)
+     active_game = create(:game, challenger: other_user, challenged: user, status: :active)
+     create(:game, challenger: user, challenged: other_user, status: :completed)
+     create(:game)
 
-      get "/games", headers: headers
+     get "/games", headers: headers
 
-      expect(response).to have_http_status(:ok)
+     expect(response).to have_http_status(:ok)
 
-      returned_ids = json_response.dig("data", "games").map { |game| game.fetch("id") }
+     returned_ids = json_response.dig("data", "games").map { |game| game.fetch("id") }
 
-      expect(returned_ids).to contain_exactly(pending_game.id, active_game.id)
-    end
+     expect(returned_ids).to contain_exactly(pending_game.id, active_game.id)
+   end
+
+   it "returns challenger and challenged usernames in game list" do
+     create(:game, challenger: user, challenged: other_user, status: :pending)
+
+     get "/games", headers: headers
+
+     expect(response).to have_http_status(:ok)
+     first_game = json_response.dig("data", "games").first
+     expect(first_game["challenger_username"]).to eq(user.username)
+     expect(first_game["challenged_username"]).to eq(other_user.username)
+   end
   end
 
   describe "GET /games/:id" do
@@ -80,16 +91,26 @@ RSpec.describe "Games", type: :request do
     let(:other_user) { create(:user) }
     let(:headers) { auth_headers(user) }
 
-    it "returns game info for a visible game" do
-      game = create(:game, challenger: user, challenged: other_user, status: :pending)
+   it "returns game info for a visible game" do
+     game = create(:game, challenger: user, challenged: other_user, status: :pending)
 
-      get "/games/#{game.id}", headers: headers
+     get "/games/#{game.id}", headers: headers
 
-      expect(response).to have_http_status(:ok)
-      expect(json_response.dig("data", "game", "id")).to eq(game.id)
-      expect(json_response.dig("data", "game", "challenger_id")).to eq(user.id)
-      expect(json_response.dig("data", "game", "status")).to eq("pending")
-    end
+     expect(response).to have_http_status(:ok)
+     expect(json_response.dig("data", "game", "id")).to eq(game.id)
+     expect(json_response.dig("data", "game", "challenger_id")).to eq(user.id)
+     expect(json_response.dig("data", "game", "status")).to eq("pending")
+   end
+
+   it "returns challenger and challenged usernames" do
+     game = create(:game, challenger: user, challenged: other_user, status: :pending)
+
+     get "/games/#{game.id}", headers: headers
+
+     expect(response).to have_http_status(:ok)
+     expect(json_response.dig("data", "game", "challenger_username")).to eq(user.username)
+     expect(json_response.dig("data", "game", "challenged_username")).to eq(other_user.username)
+   end
   end
 
   describe "PATCH /games/:id/accept" do

@@ -39,14 +39,14 @@ class GamesController < ApplicationController
     render json: { errors: e.record.errors.full_messages.presence || [ e.message ] }, status: :unprocessable_entity
   end
 
-  def index
-    games = visible_games
-      .where(status: VISIBLE_STATUSES)
-      .includes(:characters)
-      .order(created_at: :desc)
+   def index
+     games = visible_games
+       .where(status: VISIBLE_STATUSES)
+       .includes(:characters, :challenger, :challenged)
+       .order(created_at: :desc)
 
-    render json: { data: { games: games.map { |game| serialize_game(game) } } }
-  end
+     render json: { data: { games: games.map { |game| serialize_game(game) } } }
+   end
 
   def show
     render json: { data: { game: serialize_game(@game) } }
@@ -129,12 +129,12 @@ class GamesController < ApplicationController
     Game.where("challenger_id = :user_id OR challenged_id = :user_id", user_id: current_user.id)
   end
 
-  def set_game
-    @game = visible_games.includes(:characters).find_by(id: params[:id])
-    return if @game
+   def set_game
+     @game = visible_games.includes(:characters, :challenger, :challenged).find_by(id: params[:id])
+     return if @game
 
-    render json: { errors: [ "Game not found" ] }, status: :not_found
-  end
+     render json: { errors: [ "Game not found" ] }, status: :not_found
+   end
 
   def challenged_player?
     @game.challenged_id == current_user.id
@@ -201,20 +201,22 @@ class GamesController < ApplicationController
     }
   end
 
-  def serialize_game(game)
-    {
-      id: game.id,
-      challenger_id: game.challenger_id,
-      challenged_id: game.challenged_id,
-      status: game.status,
-      board_config: serialize_board_config(game.board_config),
-      current_turn_user_id: game.current_turn_user_id,
-      turn_time_limit: game.turn_time_limit,
-      turn_deadline: game.turn_deadline&.iso8601,
-      winner_id: game.winner_id,
-      characters: game.characters.order(:id).map { |character| serialize_character(character) }
-    }
-  end
+   def serialize_game(game)
+     {
+       id: game.id,
+       challenger_id: game.challenger_id,
+       challenged_id: game.challenged_id,
+       challenger_username: game.challenger.username,
+       challenged_username: game.challenged.username,
+       status: game.status,
+       board_config: serialize_board_config(game.board_config),
+       current_turn_user_id: game.current_turn_user_id,
+       turn_time_limit: game.turn_time_limit,
+       turn_deadline: game.turn_deadline&.iso8601,
+       winner_id: game.winner_id,
+       characters: game.characters.order(:id).map { |character| serialize_character(character) }
+     }
+   end
 
   def serialize_board_config(board_config)
     config = board_config.with_indifferent_access

@@ -25,6 +25,8 @@ describe('gameSlice', () => {
     current_turn_user_id: 1,
     challenger_id: 1,
     challenged_id: 2,
+    challenger_username: 'testuser1',
+    challenged_username: 'testuser2',
     characters: [
       {
         id: 1,
