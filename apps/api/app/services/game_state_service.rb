@@ -10,6 +10,7 @@ class GameStateService
       current_turn_user_id: game.current_turn_user_id,
       turn_deadline: game.turn_deadline&.iso8601,
       winner_id: game.winner_id,
+      turn_number: game.game_actions.where(action_type: :end_turn).count + 1,
       board_config: game.board_config,
       characters: game.characters.map { |character| character_snapshot(character) },
       last_action: game.game_actions.order(:turn_number, :sequence_number).last&.as_json

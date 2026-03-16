@@ -24,6 +24,7 @@ Rails.application.routes.draw do
       patch :accept
       patch :decline
       patch :choose_position
+      get :attack_preview, to: "game_actions#attack_preview"
       get :state
       get :replay
       post :actions, to: "game_actions#create"

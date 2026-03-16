@@ -36,8 +36,10 @@ RSpec.describe "GameActions", type: :request do
         expect(stream).to eq(GameChannel.broadcasting_for(game))
         expect(payload[:event]).to eq("action_completed")
         expect(payload[:game_id]).to eq(game.id)
-        expect(payload[:data]["from_position"]).to eq({ "x" => 2, "y" => 2 })
-        expect(payload[:data]["to_position"]).to eq({ "x" => "3", "y" => "2" })
+        expect(payload[:data][:game_state]).to be_a(Hash)
+        expect(payload[:data][:game_state]).to include(:game_id, :status, :characters)
+        expect(payload[:data][:action]["result_data"]["from_position"]).to eq({ "x" => 2, "y" => 2 })
+        expect(payload[:data][:action]["result_data"]["to_position"]).to eq({ "x" => "3", "y" => "2" })
       end
 
       post "/games/#{game.id}/actions",
@@ -102,7 +104,7 @@ RSpec.describe "GameActions", type: :request do
           action_type: :attack,
           action_data: {
             target_character_id: challenged_character.id,
-            rand_val: 0.01
+            rand_val: 20
           }
         },
         headers: challenger_headers
@@ -119,7 +121,10 @@ RSpec.describe "GameActions", type: :request do
         "target_id" => challenged_character.id,
         "target_hp_remaining" => 3
       )
-      expect(result["success_rate"]).to eq(0.5)
+      expect(result["roll"]).to eq(20)
+      expect(result["threshold"]).to eq(11)
+      expect(result["direction"]).to eq("front")
+      expect(result["success_rate"]).to eq(11)
       expect(challenged_character.reload.current_hp).to eq(3)
     end
 
@@ -217,7 +222,7 @@ RSpec.describe "GameActions", type: :request do
           action_type: :attack,
           action_data: {
             target_character_id: challenged_character.id,
-            rand_val: 0.01
+            rand_val: 20
           }
         },
         headers: challenger_headers
@@ -228,6 +233,56 @@ RSpec.describe "GameActions", type: :request do
       expect(game.status).to eq("completed")
       expect(game.winner_id).to eq(challenger.id)
       expect(challenged_character.reload.current_hp).to eq(0)
+    end
+  end
+
+  describe "GET /games/:id/attack_preview" do
+    it "returns preview data for valid opponent target" do
+      get "/games/#{game.id}/attack_preview",
+        params: { target_character_id: challenged_character.id },
+        headers: challenger_headers
+
+      expect(response).to have_http_status(:ok)
+      data = json_response.dig("data")
+      expect(data["direction"]).to eq("front")
+      expect(data["threshold"]).to eq(11)
+      expect(data["hit_chance_percent"]).to eq(50)
+      expect(data).to have_key("is_defending")
+    end
+
+    it "returns 401 without authentication" do
+      get "/games/#{game.id}/attack_preview",
+        params: { target_character_id: challenged_character.id }
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "returns 422 when targeting own character" do
+      get "/games/#{game.id}/attack_preview",
+        params: { target_character_id: challenger_character.id },
+        headers: challenger_headers
+
+      expect(response).to have_http_status(422)
+      expect(json_response.fetch("errors").join(" ")).to include("own character")
+    end
+
+    it "returns 422 when target character is dead" do
+      challenged_character.update!(current_hp: 0)
+
+      get "/games/#{game.id}/attack_preview",
+        params: { target_character_id: challenged_character.id },
+        headers: challenger_headers
+
+      expect(response).to have_http_status(422)
+      expect(json_response.fetch("errors").join(" ")).to include("not alive")
+    end
+
+    it "returns 404 for non-existent game" do
+      get "/games/999999/attack_preview",
+        params: { target_character_id: challenged_character.id },
+        headers: challenger_headers
+
+      expect(response).to have_http_status(:not_found)
     end
   end
 

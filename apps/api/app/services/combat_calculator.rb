@@ -4,24 +4,28 @@ class CombatCalculator
       _attacker_facing = attacker_facing
       direction = relative_attack_direction(attacker_pos, defender_pos, defender_facing)
 
-      base_rate = case direction
-      when :front then 0.50
-      when :side then 0.70
-      else 0.90
+      threshold = case direction
+      when :front then 11
+      when :side then 7
+      else 3
       end
 
-      return base_rate unless defender_is_defending
+      return threshold unless defender_is_defending
 
-      [ (base_rate * 100 - 30).round / 100.0, 0.0 ].max
+      [ threshold + 6, 21 ].min
     end
 
-    def roll_attack(success_rate, rand_val: nil)
-      roll = rand_val.nil? ? rand : rand_val.to_f
+    def roll_attack(threshold, rand_val: nil)
+      roll = rand_val.nil? ? rand(1..20) : rand_val.to_i
 
-      return { hit: false, critical: false, damage: 0 } if roll > success_rate.to_f
-      return { hit: true, critical: true, damage: 2 } if roll <= 0.05
+      return { hit: true, critical: true, damage: 2, roll: roll } if roll == 20
+      return { hit: true, critical: false, damage: 1, roll: roll } if roll >= threshold.to_i
 
-      { hit: true, critical: false, damage: 1 }
+      { hit: false, critical: false, damage: 0, roll: roll }
+    end
+
+    def attack_direction(attacker_pos, defender_pos, defender_facing)
+      relative_attack_direction(attacker_pos, defender_pos, defender_facing)
     end
 
     private

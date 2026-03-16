@@ -136,6 +136,94 @@ describe('gameSlice', () => {
     });
   });
 
+  describe('handleGameChannelMessage action_completed', () => {
+    const mockAction = {
+      id: 42,
+      game_id: 1,
+      character_id: 1,
+      action_type: 'move' as const,
+      turn_number: 1,
+      sequence_number: 1,
+      action_data: { path: [{ x: 2, y: 1 }] },
+      result_data: { from_position: { x: 1, y: 1 }, to_position: { x: 2, y: 1 } },
+      created_at: '2026-03-15T12:00:00.000Z',
+    };
+
+    it('should handle action_completed broadcast with game_state and action', () => {
+      const store = setupStore();
+      store.dispatch(updateGameState(mockGameState));
+
+      const mockBroadcastSnapshot = {
+        ...mockSnapshot,
+        turn_number: 2,
+      };
+
+      store.dispatch(handleGameChannelMessage({
+        event: 'action_completed',
+        data: {
+          game_state: mockBroadcastSnapshot,
+          action: mockAction,
+        },
+      } as any));
+
+      const state = store.getState().game;
+
+      expect(state.gameState).not.toBeNull();
+      expect(state.gameState).toEqual({
+        ...mockGameState,
+        turnNumber: 2,
+        turnDeadline: '2026-03-15T12:00:00.000Z',
+      });
+      expect(state.gameActions).toHaveLength(1);
+      expect(state.gameActions[0]).toMatchObject({ id: 42, action_type: 'move' });
+    });
+
+    it('should not duplicate actions in gameActions on repeated action_completed', () => {
+      const store = setupStore();
+      store.dispatch(updateGameState(mockGameState));
+
+      const payload = {
+        event: 'action_completed',
+        data: {
+          game_state: {
+            ...mockSnapshot,
+            turn_number: 2,
+          },
+          action: mockAction,
+        },
+      };
+
+      store.dispatch(handleGameChannelMessage(payload as any));
+      store.dispatch(handleGameChannelMessage(payload as any));
+
+      expect(store.getState().game.gameActions).toHaveLength(1);
+    });
+
+    it('should handle action_completed with no action field gracefully', () => {
+      const store = setupStore();
+      store.dispatch(updateGameState(mockGameState));
+
+      expect(() => {
+        store.dispatch(handleGameChannelMessage({
+          event: 'action_completed',
+          data: {
+            game_state: {
+              ...mockSnapshot,
+              turn_number: 2,
+            },
+          },
+        } as any));
+      }).not.toThrow();
+
+      expect(store.getState().game.gameActions).toHaveLength(0);
+      expect(store.getState().game.gameState).toEqual({
+        ...mockGameState,
+        turnNumber: 2,
+        turnDeadline: '2026-03-15T12:00:00.000Z',
+      });
+    });
+  });
+
   it('should handle clearGame', () => {
     const store = setupStore();
     store.dispatch(setCurrentGame(mockApiGame));

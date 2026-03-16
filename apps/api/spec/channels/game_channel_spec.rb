@@ -78,18 +78,18 @@ RSpec.describe Broadcaster do
     let(:game) { create(:game, challenger:, current_turn_user: challenger, winner: challenger) }
 
     it "broadcasts completed game actions" do
-      action_result = { "move" => "north" }
+      character = create(:character, game: game, user: challenger)
+      action = create(:game_action, game: game, character: character, result_data: { "move" => "north" })
 
-      expect(ActionCable.server).to receive(:broadcast).with(
-        GameChannel.broadcasting_for(game),
-        {
-          event: "action_completed",
-          game_id: game.id,
-          data: action_result
-        }
-      )
+      expect(ActionCable.server).to receive(:broadcast) do |stream, payload|
+        expect(stream).to eq(GameChannel.broadcasting_for(game))
+        expect(payload[:event]).to eq("action_completed")
+        expect(payload[:game_id]).to eq(game.id)
+        expect(payload[:data]).to include(:game_state, :action)
+        expect(payload[:data][:game_state]).to include(:game_id, :status, :current_turn_user_id)
+      end
 
-      described_class.game_action_completed(game, action_result)
+      described_class.game_action_completed(game, action)
     end
 
     it "broadcasts turn changes" do

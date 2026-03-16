@@ -1,6 +1,6 @@
 class Broadcaster
-  def self.game_action_completed(game, action_result)
-    broadcast_to_game(game, { event: "action_completed", game_id: game.id, data: action_result })
+  def self.game_action_completed(game, action)
+    broadcast_to_game(game, { event: "action_completed", game_id: game.id, data: { game_state: GameStateService.new(game).snapshot, action: action.as_json } })
   end
 
   def self.turn_changed(game)

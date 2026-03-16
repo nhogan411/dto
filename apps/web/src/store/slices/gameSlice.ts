@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { gameApi, type ApiGame, type ApiCharacter, type ApiGameSnapshot } from '../../api/game';
+import { gameApi, type ApiGame, type ApiCharacter, type ApiGameSnapshot, type GameHistoryAction } from '../../api/game';
 import type { GameAction } from '../../services/replayService';
 
 export interface CharacterState {
@@ -133,54 +133,6 @@ const mapSnapshotToGameState = (snapshot: ApiGameSnapshot): GameState => ({
   characters: snapshot.characters.map(mapApiCharacterToCharacterState),
 });
 
-const mapIncomingCharacter = (value: unknown): CharacterState | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const id = parseNumber(value.id);
-  const userId = parseNumber(value.userId ?? value.user_id);
-  const currentHp = parseNumber(value.currentHp ?? value.current_hp);
-  const maxHp = parseNumber(value.maxHp ?? value.max_hp);
-  const positionValue = value.position;
-  const facingTileValue = value.facingTile ?? value.facing_tile;
-
-  if (
-    id === undefined ||
-    userId === undefined ||
-    currentHp === undefined ||
-    maxHp === undefined ||
-    !isRecord(positionValue) ||
-    !isRecord(facingTileValue)
-  ) {
-    return null;
-  }
-
-  const positionX = parseNumber(positionValue.x);
-  const positionY = parseNumber(positionValue.y);
-  const facingX = parseNumber(facingTileValue.x);
-  const facingY = parseNumber(facingTileValue.y);
-
-  if (
-    positionX === undefined ||
-    positionY === undefined ||
-    facingX === undefined ||
-    facingY === undefined
-  ) {
-    return null;
-  }
-
-  return {
-    id,
-    userId,
-    position: { x: positionX, y: positionY },
-    facingTile: { x: facingX, y: facingY },
-    currentHp,
-    maxHp,
-    isDefending: Boolean(value.isDefending ?? value.is_defending),
-  };
-};
-
 const mapIncomingGameState = (value: unknown): GameState | null => {
   if (!isRecord(value)) {
     return null;
@@ -289,11 +241,6 @@ const gameSlice = createSlice({
     gameActionsReceived: (state, action: PayloadAction<import('../../api/game').GameHistoryAction[]>) => {
       state.gameActions = action.payload;
     },
-    appendGameAction: (state, action: PayloadAction<import('../../api/game').GameHistoryAction>) => {
-      if (!state.gameActions.find(a => a.id === action.payload.id)) {
-        state.gameActions.push(action.payload);
-      }
-    },
     startReplay: (state, action: PayloadAction<GameAction[]>) => {
       state.replayInProgress = true;
       state.replayQueue = action.payload;
@@ -325,60 +272,18 @@ const gameSlice = createSlice({
 
       switch (action.payload.event) {
         case 'action_completed': {
-          const updatedGameState = mapIncomingGameState(
-            payloadData?.game_state ?? payloadData?.gameState ?? action.payload.data,
-          );
+          const updatedGameState = mapIncomingGameState(payloadData?.game_state ?? payloadData?.gameState);
 
           if (updatedGameState) {
             state.gameState = updatedGameState;
-            break;
           }
 
-          const incomingCharacters = Array.isArray(payloadData?.characters)
-            ? payloadData.characters
-                .map(mapIncomingCharacter)
-                .filter((character): character is CharacterState => character !== null)
-            : [];
-
-          if (incomingCharacters.length > 0) {
-            state.gameState.characters = incomingCharacters;
-          }
-
-          const actorId = parseNumber(payloadData?.character_id ?? payloadData?.actor_id);
-          const toPosition = payloadData?.to_position;
-
-          if (actorId !== undefined && isRecord(toPosition)) {
-            const nextX = parseNumber(toPosition.x);
-            const nextY = parseNumber(toPosition.y);
-            const actor = state.gameState.characters.find((character) => character.id === actorId);
-
-            if (actor && nextX !== undefined && nextY !== undefined) {
-              actor.position = { x: nextX, y: nextY };
+          const incomingAction = payloadData?.action;
+          if (incomingAction && isRecord(incomingAction) && typeof incomingAction.id === 'number') {
+            const alreadyExists = state.gameActions.some((a) => a.id === (incomingAction as { id: number }).id);
+            if (!alreadyExists) {
+              state.gameActions.push(incomingAction as unknown as GameHistoryAction);
             }
-          }
-
-          const targetId = parseNumber(payloadData?.target_id);
-          const targetHpRemaining = parseNumber(payloadData?.target_hp_remaining);
-
-          if (targetId !== undefined && targetHpRemaining !== undefined) {
-            const target = state.gameState.characters.find((character) => character.id === targetId);
-
-            if (target) {
-              target.currentHp = targetHpRemaining;
-            }
-          }
-
-          const nextTurnNumber = parseNumber(payloadData?.turn_number);
-          const nextPlayerId = parseNumber(
-            payloadData?.current_turn_user_id ?? payloadData?.next_player_id ?? action.payload.current_turn_user_id,
-          );
-
-          if (nextTurnNumber !== undefined) {
-            state.gameState.turnNumber = nextTurnNumber;
-          }
-
-          if (nextPlayerId !== undefined) {
-            state.gameState.currentTurnUserId = nextPlayerId;
           }
 
           break;
@@ -436,6 +341,10 @@ const gameSlice = createSlice({
       state.status = 'idle';
       state.error = null;
       state.isSubmitting = false;
+      state.gameActions = [];
+      state.selectedCharacterId = null;
+      state.replayInProgress = false;
+      state.replayQueue = [];
     },
     optimisticMove: (state, action: PayloadAction<{ characterId: number; newPosition: { x: number; y: number } }>) => {
       if (state.gameState) {
@@ -505,7 +414,6 @@ const gameSlice = createSlice({
 export const {
   selectCharacter,
   gameActionsReceived,
-  appendGameAction,
   startReplay,
   advanceReplay,
   skipReplay,

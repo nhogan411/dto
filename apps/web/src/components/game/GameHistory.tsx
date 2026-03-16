@@ -20,7 +20,7 @@ export function GameHistory() {
     );
   }
 
-  const renderActionDescription = (action: import('../../api/game').GameHistoryAction) => {
+  const renderActionDescription = (action: import('../../api/game').GameHistoryAction): React.ReactNode => {
     switch (action.action_type) {
       case 'move': {
         const path = action.action_data.path as { x: number; y: number }[] | undefined;
@@ -32,10 +32,43 @@ export function GameHistory() {
       }
       case 'attack': {
         if (action.result_data) {
+          const roll = action.result_data.roll;
+          const threshold = action.result_data.threshold;
           const hit = action.result_data.hit;
+          const critical = action.result_data.critical;
           const damage = action.result_data.damage;
+          const direction = action.result_data.direction;
+
+          // D20 display
+          if (roll !== undefined && threshold !== undefined && direction !== undefined) {
+            const directionLabel = String(direction).charAt(0).toUpperCase() + String(direction).slice(1);
+            let outcome: string;
+            let color: string;
+            let damageStr = '';
+
+            if (critical) {
+              outcome = 'CRITICAL HIT!';
+              color = '#FFD700';
+              damageStr = ` ${String(damage)} damage`;
+            } else if (hit) {
+              outcome = 'Hit!';
+              color = '#4CAF50';
+              damageStr = ` ${String(damage)} damage`;
+            } else {
+              outcome = 'Miss!';
+              color = '#888';
+            }
+
+            return (
+              <span style={{ color }}>
+                {`${directionLabel} attack — Rolled ${String(roll)} (needed ≥${String(threshold)}) — ${outcome}${damageStr}`}
+              </span>
+            );
+          }
+
+          // Fallback for old actions
           if (hit) {
-            return `Attacked and hit for ${damage} damage`;
+            return `Attacked and hit for ${String(damage)} damage`;
           }
           return 'Attacked and missed';
         }
@@ -44,9 +77,9 @@ export function GameHistory() {
       case 'defend':
         return 'Defending';
       case 'end_turn': {
-        const facing = action.action_data.facing as string | undefined;
-        if (facing) {
-          return `Ended turn, facing ${facing}`;
+        const facingTile = action.action_data.facing_tile as { x: number; y: number } | undefined;
+        if (facingTile) {
+          return `Ended turn, facing (${facingTile.x},${facingTile.y})`;
         }
         return 'Ended turn';
       }

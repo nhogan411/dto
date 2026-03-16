@@ -9,7 +9,7 @@ RSpec.describe GameStateService do
       _defender = create(:character, game:, user: game.challenged, position: { x: 1, y: 2 })
 
       old_action = create(:game_action, game:, character: attacker, turn_number: 1, sequence_number: 0, action_type: :move)
-      new_action = create(:game_action, game:, character: attacker, turn_number: 1, sequence_number: 1, action_type: :end_turn)
+      new_action = create(:game_action, game:, character: attacker, turn_number: 1, sequence_number: 1, action_type: :attack)
 
       snapshot = described_class.new(game).snapshot
 
@@ -21,6 +21,7 @@ RSpec.describe GameStateService do
         winner_id: game.winner_id,
         board_config: game.board_config
       )
+      expect(snapshot[:turn_number]).to eq(1)
       expect(snapshot[:characters].size).to eq(2)
       expect(snapshot[:characters].first).to include(:id, :user_id, :position, :facing_tile, :current_hp, :max_hp, :is_defending, :stats, :alive)
       expect(snapshot[:last_action]["id"]).to eq(new_action.id)

@@ -1,5 +1,12 @@
 import apiClient from './client';
 
+export interface AttackPreviewResponse {
+  direction: string;
+  threshold: number;
+  hit_chance_percent: number;
+  is_defending: boolean;
+}
+
 export interface ApiCharacter {
   id: number;
   user_id: number;
@@ -47,7 +54,7 @@ export interface ApiGameSnapshot {
   board_config: { blocked_squares: number[][]; start_positions: number[][] };
   characters: ApiCharacter[];
   last_action: ApiGameAction | null;
-  turn_number?: number;
+  turn_number: number;
 }
 
 export interface GameResponse {
@@ -70,6 +77,11 @@ export interface GameHistoryAction {
   action_data: Record<string, unknown>;
   turn_number: number;
   sequence_number: number;
+  /**
+   * For attack actions (after v1.0.2), includes D20 fields:
+   * roll: number (1-20), threshold: number, direction: string,
+   * hit: boolean, critical: boolean, damage: number
+   */
   result_data: Record<string, unknown> | null;
 }
 
@@ -93,4 +105,6 @@ export const gameApi = {
   declineGame: (id: number) => apiClient.patch<GameResponse>(`/games/${id}/decline`),
   choosePosition: (id: number, params: { starting_position_index: number }) =>
     apiClient.patch<GameResponse>(`/games/${id}/choose_position`, params),
+  getAttackPreview: (gameId: number, targetCharacterId: number) =>
+    apiClient.get<{ data: AttackPreviewResponse }>(`/games/${gameId}/attack_preview?target_character_id=${targetCharacterId}`),
 };

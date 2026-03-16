@@ -14,6 +14,7 @@ export interface GameBoardSquareProps {
   isSelected: boolean;
   isHighlighted: boolean;
   onClick?: () => void;
+  onHover?: () => void;
 }
 
 export function GameBoardSquare({
@@ -22,6 +23,7 @@ export function GameBoardSquare({
   isSelected,
   isHighlighted,
   onClick,
+  onHover,
 }: GameBoardSquareProps) {
   let backgroundColor = '#1e1e1e';
   let borderColor = '#333';
@@ -60,7 +62,11 @@ export function GameBoardSquare({
   };
 
   return (
-    <div style={squareStyle} onClick={onClick}>
+    <div 
+      style={squareStyle} 
+      onClick={onClick} 
+      onMouseEnter={onHover}
+    >
       {character && (
         <>
           <div style={{ fontSize: '1.5rem', lineHeight: 1 }}>

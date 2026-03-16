@@ -12,6 +12,8 @@ export interface GameBoardProps {
   selectedSquare: { x: number; y: number } | null;
   highlightedSquares: { x: number; y: number }[];
   onSquareClick?: (x: number, y: number) => void;
+  onSquareHover?: (x: number, y: number) => void;
+  attackPreview?: import('../../api/game').AttackPreviewResponse | null;
 }
 
 export function GameBoard({
@@ -20,6 +22,8 @@ export function GameBoard({
   selectedSquare,
   highlightedSquares,
   onSquareClick,
+  onSquareHover,
+  attackPreview,
 }: GameBoardProps) {
   const user = useAppSelector((state) => state.auth.user);
 
@@ -85,10 +89,35 @@ export function GameBoard({
           isSelected={isSquareSelected(x, y)}
           isHighlighted={isSquareHighlighted(x, y)}
           onClick={onSquareClick ? () => onSquareClick(x, y) : undefined}
+          onHover={onSquareHover ? () => onSquareHover(x, y) : undefined}
         />
       );
     }
   }
 
-  return <div style={gridStyle}>{squares}</div>;
+  return (
+    <div style={{ position: 'relative' }}>
+      <div style={gridStyle}>{squares}</div>
+      {attackPreview && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          right: '-20px',
+          transform: 'translateX(100%)',
+          background: 'rgba(0,0,0,0.85)',
+          border: '1px solid #666',
+          borderRadius: '6px',
+          padding: '0.5rem 0.75rem',
+          color: '#fff',
+          fontSize: '0.85rem',
+          pointerEvents: 'none',
+          zIndex: 100,
+          whiteSpace: 'nowrap'
+        }}>
+          <div>Attack — {attackPreview.hit_chance_percent}% (need ≥{attackPreview.threshold}) — {attackPreview.direction.charAt(0).toUpperCase() + attackPreview.direction.slice(1)}</div>
+          {attackPreview.is_defending && <div style={{ color: '#f59e0b', marginTop: '4px' }}>(Defending)</div>}
+        </div>
+      )}
+    </div>
+  );
 }

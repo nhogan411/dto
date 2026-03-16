@@ -50,7 +50,7 @@ class GameActionsController < ApplicationController
 
     TurnTimeoutJob.set(wait_until: game.turn_deadline).perform_later(game.id, game.turn_deadline.iso8601) if turn_changed
 
-    Broadcaster.game_action_completed(game, action.result_data)
+    Broadcaster.game_action_completed(game.reload, action)
     Broadcaster.turn_changed(game) if turn_changed
     Broadcaster.game_over(game) if game_over
 
@@ -73,6 +73,47 @@ class GameActionsController < ApplicationController
     render json: {
       data: {
         actions: game.game_actions.order(:turn_number, :sequence_number).as_json
+      }
+    }, status: :ok
+  rescue ActiveRecord::RecordNotFound
+    render json: { errors: [ "Game not found" ] }, status: :not_found
+  rescue ActionValidators::BaseValidator::ValidationError => e
+    render json: { errors: [ e.message ] }, status: :unprocessable_content
+  end
+
+  def attack_preview
+    game = Game.includes(:characters).find(params[:id])
+    actor = actor_for(game)
+    ensure_active_game!(game)
+    ensure_player!(actor)
+
+    target_character_id = params[:target_character_id].to_i
+    target = game.characters.find_by(id: target_character_id)
+
+    raise ActionValidators::BaseValidator::ValidationError, "Target not found" unless target
+    raise ActionValidators::BaseValidator::ValidationError, "Cannot preview attack on own character" if target.user_id == current_user.id
+    raise ActionValidators::BaseValidator::ValidationError, "Target is not alive" unless target.alive?
+
+    threshold = CombatCalculator.success_rate(
+      actor.position.with_indifferent_access,
+      actor.facing_tile.with_indifferent_access,
+      target.position.with_indifferent_access,
+      target.facing_tile.with_indifferent_access,
+      target.is_defending
+    )
+    direction = CombatCalculator.attack_direction(
+      actor.position.with_indifferent_access,
+      target.position.with_indifferent_access,
+      target.facing_tile.with_indifferent_access
+    )
+    hit_chance_percent = threshold > 20 ? 5 : [ ((21 - threshold) / 20.0 * 100).round, 5 ].max
+
+    render json: {
+      data: {
+        direction: direction.to_s,
+        threshold: threshold,
+        hit_chance_percent: hit_chance_percent,
+        is_defending: target.is_defending
       }
     }, status: :ok
   rescue ActiveRecord::RecordNotFound
@@ -182,11 +223,19 @@ class GameActionsController < ApplicationController
     )
     roll = CombatCalculator.roll_attack(success_rate, rand_val: action_data_param[:rand_val] || action_data_param["rand_val"])
     target_hp_remaining = [ target.current_hp - roll[:damage].to_i, 0 ].max
+    direction = CombatCalculator.attack_direction(
+      actor.position.with_indifferent_access,
+      target.position.with_indifferent_access,
+      target.facing_tile.with_indifferent_access
+    )
 
     {
       hit: roll[:hit],
       critical: roll[:critical],
       damage: roll[:damage],
+      roll: roll[:roll],
+      threshold: success_rate,
+      direction: direction.to_s,
       target_hp_remaining: target_hp_remaining,
       success_rate: success_rate,
       target_id: target.id

@@ -10,7 +10,6 @@ import {
   startReplay,
   selectCharacter,
   gameActionsReceived,
-  appendGameAction,
   type GameChannelMessage,
 } from '../store/slices/gameSlice';
 import { GameBoard } from '../components/game/GameBoard';
@@ -20,7 +19,7 @@ import { CharacterInfo } from '../components/game/CharacterInfo';
 import { GameHistory } from '../components/game/GameHistory';
 import { useGameChannel } from '../cable/useGameChannel';
 import { fetchReplayActions } from '../services/replayService';
-import { gameApi, type GameHistoryAction } from '../api/game';
+import { gameApi, type AttackPreviewResponse } from '../api/game';
 
 export default function GamePage() {
   const { id } = useParams<{ id: string }>();
@@ -34,16 +33,12 @@ export default function GamePage() {
   const [selectedSquare, setSelectedSquare] = useState<{ x: number; y: number } | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<number | null>(null);
   const [activeMode, setActiveMode] = useState<'move' | 'attack' | null>(null);
+  const [attackPreview, setAttackPreview] = useState<AttackPreviewResponse | null>(null);
+  const [previewTarget, setPreviewTarget] = useState<number | null>(null);
 
   const onGameChannelMessage = useCallback(
     (data: GameChannelMessage) => {
       dispatch(handleGameChannelMessage(data));
-      if (data.event === 'action_completed' && data.data && typeof data.data === 'object' && 'action' in data.data) {
-        const actionPayload = (data.data as Record<string, unknown>).action as GameHistoryAction;
-        if (actionPayload) {
-          dispatch(appendGameAction(actionPayload));
-        }
-      }
     },
     [dispatch],
   );
@@ -51,6 +46,8 @@ export default function GamePage() {
   useGameChannel(parsedGameId, onGameChannelMessage);
 
   useEffect(() => {
+    let gameActionsCanceled = false;
+
     if (parsedGameId !== null) {
       void dispatch(fetchGameThunk(parsedGameId)).then(() => {
         void dispatch(fetchGameStateThunk(parsedGameId)).then((result) => {
@@ -66,6 +63,7 @@ export default function GamePage() {
       });
       gameApi.getGameActions(parsedGameId)
         .then((res) => {
+          if (gameActionsCanceled) return;
           if (res.data?.data?.actions && Array.isArray(res.data.data.actions)) {
             dispatch(gameActionsReceived(res.data.data.actions));
           }
@@ -74,6 +72,7 @@ export default function GamePage() {
     }
 
     return () => {
+      gameActionsCanceled = true;
       dispatch(clearGame());
     };
   }, [dispatch, parsedGameId, currentUserId]);
@@ -127,6 +126,36 @@ export default function GamePage() {
 
     setSelectedSquare({ x, y });
   };
+
+  const handleSquareHover = (x: number, y: number) => {
+    if (activeMode !== 'attack' || !gameState || parsedGameId === null || !currentUserId) return;
+
+    const char = gameState.characters.find((c) => c.position.x === x && c.position.y === y);
+    if (char && char.userId !== currentUserId) {
+      if (previewTarget !== char.id) {
+        setPreviewTarget(char.id);
+        gameApi.getAttackPreview(parsedGameId, char.id)
+          .then((res) => {
+            setAttackPreview(res.data.data);
+          })
+          .catch(() => {
+            setAttackPreview(null);
+          });
+      }
+    } else {
+      if (previewTarget !== null) {
+        setPreviewTarget(null);
+        setAttackPreview(null);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (activeMode !== 'attack') {
+      setPreviewTarget(null);
+      setAttackPreview(null);
+    }
+  }, [activeMode]);
 
   const getHighlightedSquares = () => {
     if (activeMode !== 'move' || !gameState || !currentUserId) return [];
@@ -221,6 +250,8 @@ export default function GamePage() {
             selectedSquare={selectedSquare}
             highlightedSquares={getHighlightedSquares()}
             onSquareClick={handleSquareClick}
+            onSquareHover={handleSquareHover}
+            attackPreview={attackPreview}
           />
 
           <ActionControls
