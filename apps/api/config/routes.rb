@@ -23,6 +23,7 @@ Rails.application.routes.draw do
     member do
       patch :accept
       patch :decline
+      patch :choose_position
       get :state
       get :replay
       post :actions, to: "game_actions#create"

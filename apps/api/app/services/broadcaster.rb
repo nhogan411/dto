@@ -31,6 +31,10 @@ class Broadcaster
     broadcast_to_user(user, { event: "your_turn", game_id: game.id })
   end
 
+  def self.position_pick_needed(user, game)
+    broadcast_to_user(user, { event: "position_pick_needed", game_id: game.id })
+  end
+
   private_class_method def self.broadcast_to_game(game, data)
     ActionCable.server.broadcast(GameChannel.broadcasting_for(game), data)
   end

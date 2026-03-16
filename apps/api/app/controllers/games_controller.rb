@@ -4,10 +4,10 @@ class GamesController < ApplicationController
   class GameError < StandardError; end
 
   VALID_STARTING_POSITION_INDICES = [ 0, 1 ].freeze
-  VISIBLE_STATUSES = [ :pending, :active ].freeze
+   VISIBLE_STATUSES = [ :pending, :active, :accepted ].freeze
 
   before_action :authenticate_user!
-  before_action :set_game, only: [ :show, :accept, :decline ]
+  before_action :set_game, only: [ :show, :accept, :decline, :choose_position ]
   before_action :set_game_for_player!, only: [ :state, :replay ]
 
   def create
@@ -55,10 +55,16 @@ class GamesController < ApplicationController
   def accept
     return render_forbidden unless challenged_player?
 
-    starting_position_index = parse_starting_position_index
-    return render_unprocessable_entity("starting_position_index must be 0 or 1") unless VALID_STARTING_POSITION_INDICES.include?(starting_position_index)
-
     first_move = params[:first_move] == true || params[:first_move] == "true"
+
+    starting_position_index = parse_starting_position_index
+
+    if first_move && params[:starting_position_index].nil?
+      accept_first_move
+      return
+    end
+
+    return render_unprocessable_entity("starting_position_index must be 0 or 1") unless VALID_STARTING_POSITION_INDICES.include?(starting_position_index)
 
     @game.with_lock do
       raise GameError, "Game is not pending" unless @game.pending?
@@ -97,6 +103,39 @@ class GamesController < ApplicationController
     @game.update!(status: :forfeited)
 
     render json: { data: { game: serialize_game(@game.reload) } }
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { errors: e.record.errors.full_messages.presence || [ e.message ] }, status: :unprocessable_entity
+  end
+
+  def choose_position
+    return render_forbidden unless challenger_player?
+
+    starting_position_index = parse_starting_position_index
+    return render_unprocessable_entity("starting_position_index must be 0 or 1") unless VALID_STARTING_POSITION_INDICES.include?(starting_position_index)
+
+    @game.with_lock do
+      raise GameError, "Game is not accepted" unless @game.accepted?
+
+      start_positions = start_positions_for(@game)
+      challenger_position = start_positions[starting_position_index]
+      challenged_position = start_positions[1 - starting_position_index]
+
+      challenger_character = @game.characters.find_by!(user_id: current_user.id)
+      challenger_character.update!(character_position_attributes(challenger_position))
+
+      challenged_user = User.find(@game.challenged_id)
+      @game.characters.create!(character_attributes_for(challenged_user, challenged_position))
+
+      @game.update!(status: :active, turn_deadline: Time.current + @game.turn_time_limit.seconds)
+    end
+
+    TurnTimeoutJob.set(wait_until: @game.turn_deadline).perform_later(@game.id, @game.turn_deadline.iso8601)
+
+    broadcast_game_acceptance(@game.reload)
+
+    render json: { data: { game: serialize_game(@game) } }
+  rescue GameError => e
+    render json: { errors: [ e.message ] }, status: :unprocessable_entity
   rescue ActiveRecord::RecordInvalid => e
     render json: { errors: e.record.errors.full_messages.presence || [ e.message ] }, status: :unprocessable_entity
   end
@@ -140,6 +179,10 @@ class GamesController < ApplicationController
     @game.challenged_id == current_user.id
   end
 
+  def challenger_player?
+    @game.challenger_id == current_user.id
+  end
+
   def set_game_for_player!
     @game = Game.includes(:characters, :game_actions).find_by(id: params[:id])
     return render_not_found unless @game
@@ -154,6 +197,18 @@ class GamesController < ApplicationController
 
   def parse_starting_position_index
     Integer(params[:starting_position_index], exception: false)
+  end
+
+  def accept_first_move
+    @game.with_lock do
+      raise GameError, "Game is not pending" unless @game.pending?
+
+      @game.update!(status: :accepted, current_turn_user_id: current_user.id)
+    end
+
+    Broadcaster.position_pick_needed(@game.challenger, @game)
+
+    render json: { data: { game: serialize_game(@game.reload) } }
   end
 
   def friends?(first_user, second_user)

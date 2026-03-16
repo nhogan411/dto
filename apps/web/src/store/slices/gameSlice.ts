@@ -14,7 +14,7 @@ export interface CharacterState {
 
 export interface GameState {
   id: number;
-  status: 'pending' | 'active' | 'completed' | 'forfeited';
+  status: 'pending' | 'active' | 'completed' | 'forfeited' | 'accepted';
   boardConfig: { blocked_squares: number[][]; start_positions: number[][] };
   currentTurnUserId: number;
   characters: CharacterState[];

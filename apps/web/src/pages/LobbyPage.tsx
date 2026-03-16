@@ -63,6 +63,18 @@ export default function LobbyPage() {
     setIsProcessing(true);
     try {
       await gameApi.acceptGame(parsedGameId, params);
+      navigate(params.first_move ? '/' : `/games/${parsedGameId}`);
+    } catch (err) {
+      console.error(err);
+      setIsProcessing(false);
+    }
+  };
+
+  const handleChoosePosition = async (startingPositionIndex: number) => {
+    if (parsedGameId === null) return;
+    setIsProcessing(true);
+    try {
+      await gameApi.choosePosition(parsedGameId, { starting_position_index: startingPositionIndex });
       navigate(`/games/${parsedGameId}`);
     } catch (err) {
       console.error(err);
@@ -173,9 +185,15 @@ export default function LobbyPage() {
       <h1>{isChallenger ? 'Game Lobby' : 'Game Invitation'}</h1>
       
       {isChallenger ? (
-        <p style={{ fontSize: '18px', color: 'var(--text)' }}>Waiting for opponent to accept...</p>
+        currentGame.status === 'accepted' ? (
+          <p style={{ fontSize: '18px', color: 'var(--text)' }}>Your opponent chose first move!</p>
+        ) : (
+          <p style={{ fontSize: '18px', color: 'var(--text)' }}>Waiting for opponent to accept...</p>
+        )
       ) : (
-        <p style={{ fontSize: '18px', color: 'var(--text)' }}>You have been challenged!</p>
+        currentGame.status === 'accepted' ? null : (
+          <p style={{ fontSize: '18px', color: 'var(--text)' }}>You have been challenged!</p>
+        )
       )}
 
       {renderBoardPreview()}
@@ -186,47 +204,75 @@ export default function LobbyPage() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
         {isChallenger ? (
-          <button 
-            style={dangerButtonStyle} 
-            onClick={() => void handleDecline()}
-            disabled={isProcessing}
-          >
-            Cancel Game
-          </button>
-        ) : (
-          <>
-            <h3 style={{ margin: '0 0 1rem 0' }}>Make your choice:</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
-              <button 
-                style={buttonStyle}
-                onClick={() => void handleAccept({ first_move: true })}
-                disabled={isProcessing}
-              >
-                I choose first move
-              </button>
-              <button 
-                style={{ ...buttonStyle, background: 'rgba(170, 59, 255, 0.2)' }}
-                onClick={() => void handleAccept({ starting_position_index: 0 })}
-                disabled={isProcessing}
-              >
-                Start at Position A
-              </button>
-              <button 
-                style={{ ...buttonStyle, background: 'rgba(59, 130, 246, 0.2)', borderColor: '#3b82f6', color: '#3b82f6' }}
-                onClick={() => void handleAccept({ starting_position_index: 1 })}
-                disabled={isProcessing}
-              >
-                Start at Position B
-              </button>
-            </div>
+          currentGame.status === 'accepted' ? (
+            <>
+              <h3 style={{ margin: '0 0 1rem 0' }}>Your opponent chose first move. Pick your starting position:</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
+                <button 
+                  style={{ ...buttonStyle, background: 'rgba(170, 59, 255, 0.2)' }}
+                  onClick={() => void handleChoosePosition(0)}
+                  disabled={isProcessing}
+                >
+                  Start at Position A
+                </button>
+                <button 
+                  style={{ ...buttonStyle, background: 'rgba(59, 130, 246, 0.2)', borderColor: '#3b82f6', color: '#3b82f6' }}
+                  onClick={() => void handleChoosePosition(1)}
+                  disabled={isProcessing}
+                >
+                  Start at Position B
+                </button>
+              </div>
+            </>
+          ) : (
             <button 
-              style={{ ...dangerButtonStyle, marginTop: '1rem' }} 
+              style={dangerButtonStyle} 
               onClick={() => void handleDecline()}
               disabled={isProcessing}
             >
-              Decline Invitation
+              Cancel Game
             </button>
-          </>
+          )
+        ) : (
+          currentGame.status === 'accepted' ? (
+            <p style={{ fontSize: '18px', color: 'var(--text)' }}>
+              Waiting for {currentGame.challenger_username} to pick their starting position...
+            </p>
+          ) : (
+            <>
+              <h3 style={{ margin: '0 0 1rem 0' }}>Make your choice:</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
+                <button 
+                  style={buttonStyle}
+                  onClick={() => void handleAccept({ first_move: true })}
+                  disabled={isProcessing}
+                >
+                  I choose first move
+                </button>
+                <button 
+                  style={{ ...buttonStyle, background: 'rgba(170, 59, 255, 0.2)' }}
+                  onClick={() => void handleAccept({ starting_position_index: 0 })}
+                  disabled={isProcessing}
+                >
+                  Start at Position A
+                </button>
+                <button 
+                  style={{ ...buttonStyle, background: 'rgba(59, 130, 246, 0.2)', borderColor: '#3b82f6', color: '#3b82f6' }}
+                  onClick={() => void handleAccept({ starting_position_index: 1 })}
+                  disabled={isProcessing}
+                >
+                  Start at Position B
+                </button>
+              </div>
+              <button 
+                style={{ ...dangerButtonStyle, marginTop: '1rem' }} 
+                onClick={() => void handleDecline()}
+                disabled={isProcessing}
+              >
+                Decline Invitation
+              </button>
+            </>
+          )
         )}
       </div>
     </div>

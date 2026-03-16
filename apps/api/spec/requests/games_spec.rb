@@ -157,6 +157,44 @@ RSpec.describe "Games", type: :request do
         expect(game.current_turn_user_id).to eq(challenged.id)
       end
     end
+
+    it "accepts into accepted status when first_move is true without starting position" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :pending, turn_time_limit: 3600, board_config: board_config)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+
+      expect(Broadcaster).to receive(:position_pick_needed).with(challenger, game)
+
+      patch "/games/#{game.id}/accept", params: { first_move: true }, headers: headers
+
+      expect(response).to have_http_status(:ok)
+
+      game.reload
+      expect(game.status).to eq("accepted")
+      expect(game.current_turn_user_id).to eq(challenged.id)
+      expect(game.turn_deadline).to be_nil
+      expect(game.characters.count).to eq(1)
+      expect(game.characters.exists?(user_id: challenged.id)).to be(false)
+    end
+
+    it "returns 422 when first_move accept is attempted for a non-pending game" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, turn_time_limit: 3600, board_config: board_config)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+
+      patch "/games/#{game.id}/accept", params: { first_move: true }, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json_response.fetch("errors")).to include("Game is not pending")
+    end
+
+    it "returns 422 when starting_position_index is missing and first_move is not true" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :pending, turn_time_limit: 3600, board_config: board_config)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+
+      patch "/games/#{game.id}/accept", headers: headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json_response.fetch("errors")).to include("starting_position_index must be 0 or 1")
+    end
   end
 
   describe "PATCH /games/:id/decline" do
@@ -172,6 +210,114 @@ RSpec.describe "Games", type: :request do
       expect(response).to have_http_status(:ok)
       expect(game.reload.status).to eq("forfeited")
       expect(json_response.dig("data", "game", "status")).to eq("forfeited")
+    end
+  end
+
+  describe "PATCH /games/:id/choose_position" do
+    let(:challenger) { create(:user) }
+    let(:challenged) { create(:user) }
+    let(:headers) { auth_headers(challenger) }
+    let(:board_config) { { blocked_squares: [], start_positions: [ [ 1, 1 ], [ 8, 8 ] ] } }
+
+    it "activates an accepted game when challenger chooses position index 0" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, turn_time_limit: 3600, board_config: board_config)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+
+      travel_to Time.zone.parse("2026-03-14 12:00:00") do
+        expect {
+          patch "/games/#{game.id}/choose_position", params: { starting_position_index: 0 }, headers: headers
+        }.to have_enqueued_job(TurnTimeoutJob).with(game.id, (Time.current + 3600.seconds).iso8601)
+
+        expect(response).to have_http_status(:ok)
+
+        game.reload
+        challenger_character = game.characters.find_by!(user_id: challenger.id)
+        challenged_character = game.characters.find_by!(user_id: challenged.id)
+
+        expect(game.status).to eq("active")
+        expect(game.current_turn_user_id).to eq(challenged.id)
+        expect(game.turn_deadline).to eq(Time.current + 3600.seconds)
+        expect(challenger_character.position).to eq({ "x" => 1, "y" => 1 })
+        expect(challenged_character.position).to eq({ "x" => 8, "y" => 8 })
+        expect(json_response.dig("data", "game", "status")).to eq("active")
+        expect(json_response.dig("data", "game", "current_turn_user_id")).to eq(challenged.id)
+      end
+    end
+
+    it "assigns opposite positions when challenger chooses position index 1" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, turn_time_limit: 3600, board_config: board_config)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+
+      patch "/games/#{game.id}/choose_position", params: { starting_position_index: 1 }, headers: headers
+
+      expect(response).to have_http_status(:ok)
+
+      game.reload
+      challenger_character = game.characters.find_by!(user_id: challenger.id)
+      challenged_character = game.characters.find_by!(user_id: challenged.id)
+
+      expect(challenger_character.position).to eq({ "x" => 8, "y" => 8 })
+      expect(challenged_character.position).to eq({ "x" => 1, "y" => 1 })
+    end
+
+    it "returns 403 when challenged player attempts to choose a position" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, turn_time_limit: 3600, board_config: board_config)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+
+      patch "/games/#{game.id}/choose_position", params: { starting_position_index: 0 }, headers: auth_headers(challenged)
+
+      expect(response).to have_http_status(:forbidden)
+      expect(json_response.fetch("errors")).to include("Forbidden")
+    end
+
+    it "returns 404 when a random user attempts to choose a position" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, turn_time_limit: 3600, board_config: board_config)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+
+      patch "/games/#{game.id}/choose_position", params: { starting_position_index: 0 }, headers: auth_headers(create(:user))
+
+      expect(response).to have_http_status(:not_found)
+      expect(json_response.fetch("errors")).to include("Game not found")
+    end
+
+    it "returns 422 when game is pending" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :pending, current_turn_user_id: challenged.id, turn_time_limit: 3600, board_config: board_config)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+
+      patch "/games/#{game.id}/choose_position", params: { starting_position_index: 0 }, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json_response.fetch("errors")).to include("Game is not accepted")
+    end
+
+    it "returns 422 when game is active" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :active, current_turn_user_id: challenged.id, turn_time_limit: 3600, board_config: board_config)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+
+      patch "/games/#{game.id}/choose_position", params: { starting_position_index: 0 }, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json_response.fetch("errors")).to include("Game is not accepted")
+    end
+
+    it "returns 422 when starting_position_index is missing" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, turn_time_limit: 3600, board_config: board_config)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+
+      patch "/games/#{game.id}/choose_position", headers: headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json_response.fetch("errors")).to include("starting_position_index must be 0 or 1")
+    end
+
+    it "returns 422 when starting_position_index is not 0 or 1" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, turn_time_limit: 3600, board_config: board_config)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+
+      patch "/games/#{game.id}/choose_position", params: { starting_position_index: 2 }, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json_response.fetch("errors")).to include("starting_position_index must be 0 or 1")
     end
   end
 

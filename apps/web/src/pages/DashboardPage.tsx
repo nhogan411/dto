@@ -9,6 +9,7 @@ import {
   addFriendRequestAcceptedNotification,
   addFriendRequestNotification,
   addGameInvitation,
+  addPositionPickNeeded,
   markYourTurn,
 } from '../store/slices/notificationSlice';
 import { fetchFriendRequestsThunk, fetchFriendsThunk } from '../store/slices/friendsSlice';
@@ -90,6 +91,13 @@ export default function DashboardPage() {
           void dispatch(fetchFriendsThunk());
           break;
         }
+        case 'position_pick_needed': {
+          if (typeof data.game_id === 'number') {
+            dispatch(addPositionPickNeeded({ gameId: data.game_id }));
+            void dispatch(fetchGamesThunk());
+          }
+          break;
+        }
         default:
           break;
       }
@@ -132,15 +140,16 @@ export default function DashboardPage() {
     }
   };
 
-  const activeGames = games.filter(g => g.status === 'active' || g.status === 'pending' && g.challenger_id === user?.id);
+  const activeGames = games.filter(g => g.status === 'active' || (g.status === 'pending' && g.challenger_id === user?.id) || g.status === 'accepted');
   const pendingInvitations = games.filter(g => g.status === 'pending' && g.challenged_id === user?.id);
   const completedGames = games.filter(g => g.status === 'completed' || g.status === 'forfeited');
 
-  const statusBadgeStyles: Record<'pending' | 'active' | 'completed' | 'forfeited', { backgroundColor: string; color: string }> = {
+  const statusBadgeStyles: Record<'pending' | 'active' | 'completed' | 'forfeited' | 'accepted', { backgroundColor: string; color: string }> = {
     pending: { backgroundColor: '#f59e0b', color: '#fff' },
     active: { backgroundColor: '#3b82f6', color: '#fff' },
     completed: { backgroundColor: '#22c55e', color: '#052e16' },
     forfeited: { backgroundColor: '#f97316', color: '#fff' },
+    accepted: { backgroundColor: '#8b5cf6', color: '#fff' },
   };
 
   return (
@@ -311,8 +320,17 @@ export default function DashboardPage() {
                 {game.status === 'pending' && (
                   <div style={{ color: '#9ca3af' }}>Waiting for opponent to accept...</div>
                 )}
+                {game.status === 'accepted' && (
+                  <div style={{ color: game.challenger_id === user?.id ? '#a78bfa' : '#9ca3af', fontWeight: 'bold' }}>
+                    {game.challenger_id === user?.id ? 'Choose your starting position!' : 'Waiting for challenger...'}
+                  </div>
+                )}
                 <button
-                  onClick={() => navigate(`/games/${game.id}`)}
+                  onClick={() => navigate(
+                    (game.status === 'pending' || game.status === 'accepted')
+                      ? `/games/${game.id}/lobby`
+                      : `/games/${game.id}`
+                  )}
                   style={{ marginTop: '0.5rem', backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                 >
                   View Game

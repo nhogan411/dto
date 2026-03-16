@@ -14,7 +14,7 @@ export interface ApiCharacter {
 
 export interface ApiGame {
   id: number;
-  status: 'pending' | 'active' | 'completed' | 'forfeited';
+  status: 'pending' | 'active' | 'completed' | 'forfeited' | 'accepted';
   board_config: { blocked_squares: number[][]; start_positions: number[][] };
   current_turn_user_id: number;
   challenger_id: number;
@@ -40,7 +40,7 @@ export interface ApiGameAction {
 
 export interface ApiGameSnapshot {
   game_id: number;
-  status: 'pending' | 'active' | 'completed' | 'forfeited';
+  status: 'pending' | 'active' | 'completed' | 'forfeited' | 'accepted';
   current_turn_user_id: number;
   turn_deadline: string | null;
   winner_id: number | null;
@@ -91,4 +91,6 @@ export const gameApi = {
   acceptGame: (id: number, params?: { first_move?: boolean; starting_position_index?: number }) =>
     apiClient.patch<GameResponse>(`/games/${id}/accept`, params),
   declineGame: (id: number) => apiClient.patch<GameResponse>(`/games/${id}/decline`),
+  choosePosition: (id: number, params: { starting_position_index: number }) =>
+    apiClient.patch<GameResponse>(`/games/${id}/choose_position`, params),
 };

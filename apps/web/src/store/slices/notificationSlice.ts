@@ -4,7 +4,8 @@ export type NotificationType =
   | 'game_invitation'
   | 'friend_request'
   | 'your_turn'
-  | 'friend_request_accepted';
+  | 'friend_request_accepted'
+  | 'position_pick_needed';
 
 export interface Notification {
   id: string;
@@ -100,6 +101,16 @@ const notificationSlice = createSlice({
       );
       syncCount(state);
     },
+    addPositionPickNeeded: (state, action: PayloadAction<{ gameId: number }>) => {
+      state.notifications.unshift(
+        buildNotification({
+          type: 'position_pick_needed',
+          message: `Choose your starting position for game #${action.payload.gameId}.`,
+          gameId: action.payload.gameId,
+        }),
+      );
+      syncCount(state);
+    },
     dismissNotification: (state, action: PayloadAction<string>) => {
       state.notifications = state.notifications.filter(
         (notification) => notification.id !== action.payload,
@@ -121,6 +132,7 @@ export const {
   addFriendRequestNotification,
   addFriendRequestAcceptedNotification,
   markYourTurn,
+  addPositionPickNeeded,
   dismissNotification,
   markAllRead,
 } = notificationSlice.actions;
