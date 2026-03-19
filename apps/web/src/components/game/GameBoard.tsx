@@ -15,6 +15,7 @@ export interface GameBoardProps {
   attackPreview?: import('../../api/game').AttackPreviewResponse | null;
   challengerId?: number;
   challengedId?: number;
+  renderingMode?: 'token';
 }
 
 export function GameBoard({
@@ -27,6 +28,7 @@ export function GameBoard({
   attackPreview,
   challengerId,
   challengedId,
+  renderingMode,
 }: GameBoardProps) {
   const user = useAppSelector((state) => state.auth.user);
 
@@ -95,6 +97,7 @@ export function GameBoard({
           isHighlighted={isSquareHighlighted(x, y)}
           onClick={onSquareClick ? (e) => onSquareClick(x, y, e) : undefined}
           onHover={onSquareHover ? () => onSquareHover(x, y) : undefined}
+          renderingMode={renderingMode}
         />
       );
     }
