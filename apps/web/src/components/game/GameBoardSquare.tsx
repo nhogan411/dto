@@ -1,4 +1,5 @@
 import React from 'react';
+import { CharacterRenderer } from './CharacterRenderer';
 
 export interface GameBoardSquareProps {
   x: number;
@@ -17,6 +18,7 @@ export interface GameBoardSquareProps {
   isHighlighted: boolean;
   onClick?: (e: React.MouseEvent) => void;
   onHover?: () => void;
+  renderingMode?: 'token';
 }
 
 export function GameBoardSquare({
@@ -28,6 +30,7 @@ export function GameBoardSquare({
   isHighlighted,
   onClick,
   onHover,
+  renderingMode,
 }: GameBoardSquareProps) {
   let backgroundColor = '#1e1e1e';
   let borderColor = '#333';
@@ -58,13 +61,6 @@ export function GameBoardSquare({
     position: 'relative',
   };
 
-  const getHpColor = (current: number, max: number) => {
-    const ratio = current / max;
-    if (ratio > 0.5) return '#4ade80';
-    if (ratio >= 0.25) return '#fbbf24';
-    return '#ef4444';
-  };
-
   return (
     <div 
       style={squareStyle} 
@@ -82,41 +78,16 @@ export function GameBoardSquare({
       className={(character ? `character-marker ${character.team === 'challenger' ? 'team-blue' : character.team === 'challenged' ? 'team-green' : ''}` : '') + (onClick ? ' focus-ring' : '')}
     >
       {character && (
-        <div style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: character.team === 'challenger' ? 'var(--team-blue)' : character.team === 'challenged' ? 'var(--team-green)' : 'transparent',
-          opacity: character.isDead ? 0.5 : 1,
-          filter: character.isDead ? 'grayscale(100%)' : 'none',
-        }}>
-          <div style={{ fontSize: '1.5rem', lineHeight: 1 }}>
-            {character.isCurrentUser ? '⚔️' : '🛡️'}
-            <span style={{ fontSize: '1rem', marginLeft: '2px' }}>{character.facing}</span>
-          </div>
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '4px',
-              width: '80%',
-              height: '4px',
-              backgroundColor: '#333',
-              borderRadius: '2px',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                height: '100%',
-                width: `${Math.max(0, Math.min(100, (character.currentHp / character.maxHp) * 100))}%`,
-                backgroundColor: getHpColor(character.currentHp, character.maxHp),
-              }}
-            />
-          </div>
-        </div>
+        <CharacterRenderer
+          mode={renderingMode}
+          userId={character.userId}
+          currentHp={character.currentHp}
+          maxHp={character.maxHp}
+          facing={character.facing}
+          isCurrentUser={character.isCurrentUser}
+          team={character.team}
+          isDead={character.isDead}
+        />
       )}
     </div>
   );
