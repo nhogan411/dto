@@ -60,7 +60,7 @@ export interface ApiGameSnapshot {
   turn_deadline: string | null;
   winner_id: number | null;
   board_config: { tiles: Array<Array<{ type: string }>> };
-  acting_character_actions?: { has_moved: boolean; has_attacked: boolean; has_defended: boolean };
+   acting_character_actions?: { has_moved: boolean; has_attacked: boolean; has_defended: boolean; moves_taken: number };
   characters: ApiCharacter[];
   last_action: ApiGameAction | null;
   turn_number: number;

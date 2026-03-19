@@ -70,12 +70,21 @@ export default function GamePage() {
     return 3;
   };
 
+  const getRemainingMoveBudget = (
+    character: typeof actingCharacter,
+  ): number => {
+    if (!character) return 0;
+    const total = getMoveBudget(character);
+    const taken = gameState?.actingCharacterActions?.movesTaken ?? 0;
+    return Math.max(0, total - taken);
+  };
+
   const computeReachableSquares = (character: typeof actingCharacter) => {
     if (!gameState || !character) return [];
 
     return getReachableSquares({
       origin: character.position,
-      moveBudget: getMoveBudget(character),
+      moveBudget: getRemainingMoveBudget(character),
       boardTiles: gameState.boardConfig.tiles,
       characters: gameState.characters,
       currentUserId: character.userId,
@@ -164,7 +173,7 @@ export default function GamePage() {
       const path = getShortestPathToTarget({
         origin: actingCharacter.position,
         target: { x, y },
-        moveBudget: getMoveBudget(actingCharacter),
+        moveBudget: getRemainingMoveBudget(actingCharacter),
         boardTiles: gameState.boardConfig.tiles,
         characters: gameState.characters,
         currentUserId: actingCharacter.userId,
@@ -185,8 +194,15 @@ export default function GamePage() {
           actionData: { path },
         })).then((result) => {
           if (submitActionThunk.fulfilled.match(result)) {
-            setActiveMode(null);
-            clearMoveSelection();
+            const newGameState = result.payload;
+            const newMovesTaken = newGameState.actingCharacterActions?.movesTaken ?? 0;
+            const totalBudget = getMoveBudget(actingCharacter!);
+            if (newMovesTaken < totalBudget) {
+              setSelectedSquare(null);
+            } else {
+              setActiveMode(null);
+              clearMoveSelection();
+            }
           }
         });
       }
@@ -267,6 +283,7 @@ export default function GamePage() {
     gameState?.currentTurnUserId,
     gameState?.actingCharacterId,
     gameState?.currentTurnIndex,
+    gameState?.actingCharacterActions?.movesTaken,
   ]);
 
   const getHighlightedSquares = () => {
@@ -372,6 +389,9 @@ export default function GamePage() {
 
    const teamColor = getActingTeamColor();
 
+   const remainingMoveBudget = actingCharacter ? getRemainingMoveBudget(actingCharacter) : 0;
+   const canMove = !!(isMyTurn && !isSubmitting && activeMode !== 'move' && remainingMoveBudget > 0);
+
    return (
      <div className="p-8 flex flex-col items-center relative">
        <TurnReplay />
@@ -448,7 +468,7 @@ export default function GamePage() {
           onAttack={handlePopoverAttack}
           onDefend={handlePopoverDefend}
           onEndTurn={handlePopoverEndTurn}
-          canMove={!!(isMyTurn && !isSubmitting && activeMode !== 'move' && !gameState.actingCharacterActions?.hasMoved)}
+           canMove={canMove}
           canAttack={!!(isMyTurn && !isSubmitting && activeMode !== 'attack' && !gameState.actingCharacterActions?.hasAttacked && !gameState.actingCharacterActions?.hasDefended)}
           canDefend={!!(isMyTurn && !isSubmitting && !gameState.actingCharacterActions?.hasDefended && !gameState.actingCharacterActions?.hasAttacked)}
           canEndTurn={isMyTurn && !isSubmitting}

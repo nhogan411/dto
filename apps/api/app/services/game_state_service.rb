@@ -34,11 +34,13 @@ class GameStateService
 
     current_turn_number = game.game_actions.where(action_type: :end_turn).count + 1
     actions_in_turn = game.game_actions.where(turn_number: current_turn_number, character_id: actor.id)
+    moves_taken = actions_in_turn.where(action_type: :move).sum("jsonb_array_length(action_data->'path')")
 
     {
       has_moved: actions_in_turn.where(action_type: :move).exists?,
       has_attacked: actions_in_turn.where(action_type: :attack).exists?,
-      has_defended: actions_in_turn.where(action_type: :defend).exists?
+      has_defended: actions_in_turn.where(action_type: :defend).exists?,
+      moves_taken: moves_taken
     }
   end
 

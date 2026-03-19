@@ -26,7 +26,7 @@ export interface GameState {
   turnNumber: number;
   winnerId: number | null;
   turnDeadline: string | null;
-  actingCharacterActions?: { hasMoved: boolean; hasAttacked: boolean; hasDefended: boolean } | null;
+  actingCharacterActions?: { hasMoved: boolean; hasAttacked: boolean; hasDefended: boolean; movesTaken: number } | null;
   challengerPicks?: number[];
   challengedPicks?: number[];
 }
@@ -168,6 +168,7 @@ const mapSnapshotToGameState = (snapshot: ApiGameSnapshot): GameState => ({
     hasMoved: snapshot.acting_character_actions.has_moved,
     hasAttacked: snapshot.acting_character_actions.has_attacked,
     hasDefended: snapshot.acting_character_actions.has_defended,
+    movesTaken: snapshot.acting_character_actions.moves_taken ?? 0,
   } : null,
   challengerPicks: snapshot.challenger_picks,
   challengedPicks: snapshot.challenged_picks,
@@ -267,24 +268,7 @@ export const submitActionThunk = createAsyncThunk<
   }
 
   try {
-    let response;
-    if (
-      actionType === 'move' &&
-      activeCharacter &&
-      actionData.path &&
-      Array.isArray(actionData.path) &&
-      actionData.path.length > 0
-    ) {
-      const path = actionData.path as { x: number; y: number }[];
-      const target = path[path.length - 1];
-      response = await gameApi.submitMoveAction(gameId, {
-        character_id: activeCharacter.id,
-        target_x: target.x,
-        target_y: target.y,
-      });
-    } else {
-      response = await gameApi.submitAction(gameId, actionType, actionData);
-    }
+    const response = await gameApi.submitAction(gameId, actionType, actionData);
     const mappedGameState = mapIncomingGameState(response.data.data.game_state);
 
     if (!mappedGameState) {

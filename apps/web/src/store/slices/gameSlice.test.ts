@@ -319,7 +319,33 @@ describe('gameSlice', () => {
       const state = store.getState().game;
       expect(gameApi.getGame).toHaveBeenCalledWith(1);
       expect(state.status).toBe('succeeded');
-      expect(state.gameState).toEqual(mockGameState);
-    });
-  });
+       expect(state.gameState).toEqual(mockGameState);
+     });
+
+     it('should map moves_taken from snapshot acting_character_actions', async () => {
+       const snapshotWithActions = {
+         ...mockSnapshot,
+         acting_character_actions: {
+           has_moved: true,
+           has_attacked: false,
+           has_defended: false,
+           moves_taken: 2,
+         },
+       };
+       vi.mocked(gameApi.getGameState).mockResolvedValueOnce({
+         data: { data: snapshotWithActions } as any,
+       } as any);
+
+       const store = setupStore();
+       await store.dispatch(fetchGameStateThunk(1));
+
+       const state = store.getState().game;
+       expect(state.gameState?.actingCharacterActions).toEqual({
+         hasMoved: true,
+         hasAttacked: false,
+         hasDefended: false,
+         movesTaken: 2,
+       });
+     });
+   });
 });

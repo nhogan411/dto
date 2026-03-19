@@ -2,11 +2,14 @@
 
 ## Bugs
 
-- [ ] Friend Request shows "Unknown User"
-- [ ] Remove "Offline" badge from Friends area of Dashboard
-- [ ] add a flashing border around the tile for the character whose turn it is
-- [ ] Movement zone showed all the options for where the character could move, but only allowed me to move them one square and then I was unable to make another "move". Each character should be allowed to move until they no longer have moves to make - meaning they could move one square, attack an opponent, and then move two more squares. once they've exhausted all three moves, then we should gray out movement as an option in the action popup.
-- [ ] i didn't get to choose tiles for my characters
+- [x] Friend Request shows "Unknown User"
+- [x] Remove "Offline" badge from Friends area of Dashboard
+- [x] add a flashing border around the tile for the character whose turn it is
+- [x] Movement zone showed all the options for where the character could move, but only allowed me to move them one square and then I was unable to make another "move". Each character should be allowed to move until they no longer have moves to make - meaning they could move one square, attack an opponent, and then move two more squares. once they've exhausted all three moves, then we should gray out movement as an option in the action popup.
+- [ ] i didn't get to choose tiles for my characters at game start
+- [ ] forfeit game option
+- [ ] remove the character action menu below the game board
+- [ ] make the game board color a lighter gray
 
 ## Ready
 
