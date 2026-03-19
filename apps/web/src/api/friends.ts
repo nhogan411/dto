@@ -5,6 +5,7 @@ export interface Friend {
   email: string;
   username: string;
   friendship_id: number;
+  status?: 'online' | 'offline';
 }
 
 export interface UserSearch {

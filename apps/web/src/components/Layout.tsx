@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearCredentials } from '../store/slices/authSlice';
 
@@ -22,13 +22,20 @@ export default function Layout() {
         backgroundColor: '#1e1e1e',
         borderBottom: '1px solid #333' 
       }}>
-        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#4ade80' }}>
+        <Link to="/" style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#4ade80', textDecoration: 'none' }} className="focus-ring rounded px-1">
           DTO
-        </div>
+        </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <Link to="/characters" style={{ color: '#d4d4d4', textDecoration: 'none', fontWeight: 600 }} className="focus-ring rounded px-1">
+            Characters
+          </Link>
+          <Link to="/profile" style={{ color: '#d4d4d4', textDecoration: 'none', fontWeight: 600 }} className="focus-ring rounded px-1">
+            Profile
+          </Link>
           {user && <span style={{ color: '#a3a3a3' }}>{user.username}</span>}
           <button 
             onClick={handleLogout}
+            className="focus-ring"
             style={{
               padding: '0.5rem 1rem',
               backgroundColor: 'transparent',
@@ -50,4 +57,3 @@ export default function Layout() {
     </div>
   );
 }
-

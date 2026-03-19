@@ -96,6 +96,15 @@ const clearAuthState = (state: AuthState) => {
   removeTokens();
 };
 
+const applyUserUpdate = (state: AuthState, payload: Partial<User>) => {
+  if (!state.user) {
+    return;
+  }
+
+  state.user = { ...state.user, ...payload };
+  persistUser(state.user);
+};
+
 const initialState: AuthState = {
   user: getStoredUser(),
   accessToken: getStoredToken(ACCESS_TOKEN_KEY),
@@ -147,6 +156,9 @@ const authSlice = createSlice({
     setCredentials: (state, action: PayloadAction<CredentialsPayload>) => {
       applyCredentials(state, action.payload);
     },
+    updateUser: (state, action: PayloadAction<Partial<User>>) => {
+      applyUserUpdate(state, action.payload);
+    },
     clearCredentials: (state) => {
       clearAuthState(state);
     },
@@ -186,4 +198,5 @@ const authSlice = createSlice({
 });
 
 export const { setCredentials, clearCredentials } = authSlice.actions;
+export const { updateUser } = authSlice.actions;
 export default authSlice.reducer;

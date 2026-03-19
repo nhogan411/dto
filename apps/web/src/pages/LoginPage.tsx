@@ -23,104 +23,72 @@ export default function LoginPage() {
     }
   };
 
+  const isError = error !== null;
+
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      backgroundColor: '#121212',
-      color: '#ffffff',
-      fontFamily: 'sans-serif',
-      justifyContent: 'center',
-      alignItems: 'center'
-    }}>
-      <div style={{
-        backgroundColor: '#1e1e1e',
-        padding: '2rem',
-        borderRadius: '8px',
-        width: '100%',
-        maxWidth: '400px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-        border: '1px solid #333'
-      }}>
-        <h1 style={{ textAlign: 'center', color: '#4ade80', marginBottom: '1.5rem' }}>DTO Login</h1>
+    <div className="flex min-h-screen bg-neutral-950 text-white font-sans justify-center items-center p-4">
+      <div className="bg-neutral-900 p-8 rounded-lg w-full max-w-[400px] shadow-lg border border-neutral-800">
+        <h1 className="text-center text-[var(--team-green)] mb-6 text-3xl font-bold mt-0">DTO Login</h1>
         
         {error && (
-          <div style={{
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            color: '#ef4444',
-            padding: '0.75rem',
-            borderRadius: '4px',
-            marginBottom: '1rem',
-            border: '1px solid #ef4444',
-            textAlign: 'center'
-          }}>
+          <div 
+            id="login-error"
+            className="bg-red-500/10 text-red-500 p-3 rounded mb-4 border border-red-500/50 text-center"
+            role="alert"
+          >
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Email</label>
+            <label htmlFor="email" className="block mb-2 text-sm font-medium text-neutral-200">
+              Email
+            </label>
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                borderRadius: '4px',
-                border: '1px solid #333',
-                backgroundColor: '#2a2a2a',
-                color: 'white',
-                boxSizing: 'border-box'
-              }}
+              aria-invalid={isError}
+              aria-describedby={isError ? "login-error" : undefined}
+              className={`w-full p-3 rounded border bg-neutral-800 text-white box-border focus-ring transition-colors ${
+                isError ? 'border-red-500' : 'border-neutral-700'
+              }`}
             />
           </div>
 
           <div>
-            <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Password</label>
+            <label htmlFor="password" className="block mb-2 text-sm font-medium text-neutral-200">
+              Password
+            </label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                borderRadius: '4px',
-                border: '1px solid #333',
-                backgroundColor: '#2a2a2a',
-                color: 'white',
-                boxSizing: 'border-box'
-              }}
+              aria-invalid={isError}
+              aria-describedby={isError ? "login-error" : undefined}
+              className={`w-full p-3 rounded border bg-neutral-800 text-white box-border focus-ring transition-colors ${
+                isError ? 'border-red-500' : 'border-neutral-700'
+              }`}
             />
           </div>
 
           <button
             type="submit"
             disabled={status === 'loading'}
-            style={{
-              marginTop: '0.5rem',
-              padding: '0.75rem',
-              backgroundColor: status === 'loading' ? '#22c55e88' : '#22c55e',
-              color: 'black',
-              border: 'none',
-              borderRadius: '4px',
-              fontWeight: 'bold',
-              cursor: status === 'loading' ? 'not-allowed' : 'pointer',
-              transition: 'background-color 0.2s'
-            }}
+            className="mt-2 p-3 bg-[var(--team-green)] text-neutral-950 border-none rounded font-bold cursor-pointer focus-ring transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {status === 'loading' ? 'Authenticating...' : 'Login'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem', color: '#a3a3a3' }}>
+        <p className="text-center mt-6 text-sm text-neutral-400">
           Don't have an account?{' '}
-          <Link to="/register" style={{ color: '#4ade80', textDecoration: 'none' }}>
+          <Link to="/register" className="text-[var(--team-green)] no-underline hover:underline focus-ring rounded px-1">
             Register
           </Link>
         </p>

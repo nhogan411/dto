@@ -10,14 +10,18 @@ export interface GameBoardSquareProps {
     maxHp: number;
     facing: string;
     isCurrentUser: boolean;
+    team?: 'challenger' | 'challenged';
+    isDead: boolean;
   } | null;
   isSelected: boolean;
   isHighlighted: boolean;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   onHover?: () => void;
 }
 
 export function GameBoardSquare({
+  x,
+  y,
   isBlocked,
   character,
   isSelected,
@@ -37,7 +41,7 @@ export function GameBoardSquare({
   if (isSelected) {
     borderColor = '#fbbf24';
   } else if (character) {
-    borderColor = character.isCurrentUser ? '#4ade80' : '#ef4444';
+    borderColor = character.team === 'challenger' ? 'var(--team-blue)' : character.team === 'challenged' ? 'var(--team-green)' : (character.isCurrentUser ? '#4ade80' : '#ef4444');
   }
 
   const squareStyle: React.CSSProperties = {
@@ -64,11 +68,31 @@ export function GameBoardSquare({
   return (
     <div 
       style={squareStyle} 
-      onClick={onClick} 
+      onClick={onClick}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick(e as unknown as React.MouseEvent);
+        }
+      } : undefined}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={`Board square ${x}, ${y}${character ? ', occupied' : ''}`}
       onMouseEnter={onHover}
+      className={(character ? `character-marker ${character.team === 'challenger' ? 'team-blue' : character.team === 'challenged' ? 'team-green' : ''}` : '') + (onClick ? ' focus-ring' : '')}
     >
       {character && (
-        <>
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: character.team === 'challenger' ? 'var(--team-blue)' : character.team === 'challenged' ? 'var(--team-green)' : 'transparent',
+          opacity: character.isDead ? 0.5 : 1,
+          filter: character.isDead ? 'grayscale(100%)' : 'none',
+        }}>
           <div style={{ fontSize: '1.5rem', lineHeight: 1 }}>
             {character.isCurrentUser ? '⚔️' : '🛡️'}
             <span style={{ fontSize: '1rem', marginLeft: '2px' }}>{character.facing}</span>
@@ -92,7 +116,7 @@ export function GameBoardSquare({
               }}
             />
           </div>
-        </>
+        </div>
       )}
     </div>
   );

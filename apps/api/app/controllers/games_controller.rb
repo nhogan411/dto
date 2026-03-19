@@ -23,6 +23,7 @@ class GamesController < ApplicationController
         challenger: current_user,
         challenged: challenged_user,
         status: :pending,
+        expires_at: 48.hours.from_now,
         turn_time_limit: create_params[:turn_time_limit],
         board_config: BoardGenerator.call
       )
@@ -273,14 +274,13 @@ class GamesController < ApplicationController
      }
    end
 
-  def serialize_board_config(board_config)
-    config = board_config.with_indifferent_access
+   def serialize_board_config(board_config)
+     config = board_config.with_indifferent_access
 
-    {
-      blocked_squares: config[:blocked_squares],
-      start_positions: config[:start_positions]
-    }
-  end
+     {
+       tiles: config[:tiles]
+     }
+   end
 
   def serialize_character(character)
     {

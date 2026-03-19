@@ -36,7 +36,8 @@ module ActionValidators
     end
 
     def validate_turn_ownership!
-      raise ValidationError, "It is not this character's turn" unless game.current_turn_user_id == character.user_id
+      acting_character = game.acting_character
+      raise ValidationError, "It is not this character's turn" if acting_character.nil? || acting_character.id != character.id
     end
 
     def adjacent_cardinal?(from, to)
@@ -45,8 +46,8 @@ module ActionValidators
       dx.abs + dy.abs == 1
     end
 
-    def opponent_character
-      game.characters.find { |c| c.user_id != character.user_id }
+    def other_characters
+      game.characters.select { |c| c.id != character.id }
     end
 
     def normalize_position(position)

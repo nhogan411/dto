@@ -13,6 +13,7 @@ export function CharacterInfo() {
   const dispatch = useAppDispatch();
   const selectedCharacterId = useAppSelector((state) => state.game.selectedCharacterId);
   const gameState = useAppSelector((state) => state.game.gameState);
+  const currentGame = useAppSelector((state) => state.game.currentGame);
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
 
   if (!selectedCharacterId || !gameState) return null;
@@ -23,37 +24,59 @@ export function CharacterInfo() {
   const owner = character.userId === currentUserId ? 'You' : 'Opponent';
   const isActiveTurn = gameState.currentTurnUserId === character.userId;
   const hpPercent = Math.max(0, Math.min(100, (character.currentHp / character.maxHp) * 100));
+  const isDead = character.alive === false || character.currentHp <= 0;
+
+  const isChallenger = character.userId === currentGame?.challenger_id;
+  const isChallenged = character.userId === currentGame?.challenged_id;
+  const teamColor = isChallenger ? 'var(--team-blue)' : isChallenged ? 'var(--team-green)' : '#888';
+  const teamName = isChallenger ? 'Challenger' : isChallenged ? 'Challenged' : 'Unknown';
 
   return (
-    <div style={{ padding: '1rem', border: '1px solid #444', borderRadius: '8px', marginBottom: '1rem', background: '#222' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-        <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Character Info</h3>
+    <div
+      className="p-4 border-2 rounded-lg mb-4 bg-neutral-800 transition-all"
+      style={{
+        borderColor: teamColor,
+        opacity: isDead ? 0.5 : 1,
+        filter: isDead ? 'grayscale(100%)' : 'none'
+      }}
+    >
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+          <h3 className="m-0 text-lg font-semibold" style={{ color: teamColor }}>{teamName}</h3>
+          {isDead && <span className="bg-neutral-600 text-neutral-300 px-1.5 py-0.5 rounded text-xs font-bold">DEAD</span>}
+        </div>
         <button
           onClick={() => dispatch(selectCharacter(null))}
-          style={{ background: 'transparent', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1rem' }}
+          className="bg-transparent border-none text-neutral-400 cursor-pointer text-base hover:text-white focus-ring"
         >
           ✕
         </button>
       </div>
 
-      <p style={{ margin: '0.25rem 0' }}><strong>Owner:</strong> {owner}</p>
-      {isActiveTurn && <p style={{ margin: '0.25rem 0', color: '#4ade80', fontWeight: 'bold' }}>Active turn</p>}
+      <p className="my-1"><strong>Owner:</strong> {owner}</p>
+      {isActiveTurn && !isDead && <p className="my-1 text-green-400 font-bold">Active turn</p>}
 
-      <div style={{ margin: '0.75rem 0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', fontSize: '0.9rem' }}>
+      <div className="my-3">
+        <div className="flex justify-between mb-1 text-sm" style={{ color: isDead ? '#888' : 'inherit' }}>
           <span>HP</span>
           <span>{character.currentHp} / {character.maxHp}</span>
         </div>
-        <div style={{ width: '100%', height: '10px', background: '#444', borderRadius: '5px', overflow: 'hidden' }}>
-          <div style={{ width: `${hpPercent}%`, height: '100%', background: '#ef4444', transition: 'width 0.3s ease' }} />
+        <div className="w-full h-2.5 bg-neutral-600 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-[width] duration-300"
+            style={{
+              width: `${hpPercent}%`,
+              background: isDead ? '#666' : '#ef4444'
+            }}
+          />
         </div>
       </div>
 
-      <p style={{ margin: '0.25rem 0' }}>
+      <p className="my-1" style={{ color: isDead ? '#888' : 'inherit' }}>
         <strong>Facing:</strong> {getFacingDirection(character.position, character.facingTile)}
       </p>
-      {character.isDefending && (
-        <p style={{ margin: '0.25rem 0', color: '#60a5fa' }}>Defending</p>
+      {character.isDefending && !isDead && (
+        <p className="my-1 text-blue-400">Defending</p>
       )}
     </div>
   );

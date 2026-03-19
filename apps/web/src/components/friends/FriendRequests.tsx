@@ -23,57 +23,40 @@ export const FriendRequests: React.FC = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#1e1e1e', padding: '1rem', borderRadius: '8px', border: '1px solid #333' }}>
-      <h2 style={{ color: '#ffffff', margin: '0 0 1rem 0', fontSize: '1.25rem' }}>Friend Requests</h2>
+    <div className="bg-neutral-900 p-6 rounded-lg border border-neutral-800">
+      <h2 className="text-white m-0 mb-6 text-xl">Friend Requests</h2>
 
-      {status === 'loading' && <div style={{ color: '#a3a3a3' }}>Loading requests...</div>}
+      {status === 'loading' && (
+        <div className="text-neutral-400 py-8 text-center" aria-live="polite">Loading requests...</div>
+      )}
       
       {status === 'succeeded' && pendingRequests.length === 0 && (
-        <div style={{ color: '#a3a3a3' }}>No pending requests.</div>
+        <div className="text-neutral-400 text-center py-8">No pending requests.</div>
       )}
 
       {pendingRequests.length > 0 && (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <ul className="list-none p-0 m-0" role="list">
           {pendingRequests.map((request) => (
             <li 
               key={request.id}
-              style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                padding: '0.75rem 0',
-                borderBottom: '1px solid #333'
-              }}
+              className="flex justify-between items-center py-4 border-b border-neutral-800 last:border-b-0 bg-neutral-800 px-4 rounded-md mb-2 last:mb-0"
+              role="listitem"
             >
-              <div style={{ color: '#ffffff', fontWeight: 'bold' }}>
+              <div className="text-white font-bold">
                 {request.sender?.username || 'Unknown User'}
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="flex gap-2">
                 <button
                   onClick={() => handleAccept(request.id)}
-                  style={{
-                    backgroundColor: '#4ade80',
-                    color: '#121212',
-                    border: 'none',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                  }}
+                  className="bg-[var(--team-green)] text-neutral-950 border-none px-4 py-2 rounded-md font-bold cursor-pointer focus-ring transition-colors hover:brightness-110"
+                  aria-label={`Accept friend request from ${request.sender?.username || 'Unknown User'}`}
                 >
                   Accept
                 </button>
                 <button
                   onClick={() => handleDecline(request.id)}
-                  style={{
-                    backgroundColor: '#1e1e1e',
-                    color: '#ef4444',
-                    border: '1px solid #ef4444',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                  }}
+                  className="bg-transparent text-red-400 border border-red-500/50 hover:bg-red-500/10 px-4 py-2 rounded-md font-bold cursor-pointer focus-ring transition-colors"
+                  aria-label={`Decline friend request from ${request.sender?.username || 'Unknown User'}`}
                 >
                   Decline
                 </button>

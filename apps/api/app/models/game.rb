@@ -7,11 +7,19 @@ class Game < ApplicationRecord
   has_many :characters, dependent: :destroy
   has_many :game_actions, dependent: :destroy
 
-   enum :status, { pending: 0, active: 1, completed: 2, forfeited: 3, accepted: 4 }
+   enum :status, { pending: 0, active: 1, completed: 2, forfeited: 3, accepted: 4, declined: 5 }
 
   validates :turn_time_limit, presence: true, inclusion: { in: [ 600, 3600, 7200, 86_400, 172_800, 604_800 ] }
   validates :board_config, presence: true
   validate :different_players
+
+  def acting_character
+    characters.find_by(id: turn_order[current_turn_index])
+  end
+
+  def both_picked?
+    challenger_picks.present? && challenged_picks.present?
+  end
 
   private
 

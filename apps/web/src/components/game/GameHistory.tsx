@@ -13,9 +13,9 @@ export function GameHistory() {
 
   if (!gameActions || gameActions.length === 0) {
     return (
-      <div style={{ padding: '1rem', border: '1px solid #444', borderRadius: '8px', background: '#222' }}>
-        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem' }}>Game History</h3>
-        <p style={{ color: '#aaa', margin: 0, fontSize: '0.9rem' }}>No actions yet.</p>
+      <div className="p-4 border border-neutral-700 rounded-lg bg-neutral-800">
+        <h3 className="m-0 mb-2 text-lg font-semibold flex-shrink-0">Game History</h3>
+        <p className="text-neutral-500 m-0 text-sm">No actions yet.</p>
       </div>
     );
   }
@@ -89,15 +89,15 @@ export function GameHistory() {
   };
 
   return (
-    <div style={{ padding: '1rem', border: '1px solid #444', borderRadius: '8px', background: '#222', display: 'flex', flexDirection: 'column', height: '100%', maxHeight: '400px' }}>
-      <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem', flexShrink: 0 }}>Game History</h3>
+    <div className="p-4 border border-neutral-700 rounded-lg bg-neutral-800 flex flex-col h-full max-h-[400px]">
+      <h3 className="m-0 mb-2 text-lg font-semibold flex-shrink-0">Game History</h3>
       <div 
         ref={listRef}
-        style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingRight: '0.5rem' }}
+        className="flex-1 overflow-y-auto flex flex-col gap-2 pr-2"
       >
         {gameActions.map((action) => (
-          <div key={action.id} style={{ padding: '0.5rem', background: '#333', borderRadius: '4px', fontSize: '0.9rem' }}>
-            <div style={{ color: '#888', fontSize: '0.8rem', marginBottom: '0.2rem' }}>
+          <div key={action.id} className="p-2 bg-neutral-700 rounded text-sm">
+            <div className="text-neutral-500 text-xs mb-0.5">
               Turn {action.turn_number}
             </div>
             <div>

@@ -5,7 +5,7 @@ RSpec.describe "GameActions", type: :request do
 
   let(:challenger) { create(:user) }
   let(:challenged) { create(:user) }
-  let(:board_config) { { blocked_squares: [], start_positions: [ [ 1, 1 ], [ 8, 8 ] ] } }
+  let(:board_config) { { start_positions: [ [ 1, 1 ], [ 8, 8 ] ], tiles: create(:game).board_config["tiles"] } }
   let(:game) do
     create(
       :game,
@@ -26,6 +26,10 @@ RSpec.describe "GameActions", type: :request do
   end
   let(:challenger_headers) { auth_headers(challenger) }
   let(:challenged_headers) { auth_headers(challenged) }
+
+  before do
+    game.update!(turn_order: [ challenger_character.id, challenged_character.id ], current_turn_index: 0)
+  end
 
   describe "POST /games/:id/actions" do
     it "accepts a valid move, updates position, and broadcasts action_completed" do
@@ -60,8 +64,10 @@ RSpec.describe "GameActions", type: :request do
       expect(action.sequence_number).to eq(expected_sequence_number)
     end
 
-    it "rejects move into blocked square with 422" do
-      game.update!(board_config: { blocked_squares: [ [ 3, 2 ] ], start_positions: [ [ 1, 1 ], [ 8, 8 ] ] })
+     it "rejects move into blocked square with 422" do
+       base_tiles = create(:game).board_config["tiles"]
+       base_tiles[1][2] = { "type" => "blocked" }
+       game.update!(board_config: { start_positions: [ [ 1, 1 ], [ 8, 8 ] ], tiles: base_tiles })
 
       post "/games/#{game.id}/actions",
         params: {
@@ -179,7 +185,7 @@ RSpec.describe "GameActions", type: :request do
         expect(response).to have_http_status(:ok)
         game.reload
 
-        expect(game.current_turn_user_id).to eq(challenged.id)
+        expect(game.current_turn_index).to eq(1)
         expect(game.turn_deadline).to eq(Time.current + game.turn_time_limit.seconds)
         expect(challenger_character.reload.is_defending).to be(true)
       end
@@ -209,8 +215,122 @@ RSpec.describe "GameActions", type: :request do
         expect(response).to have_http_status(:ok)
         game.reload
 
-        expect(game.current_turn_user_id).to eq(challenged.id)
+        expect(game.current_turn_index).to eq(1)
         expect(game.turn_deadline).to eq(Time.current + game.turn_time_limit.seconds)
+        expect(json_response.dig("data", "action", "result_data", "next_character_id")).to eq(challenged_character.id)
+      end
+    end
+
+    context "with four characters in turn order" do
+      let(:game) do
+        create(
+          :game,
+          challenger: challenger,
+          challenged: challenged,
+          status: :active,
+          turn_time_limit: 3600,
+          turn_deadline: Time.current + 1.hour,
+          board_config: board_config
+        )
+      end
+
+      let!(:challenger_character) do
+        create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 2 }, current_hp: 10)
+      end
+      let!(:challenged_character) do
+        create(:character, game: game, user: challenged, position: { x: 8, y: 8 }, facing_tile: { x: 8, y: 7 }, current_hp: 10)
+      end
+      let!(:challenger_character_two) do
+        create(:character, game: game, user: challenger, position: { x: 1, y: 4 }, facing_tile: { x: 1, y: 5 }, current_hp: 10)
+      end
+      let!(:challenged_character_two) do
+        create(:character, game: game, user: challenged, position: { x: 8, y: 5 }, facing_tile: { x: 8, y: 4 }, current_hp: 10)
+      end
+
+      before do
+        game.update!(
+          turn_order: [
+            challenger_character.id,
+            challenged_character.id,
+            challenger_character_two.id,
+            challenged_character_two.id
+          ],
+          current_turn_index: 0
+        )
+      end
+
+      it "cycles turn index 0→1→2→3→0 with end_turn actions" do
+        post "/games/#{game.id}/actions",
+          params: { action_type: :move, action_data: { path: [ { x: 2, y: 1 } ] } },
+          headers: challenger_headers
+        expect(response).to have_http_status(:ok)
+
+        post "/games/#{game.id}/actions",
+          params: { action_type: :end_turn, action_data: { facing_tile: { x: 2, y: 2 } } },
+          headers: challenger_headers
+        expect(response).to have_http_status(:ok)
+        expect(game.reload.current_turn_index).to eq(1)
+
+        post "/games/#{game.id}/actions",
+          params: { action_type: :move, action_data: { path: [ { x: 7, y: 8 } ] } },
+          headers: challenged_headers
+        expect(response).to have_http_status(:ok)
+
+        post "/games/#{game.id}/actions",
+          params: { action_type: :end_turn, action_data: { facing_tile: { x: 7, y: 7 } } },
+          headers: challenged_headers
+        expect(response).to have_http_status(:ok)
+        expect(game.reload.current_turn_index).to eq(2)
+
+        post "/games/#{game.id}/actions",
+          params: { action_type: :move, action_data: { path: [ { x: 2, y: 4 } ] } },
+          headers: challenger_headers
+        expect(response).to have_http_status(:ok)
+
+        post "/games/#{game.id}/actions",
+          params: { action_type: :end_turn, action_data: { facing_tile: { x: 2, y: 5 } } },
+          headers: challenger_headers
+        expect(response).to have_http_status(:ok)
+        expect(game.reload.current_turn_index).to eq(3)
+
+        post "/games/#{game.id}/actions",
+          params: { action_type: :move, action_data: { path: [ { x: 7, y: 5 } ] } },
+          headers: challenged_headers
+        expect(response).to have_http_status(:ok)
+
+        post "/games/#{game.id}/actions",
+          params: { action_type: :end_turn, action_data: { facing_tile: { x: 7, y: 4 } } },
+          headers: challenged_headers
+        expect(response).to have_http_status(:ok)
+        expect(game.reload.current_turn_index).to eq(0)
+      end
+
+      it "rejects out-of-turn action when acting character belongs to other player" do
+        post "/games/#{game.id}/actions",
+          params: { action_type: :move, action_data: { path: [ { x: 8, y: 7 } ] } },
+          headers: challenged_headers
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(json_response.fetch("errors").join(" ")).to include("not your turn")
+      end
+
+      it "skips dead characters when advancing turn index" do
+        challenged_character.update!(current_hp: 0)
+
+        post "/games/#{game.id}/actions",
+          params: { action_type: :move, action_data: { path: [ { x: 2, y: 1 } ] } },
+          headers: challenger_headers
+        expect(response).to have_http_status(:ok)
+
+        post "/games/#{game.id}/actions",
+          params: { action_type: :end_turn, action_data: { facing_tile: { x: 2, y: 2 } } },
+          headers: challenger_headers
+
+        expect(response).to have_http_status(:ok)
+        game.reload
+
+        expect(game.current_turn_index).to eq(2)
+        expect(json_response.dig("data", "action", "result_data", "next_character_id")).to eq(challenger_character_two.id)
       end
     end
 

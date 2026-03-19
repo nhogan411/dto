@@ -11,7 +11,8 @@ RSpec.describe ActionValidators::EndTurnValidator do
   subject(:validator) { described_class.new(game:, character:, action_data:, turn_context:) }
 
   before do
-    game.update!(current_turn_user: challenger)
+    character
+    game.update!(current_turn_user: challenger, turn_order: [ character.id ], current_turn_index: 0)
     opponent
   end
 

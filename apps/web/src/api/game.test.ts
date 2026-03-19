@@ -60,3 +60,37 @@ describe('gameApi.getGameActions', () => {
     expect(response).toBe(mockResponse);
   });
 });
+
+describe('gameApi.submitMoveAction', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('calls POST /games/:id/actions with move payload including target and path', async () => {
+    const mockResponse = {
+      data: {
+        data: {
+          action: { id: 9 },
+          game_state: { game_id: 4 },
+        },
+      },
+    };
+
+    vi.mocked(apiClient.post).mockResolvedValueOnce(mockResponse as any);
+
+    const response = await gameApi.submitMoveAction(4, {
+      character_id: 77,
+      target_x: 9,
+      target_y: 3,
+    });
+
+    expect(apiClient.post).toHaveBeenCalledWith('/games/4/actions', {
+      action_type: 'move',
+      character_id: 77,
+      target_x: 9,
+      target_y: 3,
+      action_data: { path: [{ x: 9, y: 3 }] },
+    });
+    expect(response).toBe(mockResponse);
+  });
+});

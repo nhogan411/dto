@@ -4,6 +4,7 @@ import notificationReducer from './slices/notificationSlice';
 import friendsReducer from './slices/friendsSlice';
 import gameReducer from './slices/gameSlice';
 import dashboardReducer from './slices/dashboardSlice';
+import playerCharactersReducer from './slices/playerCharactersSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     friends: friendsReducer,
     game: gameReducer,
     dashboard: dashboardReducer,
+    playerCharacters: playerCharactersReducer,
   },
 });
 

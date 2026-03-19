@@ -11,29 +11,36 @@ RSpec.describe "Games", type: :request do
     it "creates a pending game for friends with generated board config" do
       create(:friendship, requester: challenger, recipient: challenged, status: :accepted)
 
-      post "/games", params: { challenged_id: challenged.id, turn_time_limit: 3600 }, headers: headers
+      travel_to Time.zone.parse("2026-03-17 12:00:00") do
+        post "/games", params: { challenged_id: challenged.id, turn_time_limit: 3600 }, headers: headers
 
-      expect(response).to have_http_status(:created)
+        expect(response).to have_http_status(:created)
 
-      game = Game.order(:created_at).last
-      challenger_character = game.characters.find_by!(user_id: challenger.id)
-      board_config = game.board_config.with_indifferent_access
+        game = Game.order(:id).last
+        challenger_character = game.characters.find_by!(user_id: challenger.id)
+        board_config = game.board_config.with_indifferent_access
 
-      expect(game.challenger_id).to eq(challenger.id)
-      expect(game.challenged_id).to eq(challenged.id)
-      expect(game.status).to eq("pending")
-      expect(board_config[:blocked_squares].size).to eq(16)
-      expect(board_config[:start_positions].size).to eq(2)
-      expect(challenger_character.position).to eq(position_hash(board_config[:start_positions].first))
-      pos = board_config[:start_positions].first
-      expected_facing = pos[1] > 1 ? { "x" => pos[0], "y" => pos[1] - 1 } : { "x" => pos[0], "y" => pos[1] + 1 }
-      expect(challenger_character.facing_tile).to eq(expected_facing)
+        expect(game.challenger_id).to eq(challenger.id)
+        expect(game.challenged_id).to eq(challenged.id)
+        expect(game.status).to eq("pending")
+        expect(game.expires_at).to eq(48.hours.from_now)
+        expect(board_config[:tiles]).to be_an(Array)
+        expect(board_config[:tiles].size).to eq(12)
+        expect(board_config[:tiles].first).to be_an(Array)
+        expect(board_config[:tiles].first.size).to eq(12)
+        expect(challenger_character.position).to eq(position_hash(board_config[:start_positions].first))
+        pos = board_config[:start_positions].first
+        expected_facing = pos[1] > 1 ? { "x" => pos[0], "y" => pos[1] - 1 } : { "x" => pos[0], "y" => pos[1] + 1 }
+        expect(challenger_character.facing_tile).to eq(expected_facing)
 
-      body = json_response
-      expect(body.dig("data", "game", "id")).to eq(game.id)
-      expect(body.dig("data", "game", "status")).to eq("pending")
-      expect(body.dig("data", "game", "board_config", "blocked_squares").size).to eq(16)
-      expect(body.dig("data", "game", "board_config", "start_positions").size).to eq(2)
+        body = json_response
+        expect(body.dig("data", "game", "id")).to eq(game.id)
+        expect(body.dig("data", "game", "status")).to eq("pending")
+        expect(body.dig("data", "game", "board_config", "tiles")).to be_an(Array)
+        expect(body.dig("data", "game", "board_config", "tiles").size).to eq(12)
+        expect(body.dig("data", "game", "board_config", "tiles").first).to be_an(Array)
+        expect(body.dig("data", "game", "board_config", "tiles").first.size).to eq(12)
+      end
     end
 
     it "returns 422 when the challenged user is not a friend" do
@@ -113,11 +120,11 @@ RSpec.describe "Games", type: :request do
    end
   end
 
-  describe "PATCH /games/:id/accept" do
-    let(:challenger) { create(:user) }
-    let(:challenged) { create(:user) }
-    let(:headers) { auth_headers(challenged) }
-    let(:board_config) { { blocked_squares: [], start_positions: [ [ 1, 1 ], [ 8, 8 ] ] } }
+   describe "PATCH /games/:id/accept" do
+     let(:challenger) { create(:user) }
+     let(:challenged) { create(:user) }
+     let(:headers) { auth_headers(challenged) }
+     let(:board_config) { { start_positions: [ [ 1, 1 ], [ 8, 8 ] ], tiles: create(:game).board_config["tiles"] } }
 
     it "activates the game, assigns characters, and sets the turn deadline" do
       game = create(:game, challenger: challenger, challenged: challenged, status: :pending, turn_time_limit: 3600, board_config: board_config)
@@ -213,11 +220,11 @@ RSpec.describe "Games", type: :request do
     end
   end
 
-  describe "PATCH /games/:id/choose_position" do
-    let(:challenger) { create(:user) }
-    let(:challenged) { create(:user) }
-    let(:headers) { auth_headers(challenger) }
-    let(:board_config) { { blocked_squares: [], start_positions: [ [ 1, 1 ], [ 8, 8 ] ] } }
+   describe "PATCH /games/:id/choose_position" do
+     let(:challenger) { create(:user) }
+     let(:challenged) { create(:user) }
+     let(:headers) { auth_headers(challenger) }
+     let(:board_config) { { start_positions: [ [ 1, 1 ], [ 8, 8 ] ], tiles: create(:game).board_config["tiles"] } }
 
     it "activates an accepted game when challenger chooses position index 0" do
       game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, turn_time_limit: 3600, board_config: board_config)

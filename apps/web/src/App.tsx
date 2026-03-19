@@ -6,6 +6,9 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import GamePage from './pages/GamePage';
 import LobbyPage from './pages/LobbyPage';
+import CharactersPage from './pages/CharactersPage';
+import CharacterDetailPage from './pages/CharacterDetailPage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
@@ -17,6 +20,9 @@ function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/games/:id" element={<GamePage />} />
           <Route path="/games/:id/lobby" element={<LobbyPage />} />
+          <Route path="/characters" element={<CharactersPage />} />
+          <Route path="/characters/:id" element={<CharacterDetailPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />

@@ -13,7 +13,7 @@ RSpec.describe Game, type: :model do
   end
 
   describe 'enums' do
-     it { is_expected.to define_enum_for(:status).with_values(pending: 0, active: 1, completed: 2, forfeited: 3, accepted: 4) }
+     it { is_expected.to define_enum_for(:status).with_values(pending: 0, active: 1, completed: 2, forfeited: 3, accepted: 4, declined: 5) }
   end
 
   describe 'validations' do

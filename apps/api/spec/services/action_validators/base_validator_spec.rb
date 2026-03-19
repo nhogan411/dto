@@ -6,7 +6,10 @@ RSpec.describe ActionValidators::BaseValidator do
   let(:character) { create(:character, game:, user: attacker_user) }
   let(:turn_context) { { current_user_id: attacker_user.id } }
 
-  before { game.update!(current_turn_user: attacker_user) }
+  before do
+    character
+    game.update!(current_turn_user: attacker_user, turn_order: [ character.id ], current_turn_index: 0)
+  end
 
   subject(:validator) { described_class.new(game:, character:, action_data: {}, turn_context:) }
 
@@ -30,7 +33,8 @@ RSpec.describe ActionValidators::BaseValidator do
     end
 
     it "raises when it is not the character turn" do
-      game.update!(current_turn_user: game.challenged)
+      outsider = create(:character, game:, user: game.challenged)
+      game.update!(current_turn_user: game.challenged, turn_order: [ outsider.id ], current_turn_index: 0)
 
       expect { validator.validate! }
         .to raise_error(ActionValidators::BaseValidator::ValidationError, "It is not this character's turn")

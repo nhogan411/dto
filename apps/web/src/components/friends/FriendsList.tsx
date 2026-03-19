@@ -33,51 +33,46 @@ export const FriendsList: React.FC = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#1e1e1e', padding: '1rem', borderRadius: '8px', border: '1px solid #333' }}>
-      <h2 style={{ color: '#ffffff', margin: '0 0 1rem 0', fontSize: '1.25rem' }}>Friends</h2>
+    <div className="bg-neutral-900 p-6 rounded-lg border border-neutral-800">
+      <h2 className="text-white m-0 mb-6 text-xl">Friends</h2>
       
-      {status === 'loading' && <div style={{ color: '#a3a3a3' }}>Loading friends...</div>}
-      {status === 'failed' && <div style={{ color: '#ef4444' }}>{error}</div>}
+      {status === 'loading' && (
+        <div className="text-neutral-400 py-8 text-center" aria-live="polite">Loading friends...</div>
+      )}
+      
+      {status === 'failed' && (
+        <div className="text-red-500 py-8 text-center bg-red-500/10 rounded-md border border-red-500/20" aria-live="assertive">{error}</div>
+      )}
       
       {status === 'succeeded' && friends.length === 0 && (
-        <div style={{ color: '#a3a3a3' }}>You have no friends yet.</div>
+        <div className="text-neutral-400 text-center py-8">You have no friends yet.</div>
       )}
 
       {friends.length > 0 && (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <ul className="list-none p-0 m-0" role="list">
           {friends.map((friend) => (
             <li 
               key={friend.id} 
-              style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                padding: '0.75rem 0',
-                borderBottom: '1px solid #333'
-              }}
+              className="flex justify-between items-center py-4 border-b border-neutral-800 last:border-b-0 bg-neutral-800 px-4 rounded-md mb-2 last:mb-0"
+              role="listitem"
             >
-              <div>
-                <div style={{ color: '#ffffff', fontWeight: 'bold' }}>{friend.username}</div>
+              <div className="flex items-center gap-3">
+                <div className="text-white font-bold">{friend.username}</div>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${friend.status === 'online' ? 'bg-green-600 text-white' : 'bg-neutral-600 text-white'}`}>
+                  {friend.status === 'online' ? 'Online' : 'Offline'}
+                </span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <div className="flex flex-col items-end">
                 <button
-                  style={{
-                    backgroundColor: '#4ade80',
-                    color: '#121212',
-                    border: 'none',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '4px',
-                    cursor: invitingFriendId === friend.id ? 'not-allowed' : 'pointer',
-                    fontWeight: 'bold',
-                    opacity: invitingFriendId === friend.id ? 0.6 : 1,
-                  }}
+                  className="bg-[var(--team-green)] text-neutral-950 border-none px-4 py-2 rounded-md font-bold cursor-pointer focus-ring disabled:opacity-60 disabled:cursor-not-allowed transition-opacity"
                   onClick={() => handleInvite(friend.id)}
                   disabled={invitingFriendId === friend.id}
+                  aria-label={`Invite ${friend.username} to game`}
                 >
                   {invitingFriendId === friend.id ? 'Inviting...' : 'Invite to Game'}
                 </button>
                 {inviteErrors[friend.id] && (
-                  <div style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                  <div className="text-red-500 text-sm mt-2" aria-live="assertive">
                     {inviteErrors[friend.id]}
                   </div>
                 )}

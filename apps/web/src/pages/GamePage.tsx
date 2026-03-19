@@ -20,12 +20,14 @@ import { GameHistory } from '../components/game/GameHistory';
 import { useGameChannel } from '../cable/useGameChannel';
 import { fetchReplayActions } from '../services/replayService';
 import { gameApi, type AttackPreviewResponse } from '../api/game';
+import { ActionPopover } from '../components/game/ActionPopover';
+import { getReachableSquares, getShortestPathToTarget, type Coordinate } from '../utils/movement';
 
 export default function GamePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { currentGame, gameState, status, error } = useAppSelector((state) => state.game);
+  const { currentGame, gameState, status, error, isSubmitting } = useAppSelector((state) => state.game);
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
   const gameId = id ? Number.parseInt(id, 10) : null;
   const parsedGameId = gameId !== null && !Number.isNaN(gameId) ? gameId : null;
@@ -33,8 +35,53 @@ export default function GamePage() {
   const [selectedSquare, setSelectedSquare] = useState<{ x: number; y: number } | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<number | null>(null);
   const [activeMode, setActiveMode] = useState<'move' | 'attack' | null>(null);
+  const [popoverState, setPopoverState] = useState<{ x: number; y: number } | null>(null);
   const [attackPreview, setAttackPreview] = useState<AttackPreviewResponse | null>(null);
   const [previewTarget, setPreviewTarget] = useState<number | null>(null);
+  const [reachableSquares, setReachableSquares] = useState<Coordinate[]>([]);
+
+  const actingCharacter = (() => {
+    if (!gameState) return null;
+
+    if (gameState.actingCharacterId) {
+      return gameState.characters.find((character) => character.id === gameState.actingCharacterId) ?? null;
+    }
+
+    const actingFromTurnOrder = gameState.turnOrder[gameState.currentTurnIndex];
+    if (typeof actingFromTurnOrder === 'number') {
+      return gameState.characters.find((character) => character.id === actingFromTurnOrder) ?? null;
+    }
+
+    return gameState.characters.find((character) => character.userId === gameState.currentTurnUserId) ?? null;
+  })();
+
+  const getMoveBudget = (character: { stats: Record<string, unknown> }) => {
+    const moveStat = Number(character.stats.move);
+    if (Number.isFinite(moveStat) && moveStat > 0) {
+      return Math.floor(moveStat);
+    }
+
+    return 3;
+  };
+
+  const computeReachableSquares = (character: typeof actingCharacter) => {
+    if (!gameState || !character) return [];
+
+    return getReachableSquares({
+      origin: character.position,
+      moveBudget: getMoveBudget(character),
+      boardTiles: gameState.boardConfig.tiles,
+      characters: gameState.characters,
+      currentUserId: character.userId,
+      boardMin: 1,
+      boardMax: 12,
+    });
+  };
+
+  const clearMoveSelection = () => {
+    setReachableSquares([]);
+    setSelectedSquare(null);
+  };
 
   const onGameChannelMessage = useCallback(
     (data: GameChannelMessage) => {
@@ -77,25 +124,63 @@ export default function GamePage() {
     };
   }, [dispatch, parsedGameId, currentUserId]);
 
-  const handleSquareClick = (x: number, y: number) => {
+  const handleSquareClick = (x: number, y: number, e?: React.MouseEvent) => {
+    const squareKey = `${x},${y}`;
+
     if (gameState?.characters) {
       const clickedChar = gameState.characters.find((c) => c.position.x === x && c.position.y === y);
       if (clickedChar) {
         dispatch(selectCharacter(clickedChar.id));
+
+        const isActingCharacter =
+          !!actingCharacter &&
+          clickedChar.id === actingCharacter.id &&
+          clickedChar.userId === currentUserId &&
+          clickedChar.alive &&
+          clickedChar.currentHp > 0;
+
+        if (isActingCharacter) {
+          if (e) {
+            setPopoverState({ x: e.clientX, y: e.clientY });
+          }
+          return;
+        }
       }
     }
 
     if (activeMode === 'move') {
+      const isHighlighted = reachableSquares.some((square) => `${square.x},${square.y}` === squareKey);
+      if (!isHighlighted || !gameState || !actingCharacter || !currentUserId || actingCharacter.userId !== currentUserId) {
+        clearMoveSelection();
+        return;
+      }
+
+      const path = getShortestPathToTarget({
+        origin: actingCharacter.position,
+        target: { x, y },
+        moveBudget: getMoveBudget(actingCharacter),
+        boardTiles: gameState.boardConfig.tiles,
+        characters: gameState.characters,
+        currentUserId: actingCharacter.userId,
+        boardMin: 1,
+        boardMax: 12,
+      });
+
+      if (!path || path.length === 0) {
+        clearMoveSelection();
+        return;
+      }
+
       setSelectedSquare({ x, y });
       if (parsedGameId !== null) {
         void dispatch(submitActionThunk({
           gameId: parsedGameId,
           actionType: 'move',
-          actionData: { path: [{ x, y }] },
+          actionData: { path },
         })).then((result) => {
           if (submitActionThunk.fulfilled.match(result)) {
             setActiveMode(null);
-            setSelectedSquare(null);
+            clearMoveSelection();
           }
         });
       }
@@ -157,37 +242,35 @@ export default function GamePage() {
     }
   }, [activeMode]);
 
-  const getHighlightedSquares = () => {
-    if (activeMode !== 'move' || !gameState || !currentUserId) return [];
-
-    const activeCharacter = gameState.characters.find((c) => c.userId === currentUserId);
-    if (!activeCharacter) return [];
-
-    const { x, y } = activeCharacter.position;
-    const boardConfig = gameState.boardConfig;
-    const blockedSet = new Set(boardConfig.blocked_squares.map(([bx, by]) => `${bx},${by}`));
-    const occupiedSet = new Set(gameState.characters.map((c) => `${c.position.x},${c.position.y}`));
-
-    const reachable: { x: number; y: number }[] = [];
-    const directions = [{ dx: 1, dy: 0 }, { dx: -1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 0, dy: -1 }];
-
-    for (const { dx, dy } of directions) {
-      for (let steps = 1; steps <= 3; steps++) {
-        const nx = x + dx * steps;
-        const ny = y + dy * steps;
-        if (nx < 1 || nx > 8 || ny < 1 || ny > 8) break;
-        if (blockedSet.has(`${nx},${ny}`)) break;
-        if (occupiedSet.has(`${nx},${ny}`)) break;
-        reachable.push({ x: nx, y: ny });
-      }
+  useEffect(() => {
+    if (activeMode !== 'move') {
+      setReachableSquares([]);
+      return;
     }
 
-    return reachable;
+    if (!actingCharacter || !currentUserId || actingCharacter.userId !== currentUserId) {
+      setReachableSquares([]);
+      return;
+    }
+
+    setReachableSquares(computeReachableSquares(actingCharacter));
+  }, [
+    activeMode,
+    currentUserId,
+    gameState?.turnNumber,
+    gameState?.currentTurnUserId,
+    gameState?.actingCharacterId,
+    gameState?.currentTurnIndex,
+  ]);
+
+  const getHighlightedSquares = () => {
+    if (activeMode !== 'move') return [];
+    return reachableSquares;
   };
 
   if (status === 'loading' && !currentGame && !gameState) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#a3a3a3' }}>
+      <div className="p-8 text-center text-neutral-400">
         <h2>Loading Game...</h2>
       </div>
     );
@@ -195,7 +278,7 @@ export default function GamePage() {
 
   if (status === 'failed' && error) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
+      <div className="p-8 text-center text-red-500">
         <h2>Error Loading Game</h2>
         <p>{error}</p>
       </div>
@@ -225,24 +308,81 @@ export default function GamePage() {
     return isWinner ? '🎉 You won!' : 'You lost.';
   })();
 
-  return (
-    <div
-      style={{
-        padding: '2rem',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        position: 'relative',
-      }}
-    >
-      <TurnReplay />
-      <h1 style={{ marginBottom: '1rem' }}>Game #{gameState.id}</h1>
-      <div style={{ marginBottom: '2rem' }}>
-        <p>Status: {gameState.status}</p>
-        <p>Turn: {gameState.turnNumber}</p>
-      </div>
+  const handlePopoverMove = () => {
+    if (actingCharacter) {
+      setActiveMode('move');
+      setSelectedSquare(actingCharacter.position);
+      setReachableSquares(computeReachableSquares(actingCharacter));
+    }
+    setPopoverState(null);
+  };
 
-      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', width: '100%', maxWidth: '1000px', justifyContent: 'center' }}>
+  const handlePopoverAttack = () => {
+    setActiveMode('attack');
+    setPopoverState(null);
+  };
+
+  const handlePopoverDefend = () => {
+    if (parsedGameId !== null) {
+      void dispatch(submitActionThunk({
+        gameId: parsedGameId,
+        actionType: 'defend',
+        actionData: {}
+      }));
+    }
+    setPopoverState(null);
+  };
+
+  const handlePopoverEndTurn = (direction: 'north' | 'south' | 'east' | 'west') => {
+    if (parsedGameId !== null && actingCharacter) {
+      const facingTile = { ...actingCharacter.position };
+      
+      if (direction === 'north') facingTile.y -= 1;
+      else if (direction === 'south') facingTile.y += 1;
+      else if (direction === 'east') facingTile.x += 1;
+      else if (direction === 'west') facingTile.x -= 1;
+      
+      void dispatch(submitActionThunk({
+        gameId: parsedGameId,
+        actionType: 'end_turn',
+        actionData: { facing_tile: facingTile }
+      }));
+    }
+    setPopoverState(null);
+  };
+
+   const isMyTurn = gameState?.currentTurnUserId === currentUserId;
+
+   // Derive turn indicator color from acting character's team, not from viewer's perspective
+   const getActingTeamColor = () => {
+     if (!actingCharacter || !currentGame) {
+       return { bg: 'bg-neutral-400', text: 'text-neutral-400' };
+     }
+     
+     const isActingCharacterChallenger = actingCharacter.userId === currentGame.challenger_id;
+     return isActingCharacterChallenger
+       ? { bg: 'bg-[var(--team-blue)]', text: 'text-[var(--team-blue)]' }
+       : { bg: 'bg-[var(--team-green)]', text: 'text-[var(--team-green)]' };
+   };
+
+   const teamColor = getActingTeamColor();
+
+   return (
+     <div className="p-8 flex flex-col items-center relative">
+       <TurnReplay />
+       <h1 className="text-2xl font-bold mb-4">Game #{gameState.id}</h1>
+       
+       {/* Turn indicator */}
+       <div className="mb-6 flex items-center gap-3">
+         <div className={`w-3 h-3 rounded-full ${teamColor.bg}`} />
+         <span className={`text-sm font-medium ${teamColor.text}`}>
+           {isMyTurn ? 'Your Turn' : "Opponent's Turn"}
+         </span>
+         <span className="text-neutral-500 text-sm">· Turn {gameState.turnNumber}</span>
+         <span className="text-neutral-500 text-sm">· {gameState.status}</span>
+       </div>
+
+      <div className="flex gap-6 items-start w-full max-w-5xl justify-center">
         <div>
           <GameBoard
             boardConfig={boardConfig}
@@ -252,6 +392,8 @@ export default function GamePage() {
             onSquareClick={handleSquareClick}
             onSquareHover={handleSquareHover}
             attackPreview={attackPreview}
+            challengerId={currentGame?.challenger_id}
+            challengedId={currentGame?.challenged_id}
           />
 
           <ActionControls
@@ -264,54 +406,48 @@ export default function GamePage() {
             activeMode={activeMode}
           />
         </div>
-        <div style={{ minWidth: '260px', maxWidth: '320px', height: '600px', display: 'flex', flexDirection: 'column' }}>
+        <div className="min-w-[260px] max-w-xs h-[600px] flex flex-col">
           <CharacterInfo />
           <GameHistory />
         </div>
       </div>
 
       {isGameOver && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 2000,
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#1e1e1e',
-              border: '1px solid #333',
-              borderRadius: '12px',
-              padding: '2rem',
-              minWidth: '320px',
-              textAlign: 'center',
-              color: '#fff',
-            }}
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[2000]">
+          <div 
+            role="dialog"
+            aria-modal="true"
+            aria-label="Game Over"
+            className="bg-neutral-900 border border-neutral-700 rounded-xl p-8 min-w-[320px] text-center text-white"
           >
-            <h2 style={{ marginTop: 0, marginBottom: '1rem', color: isWinner ? '#4ade80' : '#f87171' }}>
+            <h2 className={`mt-0 mb-4 ${isWinner ? 'text-green-400' : 'text-red-400'}`}>
               {gameOverMessage}
             </h2>
             <button
               onClick={() => navigate('/')}
-              style={{
-                backgroundColor: '#3b82f6',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '0.75rem 1.25rem',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white border-0 rounded-md px-5 py-3 font-bold cursor-pointer focus-ring"
             >
               Back to Dashboard
             </button>
           </div>
         </div>
+      )}
+
+      {popoverState && actingCharacter && (
+        <ActionPopover
+          x={popoverState.x}
+          y={popoverState.y}
+          onClose={() => setPopoverState(null)}
+          onMove={handlePopoverMove}
+          onAttack={handlePopoverAttack}
+          onDefend={handlePopoverDefend}
+          onEndTurn={handlePopoverEndTurn}
+          canMove={!!(isMyTurn && !isSubmitting && activeMode !== 'move' && !gameState.actingCharacterActions?.hasMoved)}
+          canAttack={!!(isMyTurn && !isSubmitting && activeMode !== 'attack' && !gameState.actingCharacterActions?.hasAttacked && !gameState.actingCharacterActions?.hasDefended)}
+          canDefend={!!(isMyTurn && !isSubmitting && !gameState.actingCharacterActions?.hasDefended && !gameState.actingCharacterActions?.hasAttacked)}
+          canEndTurn={isMyTurn && !isSubmitting}
+          actingCharacterId={actingCharacter.id}
+        />
       )}
     </div>
   );

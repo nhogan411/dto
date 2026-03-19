@@ -22,8 +22,11 @@ export interface ApiCharacter {
 export interface ApiGame {
   id: number;
   status: 'pending' | 'active' | 'completed' | 'forfeited' | 'accepted';
-  board_config: { blocked_squares: number[][]; start_positions: number[][] };
+  board_config: { tiles: Array<Array<{ type: string }>> };
   current_turn_user_id: number;
+  acting_character_id?: number;
+  turn_order?: number[];
+  current_turn_index?: number;
   challenger_id: number;
   challenged_id: number;
   challenger_username: string;
@@ -32,6 +35,8 @@ export interface ApiGame {
   turn_number: number;
   winner_id: number | null;
   turn_time_limit?: number;
+  challenger_picks?: number[];
+  challenged_picks?: number[];
 }
 
 export interface ApiGameAction {
@@ -49,12 +54,18 @@ export interface ApiGameSnapshot {
   game_id: number;
   status: 'pending' | 'active' | 'completed' | 'forfeited' | 'accepted';
   current_turn_user_id: number;
+  acting_character_id?: number;
+  turn_order?: number[];
+  current_turn_index?: number;
   turn_deadline: string | null;
   winner_id: number | null;
-  board_config: { blocked_squares: number[][]; start_positions: number[][] };
+  board_config: { tiles: Array<Array<{ type: string }>> };
+  acting_character_actions?: { has_moved: boolean; has_attacked: boolean; has_defended: boolean };
   characters: ApiCharacter[];
   last_action: ApiGameAction | null;
   turn_number: number;
+  challenger_picks?: number[];
+  challenged_picks?: number[];
 }
 
 export interface GameResponse {
@@ -95,11 +106,21 @@ export const gameApi = {
       action_type: actionType,
       action_data: actionData,
     }),
+  submitMoveAction: (id: number, params: { character_id: number; target_x: number; target_y: number }) =>
+    apiClient.post<{ data: { action: unknown; game_state: ApiGameSnapshot } }>(`/games/${id}/actions`, {
+      action_type: 'move',
+      character_id: params.character_id,
+      target_x: params.target_x,
+      target_y: params.target_y,
+      action_data: { path: [{ x: params.target_x, y: params.target_y }] },
+    }),
   createGame: (challengedId: number, turnTimeLimit?: number) =>
     apiClient.post<GameResponse>('/games', {
       challenged_id: challengedId,
       turn_time_limit: turnTimeLimit,
     }),
+  selectCharacters: (id: number, characterIds: number[]) =>
+    apiClient.post<GameResponse>(`/games/${id}/select_characters`, { player_character_ids: characterIds }),
   acceptGame: (id: number, params?: { first_move?: boolean; starting_position_index?: number }) =>
     apiClient.patch<GameResponse>(`/games/${id}/accept`, params),
   declineGame: (id: number) => apiClient.patch<GameResponse>(`/games/${id}/decline`),

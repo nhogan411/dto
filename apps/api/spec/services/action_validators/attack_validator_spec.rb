@@ -11,7 +11,8 @@ RSpec.describe ActionValidators::AttackValidator do
   subject(:validator) { described_class.new(game:, character: actor, action_data:, turn_context:) }
 
   before do
-    game.update!(current_turn_user: challenger)
+    actor
+    game.update!(current_turn_user: challenger, turn_order: [ actor.id ], current_turn_index: 0)
     target
   end
 

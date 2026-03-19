@@ -29,7 +29,10 @@ module ActionValidators
     end
 
     def adjacent_to_opponent?
-      opponent = opponent_character
+      others = other_characters
+      return false if others.empty?
+
+      opponent = others.find { |c| c.user_id != character.user_id }
       return false unless opponent
 
       adjacent_cardinal?(normalize_position(character.position), normalize_position(opponent.position))

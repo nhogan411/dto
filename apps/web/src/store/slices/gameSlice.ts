@@ -10,17 +10,25 @@ export interface CharacterState {
   currentHp: number;
   maxHp: number;
   isDefending: boolean;
+  alive: boolean;
+  stats: Record<string, unknown>;
 }
 
 export interface GameState {
   id: number;
   status: 'pending' | 'active' | 'completed' | 'forfeited' | 'accepted';
-  boardConfig: { blocked_squares: number[][]; start_positions: number[][] };
+  boardConfig: { tiles: Array<Array<{ type: string }>> };
   currentTurnUserId: number;
+  actingCharacterId: number | null;
+  turnOrder: number[];
+  currentTurnIndex: number;
   characters: CharacterState[];
   turnNumber: number;
   winnerId: number | null;
   turnDeadline: string | null;
+  actingCharacterActions?: { hasMoved: boolean; hasAttacked: boolean; hasDefended: boolean } | null;
+  challengerPicks?: number[];
+  challengedPicks?: number[];
 }
 
 type GameStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -99,6 +107,8 @@ const mapApiCharacterToCharacterState = (character: ApiCharacter): CharacterStat
   currentHp: character.current_hp,
   maxHp: character.max_hp,
   isDefending: character.is_defending,
+  alive: character.alive ?? character.current_hp > 0,
+  stats: character.stats ?? {},
 });
 
 const mapCharacterStateToApiCharacter = (character: CharacterState): ApiCharacter => ({
@@ -109,15 +119,37 @@ const mapCharacterStateToApiCharacter = (character: CharacterState): ApiCharacte
   current_hp: character.currentHp,
   max_hp: character.maxHp,
   is_defending: character.isDefending,
+  alive: character.alive,
+  stats: character.stats,
 });
+
+const deriveActingCharacterId = (
+  explicitId: number | undefined,
+  turnOrder: number[] | undefined,
+  currentTurnIndex: number | undefined,
+): number | null => {
+  if (typeof explicitId === 'number') return explicitId;
+  if (!Array.isArray(turnOrder) || turnOrder.length === 0) return null;
+
+  const index = typeof currentTurnIndex === 'number' ? currentTurnIndex : 0;
+  const normalizedIndex = index >= 0 && index < turnOrder.length ? index : 0;
+  const actingId = turnOrder[normalizedIndex];
+  return typeof actingId === 'number' ? actingId : null;
+};
 
 const mapApiGameToGameState = (game: ApiGame): GameState => ({
   id: game.id,
   status: game.status,
   boardConfig: game.board_config,
   currentTurnUserId: game.current_turn_user_id,
+  actingCharacterId: deriveActingCharacterId(game.acting_character_id, game.turn_order, game.current_turn_index),
+  turnOrder: game.turn_order ?? [],
+  currentTurnIndex: game.current_turn_index ?? 0,
   turnNumber: game.turn_number,
   winnerId: game.winner_id,
+  actingCharacterActions: null,
+  challengerPicks: game.challenger_picks,
+  challengedPicks: game.challenged_picks,
   turnDeadline: null,
   characters: game.characters.map(mapApiCharacterToCharacterState),
 });
@@ -127,8 +159,18 @@ const mapSnapshotToGameState = (snapshot: ApiGameSnapshot): GameState => ({
   status: snapshot.status,
   boardConfig: snapshot.board_config,
   currentTurnUserId: snapshot.current_turn_user_id,
+  actingCharacterId: deriveActingCharacterId(snapshot.acting_character_id, snapshot.turn_order, snapshot.current_turn_index),
+  turnOrder: snapshot.turn_order ?? [],
+  currentTurnIndex: snapshot.current_turn_index ?? 0,
   turnNumber: snapshot.turn_number ?? snapshot.last_action?.turn_number ?? 1,
   winnerId: snapshot.winner_id,
+  actingCharacterActions: snapshot.acting_character_actions ? {
+    hasMoved: snapshot.acting_character_actions.has_moved,
+    hasAttacked: snapshot.acting_character_actions.has_attacked,
+    hasDefended: snapshot.acting_character_actions.has_defended,
+  } : null,
+  challengerPicks: snapshot.challenger_picks,
+  challengedPicks: snapshot.challenged_picks,
   turnDeadline: snapshot.turn_deadline,
   characters: snapshot.characters.map(mapApiCharacterToCharacterState),
 });
@@ -166,9 +208,14 @@ const syncCurrentGameFromGameState = (
     status: gameState.status,
     board_config: gameState.boardConfig,
     current_turn_user_id: gameState.currentTurnUserId,
+    acting_character_id: gameState.actingCharacterId ?? undefined,
+    turn_order: gameState.turnOrder,
+    current_turn_index: gameState.currentTurnIndex,
     characters: gameState.characters.map(mapCharacterStateToApiCharacter),
     turn_number: gameState.turnNumber,
     winner_id: gameState.winnerId,
+    challenger_picks: gameState.challengerPicks,
+    challenged_picks: gameState.challengedPicks,
   };
 };
 
@@ -204,8 +251,11 @@ export const submitActionThunk = createAsyncThunk<
 
   const previousGameState = state.gameState;
 
-  const currentTurnUser = state.gameState.currentTurnUserId;
-  const activeCharacter = state.gameState.characters.find((character) => character.userId === currentTurnUser);
+  const activeCharacter =
+    (state.gameState.actingCharacterId
+      ? state.gameState.characters.find((character) => character.id === state.gameState?.actingCharacterId)
+      : undefined) ??
+    state.gameState.characters.find((character) => character.userId === state.gameState?.currentTurnUserId);
 
   if (activeCharacter) {
     if (actionType === 'move' && actionData.path && Array.isArray(actionData.path) && actionData.path.length > 0) {
@@ -217,7 +267,24 @@ export const submitActionThunk = createAsyncThunk<
   }
 
   try {
-    const response = await gameApi.submitAction(gameId, actionType, actionData);
+    let response;
+    if (
+      actionType === 'move' &&
+      activeCharacter &&
+      actionData.path &&
+      Array.isArray(actionData.path) &&
+      actionData.path.length > 0
+    ) {
+      const path = actionData.path as { x: number; y: number }[];
+      const target = path[path.length - 1];
+      response = await gameApi.submitMoveAction(gameId, {
+        character_id: activeCharacter.id,
+        target_x: target.x,
+        target_y: target.y,
+      });
+    } else {
+      response = await gameApi.submitAction(gameId, actionType, actionData);
+    }
     const mappedGameState = mapIncomingGameState(response.data.data.game_state);
 
     if (!mappedGameState) {
@@ -292,10 +359,27 @@ const gameSlice = createSlice({
           const nextPlayerId = parseNumber(
             action.payload.current_turn_user_id ?? payloadData?.current_turn_user_id ?? payloadData?.next_player_id,
           );
+          const nextCharacterId = parseNumber(payloadData?.next_character_id ?? payloadData?.acting_character_id);
           const nextTurnNumber = parseNumber(payloadData?.turn_number ?? payloadData?.next_turn_number);
+          const currentTurnIndex = parseNumber(payloadData?.current_turn_index);
+          const turnOrder = Array.isArray(payloadData?.turn_order)
+            ? payloadData.turn_order.map((entry) => parseNumber(entry)).filter((entry): entry is number => entry !== undefined)
+            : undefined;
 
           if (nextPlayerId !== undefined) {
             state.gameState.currentTurnUserId = nextPlayerId;
+          }
+
+          if (nextCharacterId !== undefined) {
+            state.gameState.actingCharacterId = nextCharacterId;
+          }
+
+          if (currentTurnIndex !== undefined) {
+            state.gameState.currentTurnIndex = currentTurnIndex;
+          }
+
+          if (turnOrder !== undefined) {
+            state.gameState.turnOrder = turnOrder;
           }
 
           if (nextTurnNumber !== undefined) {

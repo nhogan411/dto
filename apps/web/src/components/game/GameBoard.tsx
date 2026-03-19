@@ -5,15 +5,16 @@ import { useAppSelector } from '../../store/hooks';
 
 export interface GameBoardProps {
   boardConfig: {
-    blocked_squares: number[][];
-    start_positions: number[][];
+    tiles: Array<Array<{ type: string }>>;
   };
   gameState: GameState | null;
   selectedSquare: { x: number; y: number } | null;
   highlightedSquares: { x: number; y: number }[];
-  onSquareClick?: (x: number, y: number) => void;
+  onSquareClick?: (x: number, y: number, e: React.MouseEvent) => void;
   onSquareHover?: (x: number, y: number) => void;
   attackPreview?: import('../../api/game').AttackPreviewResponse | null;
+  challengerId?: number;
+  challengedId?: number;
 }
 
 export function GameBoard({
@@ -24,6 +25,8 @@ export function GameBoard({
   onSquareClick,
   onSquareHover,
   attackPreview,
+  challengerId,
+  challengedId,
 }: GameBoardProps) {
   const user = useAppSelector((state) => state.auth.user);
 
@@ -41,7 +44,7 @@ export function GameBoard({
   };
 
   const isSquareBlocked = (x: number, y: number) => {
-    return boardConfig.blocked_squares.some(([bx, by]) => bx === x && by === y);
+    return boardConfig.tiles[y - 1]?.[x - 1]?.type === 'blocked';
   };
 
   const isSquareHighlighted = (x: number, y: number) => {
@@ -54,8 +57,8 @@ export function GameBoard({
 
   const gridStyle: React.CSSProperties = {
     display: 'grid',
-    gridTemplateColumns: 'repeat(8, 1fr)',
-    gridTemplateRows: 'repeat(8, 1fr)',
+    gridTemplateColumns: 'repeat(12, 1fr)',
+    gridTemplateRows: 'repeat(12, 1fr)',
     gap: '2px',
     width: '100%',
     aspectRatio: '1',
@@ -66,8 +69,8 @@ export function GameBoard({
   };
 
   const squares = [];
-  for (let y = 1; y <= 8; y++) {
-    for (let x = 1; x <= 8; x++) {
+  for (let y = 1; y <= 12; y++) {
+    for (let x = 1; x <= 12; x++) {
       const char = getCharacterAt(x, y);
       const characterData = char
         ? {
@@ -76,6 +79,8 @@ export function GameBoard({
             maxHp: char.maxHp,
             facing: getFacingDirection(char.position, char.facingTile),
             isCurrentUser: char.userId === user?.id,
+            team: char.userId === challengerId ? ('challenger' as const) : char.userId === challengedId ? ('challenged' as const) : undefined,
+            isDead: char.alive === false || char.currentHp <= 0,
           }
         : null;
 
@@ -88,7 +93,7 @@ export function GameBoard({
           character={characterData}
           isSelected={isSquareSelected(x, y)}
           isHighlighted={isSquareHighlighted(x, y)}
-          onClick={onSquareClick ? () => onSquareClick(x, y) : undefined}
+          onClick={onSquareClick ? (e) => onSquareClick(x, y, e) : undefined}
           onHover={onSquareHover ? () => onSquareHover(x, y) : undefined}
         />
       );

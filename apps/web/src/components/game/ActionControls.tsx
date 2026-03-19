@@ -61,7 +61,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
         <button
           disabled={!isMyTurn || isSubmitting || activeMode === 'move'}
           onClick={() => onSelectMode('move')}
-          className={`px-4 py-2 rounded font-medium ${
+          className={`focus-ring px-4 py-2 rounded font-medium ${
             activeMode === 'move'
               ? 'bg-[#4ade80] text-[#121212]'
               : 'bg-[#333] text-white hover:bg-[#444] disabled:opacity-50 disabled:cursor-not-allowed'
@@ -73,7 +73,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
         <button
           disabled={!isMyTurn || isSubmitting || activeMode === 'attack'}
           onClick={() => onSelectMode('attack')}
-          className={`px-4 py-2 rounded font-medium ${
+          className={`focus-ring px-4 py-2 rounded font-medium ${
             activeMode === 'attack'
               ? 'bg-[#4ade80] text-[#121212]'
               : 'bg-[#333] text-white hover:bg-[#444] disabled:opacity-50 disabled:cursor-not-allowed'
@@ -85,17 +85,18 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
         <button
           disabled={!isMyTurn || isSubmitting}
           onClick={handleDefend}
-          className="bg-[#333] text-white hover:bg-[#444] px-4 py-2 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="focus-ring bg-[#333] text-white hover:bg-[#444] px-4 py-2 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Defend
         </button>
 
         <div className="flex items-center gap-2 ml-auto">
           <select
+            aria-label="Facing Direction"
             value={facingDirection}
             onChange={(e) => setFacingDirection(e.target.value as 'N' | 'S' | 'E' | 'W')}
             disabled={!isMyTurn || isSubmitting}
-            className="bg-[#333] text-white rounded px-2 py-2 border border-[#444]"
+            className="bg-[#333] text-white rounded px-2 py-2 border border-[#444] focus-ring"
           >
             <option value="N">North (Up)</option>
             <option value="S">South (Down)</option>
@@ -105,7 +106,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
           <button
             disabled={!isMyTurn || isSubmitting}
             onClick={handleEndTurn}
-            className="bg-[#4ade80] text-[#121212] hover:bg-[#22c55e] px-4 py-2 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="focus-ring bg-[#4ade80] text-[#121212] hover:bg-[#22c55e] px-4 py-2 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             End Turn
           </button>

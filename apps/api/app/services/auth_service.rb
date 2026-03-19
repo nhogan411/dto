@@ -3,9 +3,15 @@ class AuthService
 
   def self.register(params)
     user = User.new(params)
-    raise AuthError, user.errors.full_messages.to_sentence unless user.save
+
+    User.transaction do
+      user.save!
+      PlayerCharacter.provision_for(user)
+    end
 
     build_auth_payload(user)
+  rescue ActiveRecord::RecordInvalid => e
+    raise AuthError, e.record.errors.full_messages.to_sentence
   end
 
   def self.login(email, password)

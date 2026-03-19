@@ -98,6 +98,10 @@ export default function DashboardPage() {
           }
           break;
         }
+        case 'invite_expired': {
+          void dispatch(fetchGamesThunk());
+          break;
+        }
         default:
           break;
       }
@@ -144,71 +148,53 @@ export default function DashboardPage() {
   const pendingInvitations = games.filter(g => g.status === 'pending' && g.challenged_id === user?.id);
   const completedGames = games.filter(g => g.status === 'completed' || g.status === 'forfeited');
 
-  const statusBadgeStyles: Record<'pending' | 'active' | 'completed' | 'forfeited' | 'accepted', { backgroundColor: string; color: string }> = {
-    pending: { backgroundColor: '#f59e0b', color: '#fff' },
-    active: { backgroundColor: '#3b82f6', color: '#fff' },
-    completed: { backgroundColor: '#22c55e', color: '#052e16' },
-    forfeited: { backgroundColor: '#f97316', color: '#fff' },
-    accepted: { backgroundColor: '#8b5cf6', color: '#fff' },
+  const statusBadgeStyles: Record<'pending' | 'active' | 'completed' | 'forfeited' | 'accepted', string> = {
+    pending: 'bg-amber-500 text-white',
+    active: 'bg-blue-500 text-white',
+    completed: 'bg-green-600 text-white',
+    forfeited: 'bg-orange-500 text-white',
+    accepted: 'bg-violet-500 text-white',
   };
 
   return (
-    <div style={{
-      maxWidth: '1200px',
-      margin: '0 auto',
-      padding: '2rem',
-      color: '#ffffff',
-      backgroundColor: '#121212',
-      minHeight: '100vh',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ margin: 0, fontSize: '2rem', color: '#4ade80' }}>Dashboard</h1>
+    <main className="max-w-[1200px] mx-auto p-8 text-white bg-neutral-950 min-h-screen">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="m-0 text-3xl text-[var(--team-green)]">Dashboard</h1>
         <button
           onClick={() => setIsNewGameModalOpen(true)}
-          style={{
-            backgroundColor: '#4ade80',
-            color: '#121212',
-            border: 'none',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '6px',
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-          }}
+          className="bg-[var(--team-green)] text-neutral-950 border-none px-6 py-3 rounded-md text-base font-bold cursor-pointer focus-ring"
+          aria-label="Start a new game"
         >
           New Game
         </button>
       </div>
 
       {isNewGameModalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000,
-        }}>
-          <div style={{
-            backgroundColor: '#1e1e1e',
-            padding: '2rem',
-            borderRadius: '8px',
-            border: '1px solid #333',
-            width: '100%',
-            maxWidth: '500px',
-          }}>
-            <h2 style={{ marginTop: 0 }}>Start New Game</h2>
+        <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-[1000]">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-game-title"
+            tabIndex={-1}
+            ref={(el) => { if (el && !el.contains(document.activeElement)) el.focus(); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setIsNewGameModalOpen(false);
+            }}
+            className="bg-neutral-900 p-8 rounded-lg border border-neutral-700 w-full max-w-[500px]"
+          >
+            <h2 id="new-game-title" className="mt-0 text-2xl">Start New Game</h2>
             
-            {newGameError && <div style={{ color: '#ef4444', marginBottom: '1rem' }}>{newGameError}</div>}
-            {newGameSuccess && <div style={{ color: '#4ade80', marginBottom: '1rem' }}>{newGameSuccess}</div>}
+            {newGameError && <div className="text-red-500 mb-4">{newGameError}</div>}
+            {newGameSuccess && <div className="text-[var(--team-green)] mb-4">{newGameSuccess}</div>}
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem' }}>Opponent</label>
+            <div className="mb-4">
+              <label htmlFor="opponent-select" className="block mb-2">Opponent</label>
               <select
+                id="opponent-select"
                 value={newGameChallengedId}
                 onChange={(e) => setNewGameChallengedId(Number(e.target.value))}
-                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', backgroundColor: '#333', color: '#fff', border: 'none' }}
+                className="w-full p-2 rounded bg-neutral-800 text-white border-none focus-ring"
+                aria-label="Select opponent"
               >
                 <option value="">Select a friend</option>
                 {friends.map(f => (
@@ -217,12 +203,14 @@ export default function DashboardPage() {
               </select>
             </div>
 
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem' }}>Turn Time Limit</label>
+            <div className="mb-6">
+              <label htmlFor="time-limit-select" className="block mb-2">Turn Time Limit</label>
               <select
+                id="time-limit-select"
                 value={newGameTimeLimit}
                 onChange={(e) => setNewGameTimeLimit(Number(e.target.value))}
-                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', backgroundColor: '#333', color: '#fff', border: 'none' }}
+                className="w-full p-2 rounded bg-neutral-800 text-white border-none focus-ring"
+                aria-label="Select turn time limit"
               >
                 <option value={600}>10 minutes</option>
                 <option value={3600}>1 hour</option>
@@ -233,22 +221,22 @@ export default function DashboardPage() {
               </select>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+            <div className="flex justify-end gap-4">
               <button
                 onClick={() => setIsNewGameModalOpen(false)}
-                style={{ padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid #555', backgroundColor: 'transparent', color: '#fff', cursor: 'pointer' }}
+                className="px-4 py-2 rounded border border-neutral-500 bg-transparent text-white cursor-pointer focus-ring disabled:opacity-50"
                 disabled={isCreatingGame}
+                aria-label="Cancel game creation"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateGame}
                 disabled={newGameChallengedId === '' || isCreatingGame}
-                style={{
-                  padding: '0.5rem 1rem', borderRadius: '4px', border: 'none',
-                  backgroundColor: newGameChallengedId === '' ? '#555' : '#4ade80',
-                  color: '#121212', fontWeight: 'bold', cursor: newGameChallengedId === '' ? 'not-allowed' : 'pointer'
-                }}
+                className={`px-4 py-2 rounded border-none font-bold focus-ring ${
+                  newGameChallengedId === '' ? 'bg-neutral-600 text-neutral-400 cursor-not-allowed' : 'bg-[var(--team-green)] text-neutral-950 cursor-pointer'
+                }`}
+                aria-label={isCreatingGame ? 'Sending game invitation' : 'Send game invitation'}
               >
                 {isCreatingGame ? 'Sending...' : 'Send Invitation'}
               </button>
@@ -258,70 +246,60 @@ export default function DashboardPage() {
       )}
 
       {pendingInvitations.length > 0 && (
-        <div style={{
-          backgroundColor: '#1e1e1e',
-          padding: '1rem',
-          borderRadius: '8px',
-          border: '1px solid #333',
-          marginBottom: '2rem',
-        }}>
-          <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', color: '#fbbf24' }}>Pending Invitations</h2>
-          <div style={{ display: 'grid', gap: '1rem' }}>
+        <section
+          aria-labelledby="pending-invitations-title"
+          className="bg-neutral-900 p-4 rounded-lg border border-neutral-800 mb-8"
+        >
+          <h2 id="pending-invitations-title" className="m-0 mb-4 text-xl text-amber-400">Pending Invitations</h2>
+          <div className="grid gap-4">
             {pendingInvitations.map(game => (
-              <div key={game.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2a2a2a', padding: '1rem', borderRadius: '6px' }}>
+              <div key={game.id} className="flex justify-between items-center bg-neutral-800 p-4 rounded-md">
                <div>
-                   <span style={{ fontWeight: 'bold' }}>Invitation from {game.challenger_username || `User #${game.challenger_id}`}</span>
+                   <span className="font-bold">Invitation from {game.challenger_username || `User #${game.challenger_id}`}</span>
                  </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button onClick={() => handleAcceptGame(game.id)} style={{ backgroundColor: '#4ade80', color: '#121212', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Accept</button>
-                  <button onClick={() => handleDeclineGame(game.id)} style={{ backgroundColor: '#ef4444', color: '#fff', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Decline</button>
+                <div className="flex gap-2">
+                  <button onClick={() => handleAcceptGame(game.id)} className="bg-[var(--team-green)] text-neutral-950 px-4 py-2 border-none rounded cursor-pointer font-bold focus-ring" aria-label={`Accept invitation from ${game.challenger_username || game.challenger_id}`}>Accept</button>
+                  <button onClick={() => handleDeclineGame(game.id)} className="bg-red-500 text-white px-4 py-2 border-none rounded cursor-pointer font-bold focus-ring" aria-label={`Decline invitation from ${game.challenger_username || game.challenger_id}`}>Decline</button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      <div style={{
-        backgroundColor: '#1e1e1e',
-        padding: '1rem',
-        borderRadius: '8px',
-        border: '1px solid #333',
-        marginBottom: '2rem',
-      }}>
-        <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem' }}>Active Games</h2>
-        {gamesStatus === 'loading' && <div style={{ color: '#a3a3a3' }}>Loading games...</div>}
+      <section
+        aria-labelledby="active-games-title"
+        className="bg-neutral-900 p-4 rounded-lg border border-neutral-800 mb-8"
+      >
+        <h2 id="active-games-title" className="m-0 mb-4 text-xl">Active Games</h2>
+        {gamesStatus === 'loading' && <div className="text-neutral-400">Loading games...</div>}
         {gamesStatus === 'succeeded' && activeGames.length === 0 && (
-          <div style={{ color: '#a3a3a3' }}>No active games.</div>
+          <div className="text-neutral-400">No active games.</div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
           {activeGames.map(game => {
             const isMyTurn = game.current_turn_user_id === user?.id;
             const opponentUsername = game.challenger_id === user?.id
               ? (game.challenged_username || `User #${game.challenged_id}`)
               : (game.challenger_username || `User #${game.challenger_id}`);
             return (
-              <div key={game.id} style={{ backgroundColor: '#2a2a2a', padding: '1rem', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                   <span style={{ fontWeight: 'bold' }}>Game #{game.id} vs {opponentUsername}</span>
-                  <span style={{
-                    padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 'bold',
-                    backgroundColor: statusBadgeStyles[game.status].backgroundColor,
-                    color: statusBadgeStyles[game.status].color,
-                  }}>
+              <div key={game.id} className="bg-neutral-800 p-4 rounded-md flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                   <span className="font-bold">Game #{game.id} vs {opponentUsername}</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${statusBadgeStyles[game.status]}`}>
                     {game.status.toUpperCase()}
                   </span>
                 </div>
                 {game.status === 'active' && (
-                  <div style={{ color: isMyTurn ? '#4ade80' : '#9ca3af', fontWeight: 'bold' }}>
+                  <div className={`font-bold ${isMyTurn ? 'text-[var(--team-green)]' : 'text-neutral-400'}`}>
                     {isMyTurn ? 'Your turn!' : 'Waiting...'}
                   </div>
                 )}
                 {game.status === 'pending' && (
-                  <div style={{ color: '#9ca3af' }}>Waiting for opponent to accept...</div>
+                  <div className="text-neutral-400">Waiting for opponent to accept...</div>
                 )}
                 {game.status === 'accepted' && (
-                  <div style={{ color: game.challenger_id === user?.id ? '#a78bfa' : '#9ca3af', fontWeight: 'bold' }}>
+                  <div className={`font-bold ${game.challenger_id === user?.id ? 'text-violet-400' : 'text-neutral-400'}`}>
                     {game.challenger_id === user?.id ? 'Choose your starting position!' : 'Waiting for challenger...'}
                   </div>
                 )}
@@ -331,7 +309,8 @@ export default function DashboardPage() {
                       ? `/games/${game.id}/lobby`
                       : `/games/${game.id}`
                   )}
-                  style={{ marginTop: '0.5rem', backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                  className="mt-2 bg-[var(--team-blue)] text-white border-none p-2 rounded cursor-pointer font-bold focus-ring"
+                  aria-label={`View active game ${game.id} versus ${opponentUsername}`}
                 >
                   View Game
                 </button>
@@ -339,21 +318,18 @@ export default function DashboardPage() {
             );
           })}
         </div>
-      </div>
+      </section>
 
-      <div style={{
-        backgroundColor: '#1e1e1e',
-        padding: '1rem',
-        borderRadius: '8px',
-        border: '1px solid #333',
-        marginBottom: '2rem',
-      }}>
-        <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem' }}>Completed Games</h2>
-        {gamesStatus === 'loading' && <div style={{ color: '#a3a3a3' }}>Loading games...</div>}
+      <section
+        aria-labelledby="completed-games-title"
+        className="bg-neutral-900 p-4 rounded-lg border border-neutral-800 mb-8"
+      >
+        <h2 id="completed-games-title" className="m-0 mb-4 text-xl">Completed Games</h2>
+        {gamesStatus === 'loading' && <div className="text-neutral-400">Loading games...</div>}
         {gamesStatus === 'succeeded' && completedGames.length === 0 && (
-          <div style={{ color: '#a3a3a3' }}>No completed games yet.</div>
+          <div className="text-neutral-400">No completed games yet.</div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
           {completedGames.map(game => {
             const wonGame = game.winner_id !== null && game.winner_id === user?.id;
             const opponentUsername = game.challenger_id === user?.id
@@ -361,23 +337,20 @@ export default function DashboardPage() {
               : (game.challenger_username || `User #${game.challenger_id}`);
 
             return (
-              <div key={game.id} style={{ backgroundColor: '#2a2a2a', padding: '1rem', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                   <span style={{ fontWeight: 'bold' }}>Game #{game.id} vs {opponentUsername}</span>
-                  <span style={{
-                    padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 'bold',
-                    backgroundColor: statusBadgeStyles[game.status].backgroundColor,
-                    color: statusBadgeStyles[game.status].color,
-                  }}>
+              <div key={game.id} className="bg-neutral-800 p-4 rounded-md flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                   <span className="font-bold">Game #{game.id} vs {opponentUsername}</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${statusBadgeStyles[game.status]}`}>
                     {game.status.toUpperCase()}
                   </span>
                 </div>
-                <div style={{ color: wonGame ? '#4ade80' : '#fca5a5', fontWeight: 'bold' }}>
+                <div className={`font-bold ${wonGame ? 'text-[var(--team-green)]' : 'text-red-400'}`}>
                   {wonGame ? 'Result: Win' : 'Result: Loss'}
                 </div>
                 <button
                   onClick={() => navigate(`/games/${game.id}`)}
-                  style={{ marginTop: '0.5rem', backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                  className="mt-2 bg-[var(--team-blue)] text-white border-none p-2 rounded cursor-pointer font-bold focus-ring"
+                  aria-label={`View completed game ${game.id} versus ${opponentUsername}`}
                 >
                   View Game
                 </button>
@@ -385,57 +358,43 @@ export default function DashboardPage() {
             );
           })}
         </div>
-      </div>
+      </section>
 
-      <div
-        style={{
-          backgroundColor: '#1e1e1e',
-          padding: '1rem',
-          borderRadius: '8px',
-          border: '1px solid #333',
-          marginBottom: '2rem',
-        }}
+      <section
+        aria-labelledby="notifications-title"
+        className="bg-neutral-900 p-4 rounded-lg border border-neutral-800 mb-8"
       >
-        <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem' }}>
+        <h2 id="notifications-title" className="m-0 mb-4 text-xl">
           Notifications {count > 0 ? `(${count})` : ''}
         </h2>
         {notifications.length === 0 ? (
-          <div style={{ color: '#a3a3a3' }}>No notifications yet.</div>
+          <div className="text-neutral-400">No notifications yet.</div>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '0.75rem' }}>
+          <ul className="list-none p-0 m-0 grid gap-3">
             {notifications.slice(0, 5).map((notification) => (
               <li
                 key={notification.id}
-                style={{
-                  padding: '0.75rem',
-                  borderRadius: '6px',
-                  backgroundColor: '#181818',
-                  border: '1px solid #2f2f2f',
-                }}
+                className="p-3 rounded-md bg-neutral-950 border border-neutral-800"
               >
-                <div style={{ fontWeight: 'bold' }}>{notification.message}</div>
-                <div style={{ color: '#a3a3a3', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                <div className="font-bold">{notification.message}</div>
+                <div className="text-neutral-400 text-sm mt-1">
                   {new Date(notification.createdAt).toLocaleString()}
                 </div>
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </section>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '2rem',
-      }}>
+      <section aria-label="Friends and Networking" className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8">
         <div>
           <FriendsList />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div className="flex flex-col gap-8">
           <FriendRequests />
           <FriendSearch />
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

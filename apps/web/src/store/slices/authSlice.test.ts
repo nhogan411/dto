@@ -54,6 +54,30 @@ describe('authSlice', () => {
     expect(localStorage.getItem('refreshToken')).toBeNull();
   });
 
+  it('updateUser merges fields into the persisted auth user', async () => {
+    const { default: authReducer, setCredentials, updateUser } = await import('./authSlice');
+
+    const populatedState = authReducer(
+      undefined,
+      setCredentials({
+        user: sampleUser,
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+      }),
+    );
+
+    const updatedState = authReducer(
+      populatedState,
+      updateUser({ email: 'updated@example.com' }),
+    );
+
+    expect(updatedState.user).toEqual({
+      ...sampleUser,
+      email: 'updated@example.com',
+    });
+    expect(localStorage.getItem('authUser')).toContain('updated@example.com');
+  });
+
   it('initial state loads tokens from localStorage if present', async () => {
     localStorage.setItem('accessToken', 'stored-access-token');
     localStorage.setItem('refreshToken', 'stored-refresh-token');

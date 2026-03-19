@@ -31,55 +31,35 @@ export const FriendSearch: React.FC = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#1e1e1e', padding: '1rem', borderRadius: '8px', border: '1px solid #333' }}>
-      <h2 style={{ color: '#ffffff', margin: '0 0 1rem 0', fontSize: '1.25rem' }}>Find Friends</h2>
+    <div className="bg-neutral-900 p-6 rounded-lg border border-neutral-800">
+      <h2 className="text-white m-0 mb-6 text-xl">Find Friends</h2>
       
       <input
         type="text"
         placeholder="Search by username..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '0.75rem',
-          backgroundColor: '#121212',
-          border: '1px solid #333',
-          borderRadius: '4px',
-          color: '#ffffff',
-          marginBottom: '1rem',
-          boxSizing: 'border-box'
-        }}
+        className="w-full p-3 bg-neutral-950 border border-neutral-700 rounded-md text-white mb-4 box-border focus-ring placeholder-neutral-500"
+        aria-label="Search users"
       />
 
       {status === 'loading' && debouncedQuery && (
-        <div style={{ color: '#a3a3a3' }}>Searching...</div>
+        <div className="text-neutral-400 py-4 text-center" aria-live="polite">Searching...</div>
       )}
 
       {searchResults.length > 0 && (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <ul className="list-none p-0 m-0" role="list">
           {searchResults.map((user) => (
             <li 
               key={user.id}
-              style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                padding: '0.75rem 0',
-                borderBottom: '1px solid #333'
-              }}
+              className="flex justify-between items-center py-4 border-b border-neutral-800 last:border-b-0 bg-neutral-800 px-4 rounded-md mb-2 last:mb-0"
+              role="listitem"
             >
-              <div style={{ color: '#ffffff', fontWeight: 'bold' }}>{user.username}</div>
+              <div className="text-white font-bold">{user.username}</div>
               <button
                 onClick={() => handleAddFriend(user.id)}
-                style={{
-                  backgroundColor: '#1e1e1e',
-                  color: '#4ade80',
-                  border: '1px solid #4ade80',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                }}
+                className="bg-transparent text-[var(--team-green)] border border-[var(--team-green)] hover:bg-[var(--team-green)] hover:text-neutral-950 px-4 py-2 rounded-md font-bold cursor-pointer focus-ring transition-colors"
+                aria-label={`Send friend request to ${user.username}`}
               >
                 Add Friend
               </button>
@@ -89,7 +69,7 @@ export const FriendSearch: React.FC = () => {
       )}
       
       {debouncedQuery.trim() && searchResults.length === 0 && status !== 'loading' && (
-        <div style={{ color: '#a3a3a3' }}>No users found.</div>
+        <div className="text-neutral-400 text-center py-8">No users found.</div>
       )}
     </div>
   );

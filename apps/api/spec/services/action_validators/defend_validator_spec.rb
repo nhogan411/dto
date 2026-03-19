@@ -7,7 +7,10 @@ RSpec.describe ActionValidators::DefendValidator do
   let(:action_data) { {} }
   let(:turn_context) { { current_user_id: challenger.id, has_defended: false, has_attacked: false, has_ended_turn: false } }
 
-  before { game.update!(current_turn_user: challenger) }
+  before do
+    character
+    game.update!(current_turn_user: challenger, turn_order: [ character.id ], current_turn_index: 0)
+  end
 
   subject(:validator) { described_class.new(game:, character:, action_data:, turn_context:) }
 

@@ -22,8 +22,10 @@ module ActionValidators
 
     def validate_steps!
       previous = normalize_position(character.position)
-      occupied = normalize_position(opponent_character&.position || {})
-      blocked = blocked_squares
+      others = other_characters
+      end_positions = others.map { |c| normalize_position(c.position) }
+      ally_positions = others.select { |c| c.user_id == character.user_id }.map { |c| normalize_position(c.position) }
+      blocked = blocked_positions
 
       path.each_with_index do |step, index|
         current = normalize_position(step)
@@ -32,7 +34,6 @@ module ActionValidators
           if index.zero?
             raise ValidationError, "First step must be adjacent to current position"
           end
-
           raise ValidationError, "Path must move in adjacent cardinal steps only"
         end
 
@@ -40,8 +41,18 @@ module ActionValidators
           raise ValidationError, "Path cannot move through blocked squares"
         end
 
-        if occupied[:x] == current[:x] && occupied[:y] == current[:y]
-          raise ValidationError, "Path cannot move onto opponent position"
+        is_end_step = index == path.length - 1
+        unless is_end_step
+          opponent_positions = end_positions - ally_positions
+          if opponent_positions.any? { |op| op[:x] == current[:x] && op[:y] == current[:y] }
+            raise ValidationError, "Path cannot move through opponent position"
+          end
+        end
+
+        if is_end_step
+          if end_positions.any? { |op| op[:x] == current[:x] && op[:y] == current[:y] }
+            raise ValidationError, "Path cannot end on an occupied tile"
+          end
         end
 
         previous = current
@@ -52,10 +63,8 @@ module ActionValidators
       @path ||= action_data[:path]
     end
 
-    def blocked_squares
-      Array(game.board_config&.dig("blocked_squares")).map do |pair|
-        [ pair[0].to_i, pair[1].to_i ]
-      end
+    def blocked_positions
+      BoardConfig.blocked_positions(game.board_config)
     end
   end
 end

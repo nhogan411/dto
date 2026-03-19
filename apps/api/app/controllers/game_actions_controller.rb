@@ -21,7 +21,7 @@ class GameActionsController < ApplicationController
       actor = actor_for(game)
 
       ensure_active_game!(game)
-      ensure_player!(actor)
+      ensure_player!(game)
       ensure_current_turn!(game)
 
       validate_combat_budget!(game, actor)
@@ -68,7 +68,7 @@ class GameActionsController < ApplicationController
 
   def index
     game = Game.includes(:characters).find(params[:id])
-    ensure_player!(actor_for(game))
+    ensure_player!(game)
 
     render json: {
       data: {
@@ -85,7 +85,7 @@ class GameActionsController < ApplicationController
     game = Game.includes(:characters).find(params[:id])
     actor = actor_for(game)
     ensure_active_game!(game)
-    ensure_player!(actor)
+    ensure_player!(game)
 
     target_character_id = params[:target_character_id].to_i
     target = game.characters.find_by(id: target_character_id)
@@ -125,19 +125,20 @@ class GameActionsController < ApplicationController
   private
 
   def actor_for(game)
-    game.characters.find { |character| character.user_id == current_user.id }
+    game.acting_character
   end
 
   def ensure_active_game!(game)
     raise ActionValidators::BaseValidator::ValidationError, "Game is not active" unless game.active?
   end
 
-  def ensure_player!(character)
-    raise ActionValidators::BaseValidator::ValidationError, "You are not a player in this game" unless character
+  def ensure_player!(game)
+    raise ActionValidators::BaseValidator::ValidationError, "You are not a player in this game" unless game.characters.exists?(user_id: current_user.id)
   end
 
   def ensure_current_turn!(game)
-    raise ActionValidators::BaseValidator::ValidationError, "It is not your turn" unless game.current_turn_user_id == current_user.id
+    actor = game.acting_character
+    raise ActionValidators::BaseValidator::ValidationError, "It is not your turn" if actor.nil? || actor.user_id != current_user.id
   end
 
   def action_type_param
@@ -192,8 +193,11 @@ class GameActionsController < ApplicationController
     when "defend"
       {}
     when "end_turn"
+      next_index = compute_next_turn_index(game)
+      next_character = next_index.nil? ? nil : game.characters.find_by(id: game.turn_order[next_index])
+
       {
-        next_player_id: opponent_user_id_for(game, actor),
+        next_character_id: next_character&.id,
         turn_number: game.game_actions.where(action_type: :end_turn).count + 2
       }
     else
@@ -267,30 +271,48 @@ class GameActionsController < ApplicationController
   end
 
   def apply_end_turn!(game:, actor:)
-    next_player_id = opponent_user_id_for(game, actor)
-    next_character = game.characters.find_by!(user_id: next_player_id)
+    next_index = compute_next_turn_index(game)
+    next_character = next_index.nil? ? nil : game.characters.find_by(id: game.turn_order[next_index])
     facing_tile = action_data_param.with_indifferent_access[:facing_tile].to_h.with_indifferent_access
 
     actor.update!(is_defending: false, facing_tile: { x: facing_tile[:x], y: facing_tile[:y] })
-    next_character.update!(is_defending: false)
+    next_character&.update!(is_defending: false)
 
     game.update!(
-      current_turn_user_id: next_player_id,
+      current_turn_index: next_index || game.current_turn_index,
       turn_deadline: Time.current + game.turn_time_limit.seconds
     )
   end
 
   def apply_defend_turn_change!(game:, actor:)
-    next_player_id = opponent_user_id_for(game, actor)
-    next_character = game.characters.find_by!(user_id: next_player_id)
-    next_character.update!(is_defending: false)
+    next_index = compute_next_turn_index(game)
+    next_character = next_index.nil? ? nil : game.characters.find_by(id: game.turn_order[next_index])
+    next_character&.update!(is_defending: false)
+
     game.update!(
-      current_turn_user_id: next_player_id,
+      current_turn_index: next_index || game.current_turn_index,
       turn_deadline: Time.current + game.turn_time_limit.seconds
     )
   end
 
-  def opponent_user_id_for(game, actor)
-    game.characters.find { |character| character.user_id != actor.user_id }.user_id
+  def compute_next_turn_index(game)
+    turn_order = game.turn_order
+    turn_count = turn_order.length
+    return nil if turn_count.zero?
+
+    next_index = (game.current_turn_index + 1) % turn_count
+    iterations = 0
+
+    while (next_character = game.characters.find_by(id: turn_order[next_index])) && next_character.dead? && iterations < turn_count
+      next_index = (next_index + 1) % turn_count
+      iterations += 1
+    end
+
+    while game.characters.find_by(id: turn_order[next_index]).nil? && iterations < turn_count
+      next_index = (next_index + 1) % turn_count
+      iterations += 1
+    end
+
+    next_index
   end
 end

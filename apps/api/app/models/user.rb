@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   has_secure_password
 
+  before_save { self.email = email.downcase.strip if email.present? }
+
   has_many :refresh_tokens, dependent: :destroy
   has_many :sent_friend_requests,
            class_name: "Friendship",
@@ -13,14 +15,18 @@ class User < ApplicationRecord
            inverse_of: :recipient,
            dependent: :destroy
   has_many :characters, dependent: :destroy
+  has_many :notifications, dependent: :destroy
 
   validates :email,
-            presence: true,
-            uniqueness: { case_sensitive: false },
-            format: { with: URI::MailTo::EMAIL_REGEXP }
+             presence: true,
+             uniqueness: { case_sensitive: false },
+             format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :password,
+            length: { minimum: 8 },
+            allow_nil: true
   validates :username,
-            presence: true,
-            uniqueness: { case_sensitive: false },
-            length: { minimum: 3, maximum: 30 },
-            format: { with: /\A[a-zA-Z0-9_]+\z/, message: "only letters, numbers, underscores" }
+             presence: true,
+             uniqueness: { case_sensitive: false },
+             length: { minimum: 3, maximum: 30 },
+             format: { with: /\A[a-zA-Z0-9_]+\z/, message: "only letters, numbers, underscores" }
 end

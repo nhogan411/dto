@@ -20,8 +20,11 @@ describe('ActionControls', () => {
   const mockGameState = {
     id: 1,
     status: 'active' as const,
-    boardConfig: { blocked_squares: [], start_positions: [] },
+    boardConfig: { tiles: [[{ type: 'open' }]] },
     currentTurnUserId: 1,
+    actingCharacterId: 10,
+    turnOrder: [10],
+    currentTurnIndex: 0,
     turnNumber: 1,
     winnerId: null,
     turnDeadline: null,
@@ -34,6 +37,8 @@ describe('ActionControls', () => {
         currentHp: 10,
         maxHp: 10,
         isDefending: false,
+        alive: true,
+        stats: { move: 3 },
       }
     ]
   };

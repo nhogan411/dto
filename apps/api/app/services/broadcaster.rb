@@ -27,6 +27,18 @@ class Broadcaster
     broadcast_to_user(user, { event: "game_invitation_received", game_id: game.id })
   end
 
+  def self.invite_expired(user, notification)
+    broadcast_to_user(
+      user,
+      {
+        event: "invite_expired",
+        notification_id: notification.id,
+        game_id: notification.data["game_id"] || notification.data[:game_id],
+        data: notification.data
+      }
+    )
+  end
+
   def self.your_turn(user, game)
     broadcast_to_user(user, { event: "your_turn", game_id: game.id })
   end

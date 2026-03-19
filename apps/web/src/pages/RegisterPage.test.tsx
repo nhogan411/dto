@@ -29,7 +29,7 @@ describe('RegisterPage', () => {
     vi.clearAllMocks();
   });
 
-  it('renders email, username, and password fields', () => {
+  it('renders email, username, password, and confirm password fields', () => {
     render(
       <MemoryRouter>
         <RegisterPage />
@@ -37,7 +37,8 @@ describe('RegisterPage', () => {
     );
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /register/i })).toBeInTheDocument();
   });
 
@@ -54,7 +55,8 @@ describe('RegisterPage', () => {
 
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@test.com' } });
     fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'testuser' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
+    fireEvent.change(screen.getByLabelText(/^password/i), { target: { value: 'password123' } });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'password123' } });
     fireEvent.click(screen.getByRole('button', { name: /register/i }));
 
     expect(registerThunk).toHaveBeenCalledWith({ email: 'test@test.com', username: 'testuser', password: 'password123' });
@@ -76,7 +78,8 @@ describe('RegisterPage', () => {
 
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'taken@test.com' } });
     fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'test' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'short' } });
+    fireEvent.change(screen.getByLabelText(/^password/i), { target: { value: 'short' } });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'short' } });
     fireEvent.click(screen.getByRole('button', { name: /register/i }));
 
     await waitFor(() => {
