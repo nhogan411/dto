@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface CharacterRendererProps {
   userId: number;
   currentHp: number;
@@ -19,14 +17,14 @@ function getHpColor(current: number, max: number): string {
 }
 
 export function CharacterRenderer({
-  userId,
+  userId: _userId,
   currentHp,
   maxHp,
   facing,
   isCurrentUser,
   team,
   isDead,
-  mode = 'token',
+  mode: _mode = 'token',
 }: CharacterRendererProps) {
   return (
     <div

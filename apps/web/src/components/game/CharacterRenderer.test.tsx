@@ -47,19 +47,19 @@ describe('CharacterRenderer', () => {
   describe('HP bar width', () => {
     it('renders HP bar at 70% width when currentHp=7, maxHp=10', () => {
       const { container } = renderChar({ currentHp: 7, maxHp: 10 });
-      const hpBarInner = container.querySelector('div > div > div:last-child > div');
+      const hpBarInner = container.querySelector('div > div > div:last-child > div') as HTMLElement;
       expect(hpBarInner?.style.width).toBe('70%');
     });
 
     it('renders HP bar at 0% width when currentHp=0, maxHp=10', () => {
       const { container } = renderChar({ currentHp: 0, maxHp: 10 });
-      const hpBarInner = container.querySelector('div > div > div:last-child > div');
+      const hpBarInner = container.querySelector('div > div > div:last-child > div') as HTMLElement;
       expect(hpBarInner?.style.width).toBe('0%');
     });
 
     it('renders HP bar at 100% width when currentHp=10, maxHp=10', () => {
       const { container } = renderChar({ currentHp: 10, maxHp: 10 });
-      const hpBarInner = container.querySelector('div > div > div:last-child > div');
+      const hpBarInner = container.querySelector('div > div > div:last-child > div') as HTMLElement;
       expect(hpBarInner?.style.width).toBe('100%');
     });
   });
@@ -68,19 +68,19 @@ describe('CharacterRenderer', () => {
   describe('HP color thresholds', () => {
     it('renders green (#4ade80) background when HP ratio > 0.5', () => {
       const { container } = renderChar({ currentHp: 6, maxHp: 10 });
-      const hpBarInner = container.querySelector('div > div > div:last-child > div');
+      const hpBarInner = container.querySelector('div > div > div:last-child > div') as HTMLElement;
       expect(hpBarInner?.style.backgroundColor).toBe('#4ade80');
     });
 
     it('renders yellow (#fbbf24) background when HP ratio 0.25-0.5', () => {
       const { container } = renderChar({ currentHp: 3, maxHp: 10 });
-      const hpBarInner = container.querySelector('div > div > div:last-child > div');
+      const hpBarInner = container.querySelector('div > div > div:last-child > div') as HTMLElement;
       expect(hpBarInner?.style.backgroundColor).toBe('#fbbf24');
     });
 
     it('renders red (#ef4444) background when HP ratio < 0.25', () => {
       const { container } = renderChar({ currentHp: 2, maxHp: 10 });
-      const hpBarInner = container.querySelector('div > div > div:last-child > div');
+      const hpBarInner = container.querySelector('div > div > div:last-child > div') as HTMLElement;
       expect(hpBarInner?.style.backgroundColor).toBe('#ef4444');
     });
   });
