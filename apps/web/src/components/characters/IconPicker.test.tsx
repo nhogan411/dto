@@ -29,9 +29,9 @@ describe('IconPicker', () => {
     const handleChange = vi.fn();
     render(<IconPicker value="warrior" onChange={handleChange} disabled={true} />);
     
-    const buttons = screen.getAllByRole('button');
-    buttons.forEach(button => {
-      expect(button).toBeDisabled();
+    const radios = screen.getAllByRole('radio');
+    radios.forEach(radio => {
+      expect(radio).toBeDisabled();
     });
   });
 });

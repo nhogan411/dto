@@ -27,20 +27,19 @@ export const FriendRequests: React.FC = () => {
       <h2 className="text-white m-0 mb-6 text-xl">Friend Requests</h2>
 
       {status === 'loading' && (
-        <div className="text-neutral-400 py-8 text-center" aria-live="polite">Loading requests...</div>
+        <div className="text-neutral-300 py-8 text-center" aria-live="polite">Loading requests...</div>
       )}
       
       {status === 'succeeded' && pendingRequests.length === 0 && (
-        <div className="text-neutral-400 text-center py-8">No pending requests.</div>
+        <div className="text-neutral-300 text-center py-8">No pending requests.</div>
       )}
 
       {pendingRequests.length > 0 && (
-        <ul className="list-none p-0 m-0" role="list">
+        <ul className="list-none p-0 m-0">
           {pendingRequests.map((request) => (
             <li 
               key={request.id}
               className="flex justify-between items-center py-4 border-b border-neutral-800 last:border-b-0 bg-neutral-800 px-4 rounded-md mb-2 last:mb-0"
-              role="listitem"
             >
               <div className="text-white font-bold">
                 {request.sender?.username || 'Unknown User'}

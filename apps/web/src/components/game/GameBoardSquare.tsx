@@ -36,7 +36,7 @@ export function GameBoardSquare({
   let borderColor = '#333';
 
   if (isBlocked) {
-    backgroundColor = '#2a2a2a';
+    backgroundColor = '#000000';
   } else if (isHighlighted) {
     backgroundColor = 'rgba(74, 222, 128, 0.2)';
   }

@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchGameThunk, clearGame } from '../store/slices/gameSlice';
 import { fetchPlayerCharactersThunk } from '../store/slices/playerCharactersSlice';
 import { gameApi } from '../api/game';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 function formatTimeLimit(seconds?: number) {
   if (!seconds) return 'Unknown';
@@ -13,6 +14,7 @@ function formatTimeLimit(seconds?: number) {
 }
 
 export default function LobbyPage() {
+  usePageTitle('Game Lobby');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -59,7 +61,7 @@ export default function LobbyPage() {
   if (gameStatus === 'failed' || error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 p-8">
-        <h2 className="text-2xl font-bold text-red-500 mb-4">Error Loading Game</h2>
+        <h2 className="text-2xl font-bold text-red-400 mb-4">Error Loading Game</h2>
         <p className="text-red-400 bg-red-500/10 p-4 rounded-lg border border-red-500/20">{error}</p>
       </div>
     );
@@ -159,13 +161,13 @@ export default function LobbyPage() {
     );
   };
 
-  const teamColorClass = isChallenger ? 'text-[var(--team-blue)]' : 'text-[var(--team-green)]';
+  const teamColorClass = isChallenger ? 'text-blue-400' : 'text-emerald-400';
   const teamBorderClass = isChallenger ? 'border-[var(--team-blue)]' : 'border-[var(--team-green)]';
   const teamBgClass = isChallenger ? 'bg-[var(--team-blue)]' : 'bg-[var(--team-green)]';
   const teamBgSoftClass = isChallenger ? 'bg-blue-900/30' : 'bg-green-900/30';
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-neutral-100 py-8 px-4 sm:px-8 flex flex-col items-center">
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 py-8 px-4 sm:px-8 flex flex-col items-center">
       <div className={`w-full max-w-4xl bg-neutral-900 rounded-xl border border-neutral-800 shadow-2xl overflow-hidden relative border-t-4 ${teamBorderClass}`}>
         
         <div className="p-6 sm:p-8 border-b border-neutral-800 bg-neutral-900/50 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -173,7 +175,7 @@ export default function LobbyPage() {
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight m-0 text-white mb-2">
               {isChallenger ? 'Game Lobby' : 'Game Invitation'}
             </h1>
-            <p className="text-neutral-400 flex items-center justify-center md:justify-start gap-2">
+            <p className="text-neutral-300 flex items-center justify-center md:justify-start gap-2">
               <span className="font-mono text-sm bg-neutral-800 px-2 py-1 rounded text-neutral-300 border border-neutral-700">
                 Time limit: {timeLimit}
               </span>
@@ -190,7 +192,7 @@ export default function LobbyPage() {
             </div>
 
             <div className="flex items-center gap-3 opacity-60">
-              <div className="flex flex-col items-end text-neutral-400">
+              <div className="flex flex-col items-end text-neutral-300">
                 <span className="text-xs uppercase tracking-wider font-bold opacity-80">Opponent</span>
                 <span className="font-medium text-sm">{opponentUsername}</span>
               </div>
@@ -200,10 +202,10 @@ export default function LobbyPage() {
         </div>
 
         <div className="w-full flex">
-          <div className={`flex-1 p-3 text-center text-sm font-bold tracking-wide uppercase transition-colors ${hasLocked ? `${teamBgClass} text-white` : 'bg-neutral-800 text-neutral-400'}`}>
+          <div className={`flex-1 p-3 text-center text-sm font-bold tracking-wide uppercase transition-colors ${hasLocked ? `${teamBgClass} text-white` : 'bg-neutral-800 text-neutral-300'}`}>
             {hasLocked ? '✓ Locked In' : 'Select 2 Characters'}
           </div>
-          <div className={`flex-1 p-3 text-center text-sm font-bold tracking-wide uppercase transition-colors ${opponentLocked ? 'bg-neutral-700 text-neutral-200' : 'bg-neutral-800/50 text-neutral-500'}`}>
+          <div className={`flex-1 p-3 text-center text-sm font-bold tracking-wide uppercase transition-colors ${opponentLocked ? 'bg-neutral-700 text-neutral-200' : 'bg-neutral-800/50 text-neutral-300'}`}>
             {opponentLocked ? `✓ ${opponentUsername} Locked In` : `Waiting for ${opponentUsername}`}
           </div>
         </div>
@@ -220,13 +222,13 @@ export default function LobbyPage() {
               <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-bold m-0 text-white">Your Stable</h3>
-                  <span className="text-sm font-mono text-neutral-400">
+                  <span className="text-sm font-mono text-neutral-300">
                     <span className={selectedIds.length === 2 ? teamColorClass : ''}>{selectedIds.length}</span> / 2 selected
                   </span>
                 </div>
                 
                 {charactersStatus === 'loading' && (
-                  <div className="p-8 text-center text-neutral-500 animate-pulse border-2 border-dashed border-neutral-800 rounded-xl">
+                  <div className="p-8 text-center text-neutral-300 animate-pulse border-2 border-dashed border-neutral-800 rounded-xl">
                     Loading characters...
                   </div>
                 )}
@@ -278,7 +280,7 @@ export default function LobbyPage() {
                     className={`focus-ring px-8 py-3 rounded-lg font-bold text-neutral-950 shadow-lg transition-all ${
                       selectedIds.length === 2 && !isProcessing
                         ? `${teamBgClass} hover:brightness-110 hover:-translate-y-0.5` 
-                        : 'bg-neutral-700 text-neutral-400 cursor-not-allowed opacity-50'
+                        : 'bg-neutral-700 text-neutral-300 cursor-not-allowed opacity-50'
                     }`}
                     onClick={() => void handleConfirmPicks()}
                     disabled={selectedIds.length !== 2 || isProcessing}
@@ -296,11 +298,11 @@ export default function LobbyPage() {
                   <div className={`w-8 h-8 rounded-full ${teamBgClass} animate-pulse`} />
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">Forces Deployed</h2>
-                <p className="text-neutral-400 max-w-sm mx-auto mb-8 leading-relaxed">
+                <p className="text-neutral-300 max-w-sm mx-auto mb-8 leading-relaxed">
                   Your team is locked in and ready for battle. Waiting for <strong className="text-neutral-200">{opponentUsername}</strong> to finalize their selection. The match will begin automatically.
                 </p>
                 <button
-                  className="focus-ring px-5 py-2 text-sm font-medium text-neutral-400 hover:text-red-400 transition-colors"
+                  className="focus-ring px-5 py-2 text-sm font-medium text-neutral-300 hover:text-red-400 transition-colors"
                   onClick={() => void handleDecline()}
                   disabled={isProcessing}
                   aria-label="Cancel Game"
@@ -312,6 +314,6 @@ export default function LobbyPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

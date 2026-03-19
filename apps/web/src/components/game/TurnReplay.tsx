@@ -30,7 +30,7 @@ export function TurnReplay() {
   const currentAction = replayQueue[0];
 
   return (
-    <div className="fixed top-0 left-0 right-0 px-4 py-3 bg-black/85 text-yellow-300 z-[100] flex justify-between items-center">
+    <div role="status" aria-live="polite" className="fixed top-0 left-0 right-0 px-4 py-3 bg-black/85 text-yellow-300 z-[100] flex justify-between items-center">
       <span>
         🎬 Replaying opponent's turn...{' '}
         {currentAction && `(${currentAction.action_type})`}

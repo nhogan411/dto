@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { updateUser } from '../store/slices/authSlice';
 import { profileApi } from '../api/profileApi';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 type ApiErrorResponse = {
   errors?: string[];
@@ -25,6 +26,7 @@ const getErrorMessages = (error: unknown) => {
 };
 
 export default function ProfilePage() {
+  usePageTitle('Profile Settings');
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
 
@@ -106,7 +108,7 @@ export default function ProfilePage() {
   const hasPasswordErrors = passwordErrors.length > 0;
 
   return (
-    <main className="min-h-screen bg-neutral-950 p-8 text-white font-sans">
+    <div className="min-h-screen bg-neutral-950 p-8 text-white font-sans">
       <div className="mx-auto flex max-w-[800px] flex-col gap-8">
         <header className="space-y-2">
           <h1 className="m-0 text-3xl font-bold text-[var(--team-green)]">Profile Settings</h1>
@@ -116,7 +118,7 @@ export default function ProfilePage() {
         <section className="rounded-xl border border-neutral-800 bg-neutral-900 p-8 shadow-lg">
           <header className="mb-6">
             <h2 className="m-0 text-xl font-semibold text-white">Email</h2>
-            <p className="mt-1 text-sm text-neutral-400 m-0">Your login email must stay unique and valid.</p>
+            <p className="mt-1 text-sm text-neutral-300 m-0">Your login email must stay unique and valid.</p>
           </header>
 
           {hasEmailErrors && (
@@ -152,7 +154,7 @@ export default function ProfilePage() {
                 aria-invalid={hasEmailErrors}
                 aria-describedby={`email-helper ${hasEmailErrors ? 'email-error' : ''} ${emailSuccess ? 'email-success' : ''}`.trim()}
               />
-              <p id="email-helper" className="text-xs text-neutral-400 m-0">
+              <p id="email-helper" className="text-xs text-neutral-300 m-0">
                 This email is used for logging into your account.
               </p>
             </div>
@@ -172,7 +174,7 @@ export default function ProfilePage() {
         <section className="rounded-xl border border-neutral-800 bg-neutral-900 p-8 shadow-lg">
           <header className="mb-6">
             <h2 className="m-0 text-xl font-semibold text-white">Password</h2>
-            <p className="mt-1 text-sm text-neutral-400 m-0">Keep your account secure by updating your password.</p>
+            <p className="mt-1 text-sm text-neutral-300 m-0">Keep your account secure by updating your password.</p>
           </header>
 
           {hasPasswordErrors && (
@@ -213,14 +215,14 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword((prev) => !prev)}
-                    className="absolute right-3 text-xs font-semibold text-neutral-400 hover:text-white focus-ring rounded p-1 bg-transparent border-none cursor-pointer"
+                    className="absolute right-3 text-xs font-semibold text-neutral-300 hover:text-white focus-ring rounded p-1 bg-transparent border-none cursor-pointer"
                     aria-label={showCurrentPassword ? "Hide password" : "Show password"}
                     disabled={isSavingPassword}
                   >
                     {showCurrentPassword ? "HIDE" : "SHOW"}
                   </button>
                 </div>
-                <p id="current-password-helper" className="text-xs text-neutral-400 m-0">
+                <p id="current-password-helper" className="text-xs text-neutral-300 m-0">
                   Enter your current password to make changes.
                 </p>
               </div>
@@ -248,14 +250,14 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => setShowNewPassword((prev) => !prev)}
-                    className="absolute right-3 text-xs font-semibold text-neutral-400 hover:text-white focus-ring rounded p-1 bg-transparent border-none cursor-pointer"
+                    className="absolute right-3 text-xs font-semibold text-neutral-300 hover:text-white focus-ring rounded p-1 bg-transparent border-none cursor-pointer"
                     aria-label={showNewPassword ? "Hide password" : "Show password"}
                     disabled={isSavingPassword}
                   >
                     {showNewPassword ? "HIDE" : "SHOW"}
                   </button>
                 </div>
-                <p id="new-password-helper" className="text-xs text-neutral-400 m-0">
+                <p id="new-password-helper" className="text-xs text-neutral-300 m-0">
                   Minimum 8 characters.
                 </p>
               </div>
@@ -281,14 +283,14 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => setShowNewPasswordConfirm((prev) => !prev)}
-                    className="absolute right-3 text-xs font-semibold text-neutral-400 hover:text-white focus-ring rounded p-1 bg-transparent border-none cursor-pointer"
+                    className="absolute right-3 text-xs font-semibold text-neutral-300 hover:text-white focus-ring rounded p-1 bg-transparent border-none cursor-pointer"
                     aria-label={showNewPasswordConfirm ? "Hide password" : "Show password"}
                     disabled={isSavingPassword}
                   >
                     {showNewPasswordConfirm ? "HIDE" : "SHOW"}
                   </button>
                 </div>
-                <p id="confirm-password-helper" className="text-xs text-neutral-400 m-0">
+                <p id="confirm-password-helper" className="text-xs text-neutral-300 m-0">
                   Please confirm your new password.
                 </p>
               </div>
@@ -311,6 +313,6 @@ export default function ProfilePage() {
           </form>
         </section>
       </div>
-    </main>
+    </div>
   );
 }

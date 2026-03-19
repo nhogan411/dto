@@ -4,18 +4,20 @@
 
 - [ ] Friend Request shows "Unknown User"
 - [ ] Remove "Offline" badge from Friends area of Dashboard
+- [ ] add a flashing border around the tile for the character whose turn it is
 - [ ] Movement zone showed all the options for where the character could move, but only allowed me to move them one square and then I was unable to make another "move". Each character should be allowed to move until they no longer have moves to make - meaning they could move one square, attack an opponent, and then move two more squares. once they've exhausted all three moves, then we should gray out movement as an option in the action popup.
+- [ ] i didn't get to choose tiles for my characters
 
 ## Ready
 
 Items scoped and designed, ready for planning.
 
-- [ ] **Phase 2: Multi-Character & Board Expansion** — 2 characters per player, 12x12 board, d20 initiative system, 2x2 corner start zones, tile-based board config schema
-- [ ] **Tailwind CSS + Full Restyle** — Add Tailwind to the frontend, restyle all existing Phase 1 UI and new Phase 2 UI
-- [ ] **Initiative System** — d20 roll per character at game start, fixed turn order for entire game, tie re-rolls, extensible for future DEX modifiers
-- [ ] **Character Names** — Build a fantasy name library, randomly assign names to characters at game start
-- [ ] **Board Config Schema Migration** — Move from `blocked_squares` list to tile-based schema (`{ type: "open" | "blocked" }`) to support future terrain types
-- [ ] **Swappable Character Renderer** — `CharacterRenderer` component that takes a rendering mode (token now, sprites later)
+- [x] **Phase 2: Multi-Character & Board Expansion** — 2 characters per player, 12x12 board, d20 initiative system, 2x2 corner start zones, tile-based board config schema
+- [x] **Tailwind CSS + Full Restyle** — Add Tailwind to the frontend, restyle all existing Phase 1 UI and new Phase 2 UI
+- [x] **Initiative System** — d20 roll per character at game start, fixed turn order for entire game, tie re-rolls, extensible for future DEX modifiers
+- [x] **Character Names** — Build a fantasy name library, randomly assign names to characters at game start
+- [x] **Board Config Schema Migration** — Move from `blocked_squares` list to tile-based schema (`{ type: "open" | "blocked" }`) to support future terrain types
+- [x] **Swappable Character Renderer** — `CharacterRenderer` component that takes a rendering mode (token now, sprites later)
 
 ## Account & UX
 

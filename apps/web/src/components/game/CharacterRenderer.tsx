@@ -45,7 +45,11 @@ export function CharacterRenderer({
         filter: isDead ? 'grayscale(100%)' : 'none',
       }}
     >
-      <div style={{ fontSize: '1.5rem', lineHeight: 1 }}>
+      <div
+        role="img"
+        aria-label={`${isCurrentUser ? 'Your character' : 'Opponent character'}${isDead ? ', dead' : ''}, facing ${facing}`}
+        style={{ fontSize: '1.5rem', lineHeight: 1 }}
+      >
         {isCurrentUser ? '⚔️' : '🛡️'}
         <span style={{ fontSize: '1rem', marginLeft: '2px' }}>{facing}</span>
       </div>

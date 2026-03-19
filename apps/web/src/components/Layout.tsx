@@ -14,7 +14,8 @@ export default function Layout() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#121212', color: '#fff', fontFamily: 'sans-serif' }}>
-      <nav style={{ 
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-white focus:text-black">Skip to main content</a>
+      <nav aria-label="Main navigation" style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
@@ -32,15 +33,15 @@ export default function Layout() {
           <Link to="/profile" style={{ color: '#d4d4d4', textDecoration: 'none', fontWeight: 600 }} className="focus-ring rounded px-1">
             Profile
           </Link>
-          {user && <span style={{ color: '#a3a3a3' }}>{user.username}</span>}
+          {user && <span style={{ color: '#d4d4d4' }}>{user.username}</span>}
           <button 
             onClick={handleLogout}
             className="focus-ring"
             style={{
               padding: '0.5rem 1rem',
               backgroundColor: 'transparent',
-              color: '#ef4444',
-              border: '1px solid #ef4444',
+              color: '#f87171',
+              border: '1px solid #f87171',
               borderRadius: '4px',
               cursor: 'pointer',
               fontWeight: 'bold',
@@ -51,7 +52,7 @@ export default function Layout() {
           </button>
         </div>
       </nav>
-      <main style={{ padding: '2rem' }}>
+      <main id="main-content" tabIndex={-1} style={{ padding: '2rem' }}>
         <Outlet />
       </main>
     </div>

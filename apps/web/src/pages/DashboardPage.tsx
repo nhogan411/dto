@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FriendsList } from '../components/friends/FriendsList';
 import { FriendSearch } from '../components/friends/FriendSearch';
 import { FriendRequests } from '../components/friends/FriendRequests';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useNotificationChannel } from '../cable/useNotificationChannel';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
@@ -15,6 +16,7 @@ import {
 import { fetchFriendRequestsThunk, fetchFriendsThunk } from '../store/slices/friendsSlice';
 import { fetchGamesThunk, declineGameThunk } from '../store/slices/dashboardSlice';
 import { gameApi } from '../api/game';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 interface NotificationChannelMessage {
   event: string;
@@ -27,6 +29,7 @@ interface NotificationChannelMessage {
 }
 
 export default function DashboardPage() {
+  usePageTitle('Dashboard');
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { notifications, count } = useAppSelector((state) => state.notifications);
@@ -40,6 +43,9 @@ export default function DashboardPage() {
   const [newGameError, setNewGameError] = useState<string | null>(null);
   const [newGameSuccess, setNewGameSuccess] = useState<string | null>(null);
   const [isCreatingGame, setIsCreatingGame] = useState(false);
+  const newGameModalRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(newGameModalRef, isNewGameModalOpen, () => setIsNewGameModalOpen(false));
 
   useEffect(() => {
     if (gamesStatus === 'idle') {
@@ -149,15 +155,15 @@ export default function DashboardPage() {
   const completedGames = games.filter(g => g.status === 'completed' || g.status === 'forfeited');
 
   const statusBadgeStyles: Record<'pending' | 'active' | 'completed' | 'forfeited' | 'accepted', string> = {
-    pending: 'bg-amber-500 text-white',
-    active: 'bg-blue-500 text-white',
-    completed: 'bg-green-600 text-white',
-    forfeited: 'bg-orange-500 text-white',
-    accepted: 'bg-violet-500 text-white',
+    pending: 'bg-amber-200 text-amber-900',
+    active: 'bg-blue-200 text-blue-900',
+    completed: 'bg-green-200 text-green-900',
+    forfeited: 'bg-orange-200 text-orange-900',
+    accepted: 'bg-violet-200 text-violet-900',
   };
 
   return (
-    <main className="max-w-[1200px] mx-auto p-8 text-white bg-neutral-950 min-h-screen">
+    <div className="max-w-[1200px] mx-auto p-8 text-white bg-neutral-950 min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <h1 className="m-0 text-3xl text-[var(--team-green)]">Dashboard</h1>
         <button
@@ -176,16 +182,13 @@ export default function DashboardPage() {
             aria-modal="true"
             aria-labelledby="new-game-title"
             tabIndex={-1}
-            ref={(el) => { if (el && !el.contains(document.activeElement)) el.focus(); }}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') setIsNewGameModalOpen(false);
-            }}
+            ref={newGameModalRef}
             className="bg-neutral-900 p-8 rounded-lg border border-neutral-700 w-full max-w-[500px]"
           >
-            <h2 id="new-game-title" className="mt-0 text-2xl">Start New Game</h2>
+            <h2 id="new-game-title" className="mt-0 text-2xl text-white">Start New Game</h2>
             
-            {newGameError && <div className="text-red-500 mb-4">{newGameError}</div>}
-            {newGameSuccess && <div className="text-[var(--team-green)] mb-4">{newGameSuccess}</div>}
+            {newGameError && <div className="text-red-400 mb-4">{newGameError}</div>}
+            {newGameSuccess && <div className="text-emerald-400 mb-4">{newGameSuccess}</div>}
 
             <div className="mb-4">
               <label htmlFor="opponent-select" className="block mb-2">Opponent</label>
@@ -194,7 +197,6 @@ export default function DashboardPage() {
                 value={newGameChallengedId}
                 onChange={(e) => setNewGameChallengedId(Number(e.target.value))}
                 className="w-full p-2 rounded bg-neutral-800 text-white border-none focus-ring"
-                aria-label="Select opponent"
               >
                 <option value="">Select a friend</option>
                 {friends.map(f => (
@@ -210,7 +212,6 @@ export default function DashboardPage() {
                 value={newGameTimeLimit}
                 onChange={(e) => setNewGameTimeLimit(Number(e.target.value))}
                 className="w-full p-2 rounded bg-neutral-800 text-white border-none focus-ring"
-                aria-label="Select turn time limit"
               >
                 <option value={600}>10 minutes</option>
                 <option value={3600}>1 hour</option>
@@ -234,7 +235,7 @@ export default function DashboardPage() {
                 onClick={handleCreateGame}
                 disabled={newGameChallengedId === '' || isCreatingGame}
                 className={`px-4 py-2 rounded border-none font-bold focus-ring ${
-                  newGameChallengedId === '' ? 'bg-neutral-600 text-neutral-400 cursor-not-allowed' : 'bg-[var(--team-green)] text-neutral-950 cursor-pointer'
+                   newGameChallengedId === '' ? 'bg-neutral-600 text-neutral-300 cursor-not-allowed' : 'bg-[var(--team-green)] text-neutral-950 cursor-pointer'
                 }`}
                 aria-label={isCreatingGame ? 'Sending game invitation' : 'Send game invitation'}
               >
@@ -271,10 +272,10 @@ export default function DashboardPage() {
         aria-labelledby="active-games-title"
         className="bg-neutral-900 p-4 rounded-lg border border-neutral-800 mb-8"
       >
-        <h2 id="active-games-title" className="m-0 mb-4 text-xl">Active Games</h2>
-        {gamesStatus === 'loading' && <div className="text-neutral-400">Loading games...</div>}
+        <h2 id="active-games-title" className="m-0 mb-4 text-xl text-white">Active Games</h2>
+        {gamesStatus === 'loading' && <div className="text-neutral-300">Loading games...</div>}
         {gamesStatus === 'succeeded' && activeGames.length === 0 && (
-          <div className="text-neutral-400">No active games.</div>
+          <div className="text-neutral-300">No active games.</div>
         )}
         <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
           {activeGames.map(game => {
@@ -291,15 +292,15 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 {game.status === 'active' && (
-                  <div className={`font-bold ${isMyTurn ? 'text-[var(--team-green)]' : 'text-neutral-400'}`}>
+                  <div className={`font-bold ${isMyTurn ? 'text-emerald-400' : 'text-neutral-300'}`}>
                     {isMyTurn ? 'Your turn!' : 'Waiting...'}
                   </div>
                 )}
                 {game.status === 'pending' && (
-                  <div className="text-neutral-400">Waiting for opponent to accept...</div>
+                  <div className="text-neutral-300">Waiting for opponent to accept...</div>
                 )}
                 {game.status === 'accepted' && (
-                  <div className={`font-bold ${game.challenger_id === user?.id ? 'text-violet-400' : 'text-neutral-400'}`}>
+                  <div className={`font-bold ${game.challenger_id === user?.id ? 'text-violet-400' : 'text-neutral-300'}`}>
                     {game.challenger_id === user?.id ? 'Choose your starting position!' : 'Waiting for challenger...'}
                   </div>
                 )}
@@ -324,10 +325,10 @@ export default function DashboardPage() {
         aria-labelledby="completed-games-title"
         className="bg-neutral-900 p-4 rounded-lg border border-neutral-800 mb-8"
       >
-        <h2 id="completed-games-title" className="m-0 mb-4 text-xl">Completed Games</h2>
-        {gamesStatus === 'loading' && <div className="text-neutral-400">Loading games...</div>}
+        <h2 id="completed-games-title" className="m-0 mb-4 text-xl text-white">Completed Games</h2>
+        {gamesStatus === 'loading' && <div className="text-neutral-300">Loading games...</div>}
         {gamesStatus === 'succeeded' && completedGames.length === 0 && (
-          <div className="text-neutral-400">No completed games yet.</div>
+          <div className="text-neutral-300">No completed games yet.</div>
         )}
         <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
           {completedGames.map(game => {
@@ -344,7 +345,7 @@ export default function DashboardPage() {
                     {game.status.toUpperCase()}
                   </span>
                 </div>
-                <div className={`font-bold ${wonGame ? 'text-[var(--team-green)]' : 'text-red-400'}`}>
+                <div className={`font-bold ${wonGame ? 'text-emerald-400' : 'text-red-400'}`}>
                   {wonGame ? 'Result: Win' : 'Result: Loss'}
                 </div>
                 <button
@@ -364,11 +365,11 @@ export default function DashboardPage() {
         aria-labelledby="notifications-title"
         className="bg-neutral-900 p-4 rounded-lg border border-neutral-800 mb-8"
       >
-        <h2 id="notifications-title" className="m-0 mb-4 text-xl">
-          Notifications {count > 0 ? `(${count})` : ''}
-        </h2>
+         <h2 id="notifications-title" className="m-0 mb-4 text-xl text-white">
+           Notifications {count > 0 ? `(${count})` : ''}
+         </h2>
         {notifications.length === 0 ? (
-          <div className="text-neutral-400">No notifications yet.</div>
+          <div className="text-neutral-300">No notifications yet.</div>
         ) : (
           <ul className="list-none p-0 m-0 grid gap-3">
             {notifications.slice(0, 5).map((notification) => (
@@ -395,6 +396,6 @@ export default function DashboardPage() {
           <FriendSearch />
         </div>
       </section>
-    </main>
+    </div>
   );
 }

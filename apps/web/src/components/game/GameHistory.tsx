@@ -14,8 +14,8 @@ export function GameHistory() {
   if (!gameActions || gameActions.length === 0) {
     return (
       <div className="p-4 border border-neutral-700 rounded-lg bg-neutral-800">
-        <h3 className="m-0 mb-2 text-lg font-semibold flex-shrink-0">Game History</h3>
-        <p className="text-neutral-500 m-0 text-sm">No actions yet.</p>
+        <h3 className="m-0 mb-2 text-lg font-semibold flex-shrink-0 text-white">Game History</h3>
+        <p className="text-neutral-300 m-0 text-sm">No actions yet.</p>
       </div>
     );
   }
@@ -56,7 +56,7 @@ export function GameHistory() {
               damageStr = ` ${String(damage)} damage`;
             } else {
               outcome = 'Miss!';
-              color = '#888';
+              color = '#d4d4d4';
             }
 
             return (
@@ -88,16 +88,20 @@ export function GameHistory() {
     }
   };
 
-  return (
-    <div className="p-4 border border-neutral-700 rounded-lg bg-neutral-800 flex flex-col h-full max-h-[400px]">
-      <h3 className="m-0 mb-2 text-lg font-semibold flex-shrink-0">Game History</h3>
+   return (
+     <div className="p-4 border border-neutral-700 rounded-lg bg-neutral-800 flex flex-col h-full max-h-[400px]">
+       <h3 className="m-0 mb-2 text-lg font-semibold flex-shrink-0 text-white">Game History</h3>
       <div 
         ref={listRef}
+        role="log"
+        aria-live="polite"
+        aria-label="Game action history"
+        tabIndex={0}
         className="flex-1 overflow-y-auto flex flex-col gap-2 pr-2"
       >
         {gameActions.map((action) => (
           <div key={action.id} className="p-2 bg-neutral-700 rounded text-sm">
-            <div className="text-neutral-500 text-xs mb-0.5">
+            <div className="text-neutral-300 text-xs mb-0.5">
               Turn {action.turn_number}
             </div>
             <div>

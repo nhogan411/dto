@@ -65,7 +65,7 @@ export function GameBoard({
     width: '100%',
     aspectRatio: '1',
     maxWidth: '600px',
-    backgroundColor: '#333',
+    backgroundColor: '#888',
     padding: '2px',
     margin: '0 auto',
   };
@@ -105,7 +105,7 @@ export function GameBoard({
 
   return (
     <div style={{ position: 'relative' }}>
-      <div style={gridStyle}>{squares}</div>
+      <div style={gridStyle} aria-label="Game board">{squares}</div>
       {attackPreview && (
         <div style={{
           position: 'absolute',

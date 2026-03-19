@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { registerThunk } from '../store/slices/authSlice';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function RegisterPage() {
+  usePageTitle('Register');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -14,7 +16,7 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const status = useAppSelector((state) => state.auth.status);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setErrors([]);
 
@@ -40,14 +42,14 @@ export default function RegisterPage() {
   const hasErrors = errors.length > 0;
 
   return (
-    <div className="flex min-h-screen bg-neutral-950 text-white font-sans justify-center items-center p-4">
+    <main className="flex min-h-screen bg-neutral-950 text-white font-sans justify-center items-center p-4">
       <div className="bg-neutral-900 p-8 rounded-lg w-full max-w-[400px] shadow-lg border border-neutral-800">
         <h1 className="text-center text-[var(--team-green)] mb-6 text-3xl font-bold mt-0">DTO Register</h1>
         
         {hasErrors && (
           <div 
             id="register-errors"
-            className="bg-red-500/10 text-red-500 p-3 rounded mb-4 border border-red-500/50 text-sm"
+            className="bg-red-500/10 text-red-400 p-3 rounded mb-4 border border-red-500/50 text-sm"
             role="alert"
           >
             <ul className="m-0 pl-5">
@@ -140,13 +142,13 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <p className="text-center mt-6 text-sm text-neutral-400">
+        <p className="text-center mt-6 text-sm text-neutral-300">
           Already have an account?{' '}
-          <Link to="/login" className="text-[var(--team-green)] no-underline hover:underline focus-ring rounded px-1">
+          <Link to="/login" className="text-emerald-400 no-underline hover:underline focus-ring rounded px-1">
             Login
           </Link>
         </p>
       </div>
-    </div>
+    </main>
   );
 }

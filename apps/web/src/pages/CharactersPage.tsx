@@ -2,8 +2,10 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchPlayerCharactersThunk } from '../store/slices/playerCharactersSlice';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function CharactersPage() {
+  usePageTitle('Characters');
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { characters, status, error } = useAppSelector((state) => state.playerCharacters);
@@ -20,16 +22,16 @@ export default function CharactersPage() {
         <h1 className="text-3xl font-bold text-green-400 m-0">Characters</h1>
       </div>
 
-      {status === 'loading' && <div className="text-neutral-400">Loading characters...</div>}
+      {status === 'loading' && <div className="text-neutral-300">Loading characters...</div>}
       
       {status === 'failed' && (
-        <div className="text-red-500 bg-red-500/10 p-4 rounded-lg mb-6 border border-red-500/20">
+        <div role="alert" className="text-red-400 bg-red-500/10 p-4 rounded-lg mb-6 border border-red-500/20">
           {error}
         </div>
       )}
 
       {status === 'succeeded' && characters.length === 0 && (
-        <div className="text-neutral-400">No characters found in your stable.</div>
+        <div className="text-neutral-300">No characters found in your stable.</div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -41,7 +43,7 @@ export default function CharactersPage() {
             <div className="flex justify-between items-start">
               <div>
                 <h2 className="text-xl font-bold m-0 text-white">{character.name}</h2>
-                <div className="text-neutral-400 capitalize mt-1">{character.icon}</div>
+                <div className="text-neutral-300 capitalize mt-1">{character.icon}</div>
               </div>
               {character.locked && (
                 <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">

@@ -57,7 +57,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
 
   return (
     <div className="bg-[#1e1e1e] p-4 rounded-lg border border-[#333] mt-4 flex flex-col gap-4 max-w-2xl mx-auto">
-      <div className="flex gap-4 items-center flex-wrap">
+      <div role="toolbar" aria-label="Game actions" className="flex gap-4 items-center flex-wrap">
         <button
           disabled={!isMyTurn || isSubmitting || activeMode === 'move'}
           onClick={() => onSelectMode('move')}
@@ -114,7 +114,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
       </div>
 
       {error && (
-        <div className="text-[#ef4444] text-sm font-medium bg-[#ef4444]/10 p-2 rounded">
+        <div role="alert" className="text-[#f87171] text-sm font-medium bg-[#ef4444]/10 p-2 rounded">
           {error}
         </div>
       )}

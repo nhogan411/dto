@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { loginThunk } from '../store/slices/authSlice';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function LoginPage() {
+  usePageTitle('Login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +14,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const status = useAppSelector((state) => state.auth.status);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setError(null);
     try {
@@ -26,14 +28,14 @@ export default function LoginPage() {
   const isError = error !== null;
 
   return (
-    <div className="flex min-h-screen bg-neutral-950 text-white font-sans justify-center items-center p-4">
+    <main className="flex min-h-screen bg-neutral-950 text-white font-sans justify-center items-center p-4">
       <div className="bg-neutral-900 p-8 rounded-lg w-full max-w-[400px] shadow-lg border border-neutral-800">
         <h1 className="text-center text-[var(--team-green)] mb-6 text-3xl font-bold mt-0">DTO Login</h1>
         
         {error && (
           <div 
             id="login-error"
-            className="bg-red-500/10 text-red-500 p-3 rounded mb-4 border border-red-500/50 text-center"
+            className="bg-red-500/10 text-red-400 p-3 rounded mb-4 border border-red-500/50 text-center"
             role="alert"
           >
             {error}
@@ -86,13 +88,13 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-center mt-6 text-sm text-neutral-400">
+        <p className="text-center mt-6 text-sm text-neutral-300">
           Don't have an account?{' '}
-          <Link to="/register" className="text-[var(--team-green)] no-underline hover:underline focus-ring rounded px-1">
+          <Link to="/register" className="text-emerald-400 no-underline hover:underline focus-ring rounded px-1">
             Register
           </Link>
         </p>
       </div>
-    </div>
+    </main>
   );
 }

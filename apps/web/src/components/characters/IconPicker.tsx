@@ -8,13 +8,15 @@ interface IconPickerProps {
 
 export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
   return (
-    <div className="grid grid-cols-3 gap-4 sm:grid-cols-6">
+    <div role="radiogroup" aria-label="Character icon" className="grid grid-cols-3 gap-4 sm:grid-cols-6">
       {AVAILABLE_ICONS.map((icon) => {
         const isSelected = value === icon;
         return (
           <button
             key={icon}
             type="button"
+            role="radio"
+            aria-checked={isSelected}
             disabled={disabled}
             onClick={() => onChange(icon)}
             className={`
@@ -23,7 +25,7 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
               ${isSelected ? 'border-green-500 bg-neutral-800' : 'border-neutral-700 bg-neutral-900'}
             `}
           >
-            <span className={`text-sm font-medium capitalize ${isSelected ? 'text-green-500' : 'text-neutral-300'}`}>
+            <span className={`text-sm font-medium capitalize ${isSelected ? 'text-green-400' : 'text-neutral-300'}`}>
               {icon}
             </span>
           </button>

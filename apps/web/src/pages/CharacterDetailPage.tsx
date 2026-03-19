@@ -1,10 +1,12 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchPlayerCharactersThunk, updatePlayerCharacterThunk, resetUpdateStatus } from '../store/slices/playerCharactersSlice';
 import { IconPicker } from '../components/characters/IconPicker';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function CharacterDetailPage() {
+  usePageTitle('Edit Character');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -34,7 +36,7 @@ export default function CharacterDetailPage() {
     };
   }, [dispatch]);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     if (!character || character.locked) return;
     
@@ -46,7 +48,7 @@ export default function CharacterDetailPage() {
 
   if (status === 'loading') {
     return (
-      <div className="max-w-4xl mx-auto p-8 text-neutral-400 bg-neutral-900 min-h-screen">
+      <div className="max-w-4xl mx-auto p-8 text-neutral-300 bg-neutral-900 min-h-screen">
         Loading character details...
       </div>
     );
@@ -54,12 +56,12 @@ export default function CharacterDetailPage() {
 
   if (status === 'succeeded' && !character) {
     return (
-      <div className="max-w-4xl mx-auto p-8 text-red-500 bg-neutral-900 min-h-screen">
+      <div className="max-w-4xl mx-auto p-8 text-red-400 bg-neutral-900 min-h-screen">
         Character not found.
         <div className="mt-4">
           <button 
             onClick={() => navigate('/characters')}
-            className="text-blue-500 hover:text-blue-400 underline cursor-pointer bg-transparent border-none p-0"
+            className="text-blue-400 hover:text-blue-300 underline cursor-pointer bg-transparent border-none p-0"
           >
             Back to Characters
           </button>
@@ -86,13 +88,13 @@ export default function CharacterDetailPage() {
       </div>
 
       {updateStatus === 'failed' && (
-        <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-lg mb-6">
+        <div role="alert" className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg mb-6">
           {error || 'Failed to update character'}
         </div>
       )}
 
       {updateStatus === 'succeeded' && (
-        <div className="bg-green-500/10 border border-green-500/20 text-green-500 p-4 rounded-lg mb-6">
+        <div role="status" className="bg-green-500/10 border border-green-500/20 text-green-400 p-4 rounded-lg mb-6">
           Character updated successfully!
         </div>
       )}

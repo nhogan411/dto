@@ -37,24 +37,23 @@ export const FriendsList: React.FC = () => {
       <h2 className="text-white m-0 mb-6 text-xl">Friends</h2>
       
       {status === 'loading' && (
-        <div className="text-neutral-400 py-8 text-center" aria-live="polite">Loading friends...</div>
+        <div className="text-neutral-300 py-8 text-center" aria-live="polite">Loading friends...</div>
       )}
       
       {status === 'failed' && (
-        <div className="text-red-500 py-8 text-center bg-red-500/10 rounded-md border border-red-500/20" aria-live="assertive">{error}</div>
+        <div className="text-red-400 py-8 text-center bg-red-500/10 rounded-md border border-red-500/20" aria-live="assertive">{error}</div>
       )}
       
       {status === 'succeeded' && friends.length === 0 && (
-        <div className="text-neutral-400 text-center py-8">You have no friends yet.</div>
+        <div className="text-neutral-300 text-center py-8">You have no friends yet.</div>
       )}
 
       {friends.length > 0 && (
-        <ul className="list-none p-0 m-0" role="list">
+        <ul className="list-none p-0 m-0">
           {friends.map((friend) => (
             <li 
               key={friend.id} 
               className="flex justify-between items-center py-4 border-b border-neutral-800 last:border-b-0 bg-neutral-800 px-4 rounded-md mb-2 last:mb-0"
-              role="listitem"
             >
               <div className="flex items-center gap-3">
                 <div className="text-white font-bold">{friend.username}</div>
@@ -72,7 +71,7 @@ export const FriendsList: React.FC = () => {
                   {invitingFriendId === friend.id ? 'Inviting...' : 'Invite to Game'}
                 </button>
                 {inviteErrors[friend.id] && (
-                  <div className="text-red-500 text-sm mt-2" aria-live="assertive">
+                  <div className="text-red-400 text-sm mt-2" aria-live="assertive">
                     {inviteErrors[friend.id]}
                   </div>
                 )}

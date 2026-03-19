@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
@@ -21,9 +21,12 @@ import { useGameChannel } from '../cable/useGameChannel';
 import { fetchReplayActions } from '../services/replayService';
 import { gameApi, type AttackPreviewResponse } from '../api/game';
 import { ActionPopover } from '../components/game/ActionPopover';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { getReachableSquares, getShortestPathToTarget, type Coordinate } from '../utils/movement';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function GamePage() {
+  usePageTitle('Game');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -39,6 +42,9 @@ export default function GamePage() {
   const [attackPreview, setAttackPreview] = useState<AttackPreviewResponse | null>(null);
   const [previewTarget, setPreviewTarget] = useState<number | null>(null);
   const [reachableSquares, setReachableSquares] = useState<Coordinate[]>([]);
+  const gameOverModalRef = useRef<HTMLDivElement>(null);
+  const isGameOver = gameState?.status === 'completed' || gameState?.status === 'forfeited';
+  useFocusTrap(gameOverModalRef, isGameOver, () => navigate('/'));
 
   const actingCharacter = (() => {
     if (!gameState) return null;
@@ -270,16 +276,16 @@ export default function GamePage() {
 
   if (status === 'loading' && !currentGame && !gameState) {
     return (
-      <div className="p-8 text-center text-neutral-400">
-        <h2>Loading Game...</h2>
+      <div className="p-8 text-center text-neutral-300">
+        <h2 className="text-white">Loading Game...</h2>
       </div>
     );
   }
 
   if (status === 'failed' && error) {
     return (
-      <div className="p-8 text-center text-red-500">
-        <h2>Error Loading Game</h2>
+      <div className="p-8 text-center text-red-400">
+        <h2 className="text-white">Error Loading Game</h2>
         <p>{error}</p>
       </div>
     );
@@ -295,7 +301,6 @@ export default function GamePage() {
     return null;
   }
 
-  const isGameOver = gameState.status === 'completed' || gameState.status === 'forfeited';
   const isWinner = gameState.winnerId !== null && gameState.winnerId === currentUserId;
 
   const gameOverMessage = (() => {
@@ -356,13 +361,13 @@ export default function GamePage() {
    // Derive turn indicator color from acting character's team, not from viewer's perspective
    const getActingTeamColor = () => {
      if (!actingCharacter || !currentGame) {
-       return { bg: 'bg-neutral-400', text: 'text-neutral-400' };
+        return { bg: 'bg-neutral-400', text: 'text-neutral-300' };
      }
      
      const isActingCharacterChallenger = actingCharacter.userId === currentGame.challenger_id;
      return isActingCharacterChallenger
-       ? { bg: 'bg-[var(--team-blue)]', text: 'text-[var(--team-blue)]' }
-       : { bg: 'bg-[var(--team-green)]', text: 'text-[var(--team-green)]' };
+       ? { bg: 'bg-[var(--team-blue)]', text: 'text-blue-400' }
+       : { bg: 'bg-[var(--team-green)]', text: 'text-emerald-400' };
    };
 
    const teamColor = getActingTeamColor();
@@ -370,7 +375,7 @@ export default function GamePage() {
    return (
      <div className="p-8 flex flex-col items-center relative">
        <TurnReplay />
-       <h1 className="text-2xl font-bold mb-4">Game #{gameState.id}</h1>
+        <h1 className="text-2xl font-bold mb-4 text-white">Game #{gameState.id}</h1>
        
        {/* Turn indicator */}
        <div className="mb-6 flex items-center gap-3">
@@ -378,8 +383,8 @@ export default function GamePage() {
          <span className={`text-sm font-medium ${teamColor.text}`}>
            {isMyTurn ? 'Your Turn' : "Opponent's Turn"}
          </span>
-         <span className="text-neutral-500 text-sm">· Turn {gameState.turnNumber}</span>
-         <span className="text-neutral-500 text-sm">· {gameState.status}</span>
+         <span className="text-neutral-300 text-sm">· Turn {gameState.turnNumber}</span>
+         <span className="text-neutral-300 text-sm">· {gameState.status}</span>
        </div>
 
       <div className="flex gap-6 items-start w-full max-w-5xl justify-center">
@@ -415,6 +420,7 @@ export default function GamePage() {
       {isGameOver && (
         <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[2000]">
           <div 
+            ref={gameOverModalRef}
             role="dialog"
             aria-modal="true"
             aria-label="Game Over"

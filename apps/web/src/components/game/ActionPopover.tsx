@@ -30,8 +30,26 @@ export function ActionPopover({
   actingCharacterId,
 }: ActionPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<Element | null>(null);
   const prevActingId = useRef<number | null>(actingCharacterId);
   const [facingMode, setFacingMode] = useState(false);
+
+  useEffect(() => {
+    if (!previousFocusRef.current) {
+      previousFocusRef.current = document.activeElement;
+    }
+
+    const firstEnabledButton = popoverRef.current?.querySelector<HTMLButtonElement>('button:not([disabled])');
+    firstEnabledButton?.focus();
+  }, [facingMode]);
+
+  useEffect(() => {
+    return () => {
+      if (previousFocusRef.current instanceof HTMLElement) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (prevActingId.current !== actingCharacterId) {
@@ -79,7 +97,7 @@ export function ActionPopover({
           left: Math.max(10, Math.min(window.innerWidth - 150, x)),
         }}
       >
-        <div className="text-xs text-gray-400 mb-1 px-1 font-semibold uppercase tracking-wider text-center">Face Direction</div>
+        <div className="text-xs text-neutral-300 mb-1 px-1 font-semibold uppercase tracking-wider text-center">Face Direction</div>
         <button
           role="menuitem"
           aria-label="Face North"

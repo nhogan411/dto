@@ -28,7 +28,8 @@ export function CharacterInfo() {
 
   const isChallenger = character.userId === currentGame?.challenger_id;
   const isChallenged = character.userId === currentGame?.challenged_id;
-  const teamColor = isChallenger ? 'var(--team-blue)' : isChallenged ? 'var(--team-green)' : '#888';
+  const teamColor = isChallenger ? 'var(--team-blue)' : isChallenged ? 'var(--team-green)' : '#d4d4d4';
+  const teamTextClass = isChallenger ? 'text-blue-400' : isChallenged ? 'text-emerald-400' : 'text-neutral-300';
   const teamName = isChallenger ? 'Challenger' : isChallenged ? 'Challenged' : 'Unknown';
 
   return (
@@ -42,12 +43,13 @@ export function CharacterInfo() {
     >
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
-          <h3 className="m-0 text-lg font-semibold" style={{ color: teamColor }}>{teamName}</h3>
+          <h3 className={`m-0 text-lg font-semibold ${teamTextClass}`}>{teamName}</h3>
           {isDead && <span className="bg-neutral-600 text-neutral-300 px-1.5 py-0.5 rounded text-xs font-bold">DEAD</span>}
         </div>
         <button
           onClick={() => dispatch(selectCharacter(null))}
-          className="bg-transparent border-none text-neutral-400 cursor-pointer text-base hover:text-white focus-ring"
+          aria-label="Close character info panel"
+          className="bg-transparent border-none text-neutral-300 cursor-pointer text-base hover:text-white focus-ring"
         >
           ✕
         </button>
@@ -57,7 +59,7 @@ export function CharacterInfo() {
       {isActiveTurn && !isDead && <p className="my-1 text-green-400 font-bold">Active turn</p>}
 
       <div className="my-3">
-        <div className="flex justify-between mb-1 text-sm" style={{ color: isDead ? '#888' : 'inherit' }}>
+        <div className="flex justify-between mb-1 text-sm" style={{ color: isDead ? '#d4d4d4' : 'inherit' }}>
           <span>HP</span>
           <span>{character.currentHp} / {character.maxHp}</span>
         </div>
@@ -70,9 +72,10 @@ export function CharacterInfo() {
             }}
           />
         </div>
+        <span className="sr-only">{character.currentHp} out of {character.maxHp} HP ({Math.round(hpPercent)}%)</span>
       </div>
 
-      <p className="my-1" style={{ color: isDead ? '#888' : 'inherit' }}>
+      <p className="my-1" style={{ color: isDead ? '#d4d4d4' : 'inherit' }}>
         <strong>Facing:</strong> {getFacingDirection(character.position, character.facingTile)}
       </p>
       {character.isDefending && !isDead && (
