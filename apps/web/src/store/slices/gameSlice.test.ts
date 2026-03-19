@@ -7,6 +7,7 @@ import gameReducer, {
   fetchGameThunk,
   fetchGameStateThunk,
   handleGameChannelMessage,
+  forfeitGameThunk,
 } from './gameSlice';
 import { gameApi } from '../../api/game';
 
@@ -14,6 +15,7 @@ vi.mock('../../api/game', () => ({
   gameApi: {
     getGame: vi.fn(),
     getGameState: vi.fn(),
+    forfeitGame: vi.fn(),
   },
 }));
 
@@ -250,6 +252,33 @@ describe('gameSlice', () => {
     });
   });
 
+  it('should handle handleGameChannelMessage game_over with forfeited status', () => {
+    const store = setupStore();
+    store.dispatch(updateGameState(mockGameState));
+    store.dispatch(handleGameChannelMessage({
+      event: 'game_over',
+      status: 'forfeited',
+      winner_id: 2,
+    }));
+
+    const state = store.getState().game;
+    expect(state.gameState?.status).toBe('forfeited');
+    expect(state.gameState?.winnerId).toBe(2);
+  });
+
+  it('should handle handleGameChannelMessage game_over defaults to completed when no status', () => {
+    const store = setupStore();
+    store.dispatch(updateGameState(mockGameState));
+    store.dispatch(handleGameChannelMessage({
+      event: 'game_over',
+      winner_id: 2,
+    }));
+
+    const state = store.getState().game;
+    expect(state.gameState?.status).toBe('completed');
+    expect(state.gameState?.winnerId).toBe(2);
+  });
+
   it('should handle clearGame', () => {
     const store = setupStore();
     store.dispatch(setCurrentGame(mockApiGame));
@@ -333,29 +362,47 @@ describe('gameSlice', () => {
      });
 
      it('should map moves_taken from snapshot acting_character_actions', async () => {
-       const snapshotWithActions = {
-         ...mockSnapshot,
-         acting_character_actions: {
-           has_moved: true,
-           has_attacked: false,
-           has_defended: false,
-           moves_taken: 2,
-         },
-       };
-       vi.mocked(gameApi.getGameState).mockResolvedValueOnce({
-         data: { data: snapshotWithActions } as any,
-       } as any);
+        const snapshotWithActions = {
+          ...mockSnapshot,
+          acting_character_actions: {
+            has_moved: true,
+            has_attacked: false,
+            has_defended: false,
+            moves_taken: 2,
+          },
+        };
+        vi.mocked(gameApi.getGameState).mockResolvedValueOnce({
+          data: { data: snapshotWithActions } as any,
+        } as any);
 
-       const store = setupStore();
-       await store.dispatch(fetchGameStateThunk(1));
+        const store = setupStore();
+        await store.dispatch(fetchGameStateThunk(1));
 
-       const state = store.getState().game;
-       expect(state.gameState?.actingCharacterActions).toEqual({
-         hasMoved: true,
-         hasAttacked: false,
-         hasDefended: false,
-         movesTaken: 2,
-       });
-     });
-   });
+        const state = store.getState().game;
+        expect(state.gameState?.actingCharacterActions).toEqual({
+          hasMoved: true,
+          hasAttacked: false,
+          hasDefended: false,
+          movesTaken: 2,
+        });
+      });
+
+      describe('forfeitGameThunk', () => {
+        it('calls forfeitGame API with correct game id', async () => {
+          vi.mocked(gameApi.forfeitGame).mockResolvedValueOnce({ data: { data: { game: mockApiGame } } } as any);
+          const store = setupStore();
+          await store.dispatch(forfeitGameThunk(1));
+          expect(gameApi.forfeitGame).toHaveBeenCalledWith(1);
+        });
+
+        it('fulfills without updating game state', async () => {
+          vi.mocked(gameApi.forfeitGame).mockResolvedValueOnce({ data: { data: { game: mockApiGame } } } as any);
+          const store = setupStore();
+          store.dispatch(setCurrentGame(mockApiGame));
+          await store.dispatch(forfeitGameThunk(1));
+          // No optimistic state update — state unchanged
+          expect(store.getState().game.gameState?.status).toBe('active');
+        });
+      });
+    });
 });

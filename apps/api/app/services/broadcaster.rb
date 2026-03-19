@@ -8,7 +8,7 @@ class Broadcaster
   end
 
   def self.game_over(game)
-    broadcast_to_game(game, { event: "game_over", game_id: game.id, winner_id: game.winner_id })
+    broadcast_to_game(game, { event: "game_over", game_id: game.id, winner_id: game.winner_id, status: game.status })
   end
 
   def self.game_updated(game, data = {})

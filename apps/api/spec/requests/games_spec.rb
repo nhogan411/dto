@@ -220,6 +220,57 @@ RSpec.describe "Games", type: :request do
     end
   end
 
+  describe "PATCH /games/:id/forfeit" do
+    let(:challenger) { create(:user) }
+    let(:challenged) { create(:user) }
+    let(:headers) { auth_headers(challenger) }
+
+    it "forfeits an active game and sets the winner to the opponent" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :active, current_turn_user_id: challenger.id)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 2 })
+      create(:character, game: game, user: challenged, position: { x: 8, y: 8 }, facing_tile: { x: 8, y: 7 })
+
+      allow(Broadcaster).to receive(:game_over)
+
+      patch "/games/#{game.id}/forfeit", headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response.dig("data", "game", "status")).to eq("forfeited")
+      expect(json_response.dig("data", "game", "winner_id")).to eq(challenged.id)
+      expect(Broadcaster).to have_received(:game_over).with(game).once
+    end
+
+    it "returns 404 when a non-player attempts to forfeit" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :active)
+      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 2 })
+      create(:character, game: game, user: challenged, position: { x: 8, y: 8 }, facing_tile: { x: 8, y: 7 })
+
+      random_user = create(:user)
+
+      patch "/games/#{game.id}/forfeit", headers: auth_headers(random_user)
+
+      expect(response).to have_http_status(:not_found)
+      expect(json_response.fetch("errors")).to include("Game not found")
+    end
+
+    it "returns 422 when attempting to forfeit a non-active game" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :completed, winner_id: challenged.id)
+
+      patch "/games/#{game.id}/forfeit", headers: headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json_response.fetch("errors")).to include("Game is not active")
+    end
+
+    it "returns 401 when unauthenticated" do
+      game = create(:game, challenger: challenger, challenged: challenged, status: :active)
+
+      patch "/games/#{game.id}/forfeit"
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
    describe "PATCH /games/:id/choose_position" do
      let(:challenger) { create(:user) }
      let(:challenged) { create(:user) }

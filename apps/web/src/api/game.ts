@@ -125,6 +125,7 @@ export const gameApi = {
   acceptGame: (id: number, params?: { first_move?: boolean; starting_position_index?: number }) =>
     apiClient.patch<GameResponse>(`/games/${id}/accept`, params),
   declineGame: (id: number) => apiClient.patch<GameResponse>(`/games/${id}/decline`),
+  forfeitGame: (id: number) => apiClient.patch<GameResponse>(`/games/${id}/forfeit`),
   choosePosition: (id: number, params: { starting_position_index: number }) =>
     apiClient.patch<GameResponse>(`/games/${id}/choose_position`, params),
   getAttackPreview: (gameId: number, targetCharacterId: number) =>

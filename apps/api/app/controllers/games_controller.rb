@@ -108,6 +108,30 @@ class GamesController < ApplicationController
     render json: { errors: e.record.errors.full_messages.presence || [ e.message ] }, status: :unprocessable_entity
   end
 
+  def forfeit
+    @game = visible_games.includes(:characters).find_by(id: params[:id])
+    return render_not_found unless @game
+    return render_forbidden unless player_in_game?(@game)
+    return render_unprocessable_entity("Game is not active") unless @game.active?
+
+    opponent_user_id = @game.characters.find { |c| c.user_id != current_user.id }&.user_id
+
+    begin
+      @game.with_lock do
+        raise ActiveRecord::StaleObjectError unless @game.active?
+        @game.update!(status: :forfeited, winner_id: opponent_user_id)
+      end
+    rescue ActiveRecord::StaleObjectError
+      return render json: { errors: [ "Game state changed, please retry" ] }, status: :unprocessable_entity
+    end
+
+    Broadcaster.game_over(@game)
+
+    render json: { data: { game: @game.as_json(only: [ :id, :status, :winner_id ]) } }
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { errors: e.record.errors.full_messages.presence || [ e.message ] }, status: :unprocessable_entity
+  end
+
   def choose_position
     return render_forbidden unless challenger_player?
 

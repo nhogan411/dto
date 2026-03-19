@@ -10,6 +10,7 @@ import {
   startReplay,
   selectCharacter,
   gameActionsReceived,
+  forfeitGameThunk,
   type GameChannelMessage,
 } from '../store/slices/gameSlice';
 import { GameBoard } from '../components/game/GameBoard';
@@ -45,6 +46,35 @@ export default function GamePage() {
   const gameOverModalRef = useRef<HTMLDivElement>(null);
   const isGameOver = gameState?.status === 'completed' || gameState?.status === 'forfeited';
   useFocusTrap(gameOverModalRef, isGameOver, () => navigate('/'));
+
+  const [showForfeitModal, setShowForfeitModal] = useState(false);
+  const [isForfeiting, setIsForfeiting] = useState(false);
+  const forfeitModalRef = useRef<HTMLDivElement>(null);
+  const isCurrentPlayer = !!(currentGame && currentUserId && 
+    (currentGame.challenger_id === currentUserId || currentGame.challenged_id === currentUserId));
+
+  useFocusTrap(forfeitModalRef, showForfeitModal, () => setShowForfeitModal(false));
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showForfeitModal) {
+        setShowForfeitModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showForfeitModal]);
+
+  const handleForfeit = async () => {
+    if (!parsedGameId) return;
+    setIsForfeiting(true);
+    try {
+      await dispatch(forfeitGameThunk(parsedGameId));
+      // Do NOT close the modal — wait for game_over WS event to drive transition
+    } catch {
+      setIsForfeiting(false);
+    }
+  };
 
   const actingCharacter = (() => {
     if (!gameState) return null;
@@ -323,8 +353,8 @@ export default function GamePage() {
   const gameOverMessage = (() => {
     if (gameState.status === 'forfeited') {
       return isWinner
-        ? 'Opponent ran out of time. You win!'
-        : 'You ran out of time. You lose.';
+        ? 'Opponent forfeited. You win!'
+        : 'You forfeited. Your opponent wins.';
     }
 
     return isWinner ? '🎉 You won!' : 'You lost.';
@@ -437,6 +467,50 @@ export default function GamePage() {
         </div>
       </div>
 
+      {gameState?.status === 'active' && isCurrentPlayer && (
+        <button
+          type="button"
+          onClick={() => setShowForfeitModal(true)}
+          className="fixed bottom-6 right-6 z-[1000] bg-red-600 hover:bg-red-700 text-white border-0 rounded-full px-5 py-3 font-bold cursor-pointer shadow-lg focus-ring"
+          aria-label="Forfeit game"
+        >
+          Forfeit
+        </button>
+      )}
+
+      {showForfeitModal && (
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[2000]">
+          <div
+            ref={forfeitModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirm Forfeit"
+            className="bg-neutral-900 border border-neutral-700 rounded-xl p-8 min-w-[320px] text-center text-white"
+          >
+            <h2 className="mt-0 mb-4 text-red-400">Forfeit Game?</h2>
+            <p className="mb-6 text-neutral-300">Are you sure you want to forfeit? Your opponent will win.</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                type="button"
+                onClick={() => setShowForfeitModal(false)}
+                disabled={isForfeiting}
+                className="bg-neutral-700 hover:bg-neutral-600 text-white border-0 rounded-md px-5 py-3 font-bold cursor-pointer focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Keep Playing
+              </button>
+              <button
+                type="button"
+                onClick={handleForfeit}
+                disabled={isForfeiting}
+                className="bg-red-600 hover:bg-red-700 text-white border-0 rounded-md px-5 py-3 font-bold cursor-pointer focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isForfeiting ? 'Forfeiting...' : 'Forfeit'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isGameOver && (
         <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[2000]">
           <div 
@@ -450,6 +524,7 @@ export default function GamePage() {
               {gameOverMessage}
             </h2>
             <button
+              type="button"
               onClick={() => navigate('/')}
               className="bg-blue-500 hover:bg-blue-600 text-white border-0 rounded-md px-5 py-3 font-bold cursor-pointer focus-ring"
             >

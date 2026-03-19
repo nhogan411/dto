@@ -26,6 +26,7 @@ Rails.application.routes.draw do
       patch :accept
       patch :decline
       patch :choose_position
+      patch :forfeit
       post :select_characters, to: "character_selections#create"
       get :attack_preview, to: "game_actions#attack_preview"
       get :state

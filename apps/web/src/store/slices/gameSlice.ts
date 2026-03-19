@@ -285,6 +285,13 @@ export const submitActionThunk = createAsyncThunk<
   }
 });
 
+export const forfeitGameThunk = createAsyncThunk<void, number>(
+  'game/forfeitGame',
+  async (gameId) => {
+    await gameApi.forfeitGame(gameId);
+  }
+);
+
 const gameSlice = createSlice({
   name: 'game',
   initialState,
