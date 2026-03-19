@@ -57,9 +57,11 @@ export const FriendsList: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <div className="text-white font-bold">{friend.username}</div>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${friend.status === 'online' ? 'bg-green-600 text-white' : 'bg-neutral-600 text-white'}`}>
-                  {friend.status === 'online' ? 'Online' : 'Offline'}
-                </span>
+                {friend.status === 'online' && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-600 text-white">
+                    Online
+                  </span>
+                )}
               </div>
               <div className="flex flex-col items-end">
                 <button
