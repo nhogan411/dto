@@ -128,5 +128,16 @@ code {
 }
 
 .focus-ring {
-  @apply focus:outline-2 focus:outline-offset-2 focus:outline-blue-500;
+   @apply focus:outline-2 focus:outline-offset-2 focus:outline-blue-500;
+}
+
+@keyframes activeTurnFlash {
+  0%, 100% {
+    border-color: #facc15;
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.5);
+  }
+  50% {
+    border-color: #fef08a;
+    box-shadow: 0 0 0 4px rgba(254, 240, 138, 0.2);
+  }
 }

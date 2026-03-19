@@ -13,6 +13,7 @@ export interface GameBoardSquareProps {
     isCurrentUser: boolean;
     team?: 'challenger' | 'challenged';
     isDead: boolean;
+    isActiveTurn: boolean;
   } | null;
   isSelected: boolean;
   isHighlighted: boolean;
@@ -47,6 +48,8 @@ export function GameBoardSquare({
     borderColor = character.team === 'challenger' ? 'var(--team-blue)' : character.team === 'challenged' ? 'var(--team-green)' : (character.isCurrentUser ? '#4ade80' : '#ef4444');
   }
 
+  const isActiveAndAlive = !!(character && character.isActiveTurn && !character.isDead && !isSelected);
+
   const squareStyle: React.CSSProperties = {
     width: '100%',
     height: '100%',
@@ -59,6 +62,7 @@ export function GameBoardSquare({
     justifyContent: 'center',
     cursor: onClick && !isBlocked ? 'pointer' : 'default',
     position: 'relative',
+    animation: isActiveAndAlive ? 'activeTurnFlash 0.8s ease-in-out infinite' : undefined,
   };
 
   return (
