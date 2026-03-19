@@ -14,6 +14,7 @@ export interface GameBoardSquareProps {
     team?: 'challenger' | 'challenged';
     isDead: boolean;
     isActiveTurn: boolean;
+    icon: string;
   } | null;
   isSelected: boolean;
   isHighlighted: boolean;
@@ -91,6 +92,7 @@ export function GameBoardSquare({
           isCurrentUser={character.isCurrentUser}
           team={character.team}
           isDead={character.isDead}
+          icon={character.icon}
         />
       )}
     </div>

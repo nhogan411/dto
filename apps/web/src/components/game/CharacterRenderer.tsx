@@ -7,7 +7,17 @@ interface CharacterRendererProps {
   team?: 'challenger' | 'challenged';
   isDead: boolean;
   mode?: 'token';
+  icon: string;
 }
+
+const ICON_EMOJI: Record<string, string> = {
+  warrior: '⚔️',
+  rogue: '🗡️',
+  mage: '🔮',
+  archer: '🏹',
+  paladin: '🛡️',
+  ranger: '🌿',
+};
 
 function getHpColor(current: number, max: number): string {
   const ratio = current / max;
@@ -25,6 +35,7 @@ export function CharacterRenderer({
   team,
   isDead,
   mode: _mode = 'token',
+  icon,
 }: CharacterRendererProps) {
   return (
     <div
@@ -50,7 +61,7 @@ export function CharacterRenderer({
         aria-label={`${isCurrentUser ? 'Your character' : 'Opponent character'}${isDead ? ', dead' : ''}, facing ${facing}`}
         style={{ fontSize: '1.5rem', lineHeight: 1 }}
       >
-        {isCurrentUser ? '⚔️' : '🛡️'}
+        {ICON_EMOJI[icon] ?? '❓'}
         <span style={{ fontSize: '1rem', marginLeft: '2px' }}>{facing}</span>
       </div>
       <div

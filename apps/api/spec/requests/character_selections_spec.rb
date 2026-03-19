@@ -61,8 +61,8 @@ RSpec.describe "CharacterSelections", type: :request do
       expect(game.characters.where(user_id: challenger.id).count).to eq(2)
       expect(game.characters.where(user_id: challenged.id).count).to eq(2)
 
-      challenger_chars = game.characters.where(user_id: challenger.id)
-      challenged_chars = game.characters.where(user_id: challenged.id)
+      challenger_chars = game.characters.where(user_id: challenger.id).order(:id)
+      challenged_chars = game.characters.where(user_id: challenged.id).order(:id)
 
       challenger_positions = challenger_chars.map { |c| [ c.position["x"], c.position["y"] ] }
       challenged_positions = challenged_chars.map { |c| [ c.position["x"], c.position["y"] ] }
@@ -73,6 +73,9 @@ RSpec.describe "CharacterSelections", type: :request do
       expect(challenger_positions.all? { |p| [ [ 1, 1 ], [ 2, 1 ], [ 1, 2 ], [ 2, 2 ] ].include?(p) }).to be_truthy
       expect(challenged_positions.all? { |p| [ [ 11, 11 ], [ 12, 11 ], [ 11, 12 ], [ 12, 12 ] ].include?(p) }).to be_truthy
       expect(initiative_capture.size).to eq(4)
+
+      expect(challenger_chars.map(&:icon)).to eq(challenger_characters.map(&:icon))
+      expect(challenged_chars.map(&:icon)).to eq(challenged_characters.map(&:icon))
     end
 
     it "assigns distinct spawn positions to each character per team" do
@@ -129,6 +132,28 @@ RSpec.describe "CharacterSelections", type: :request do
 
       expect(response).to have_http_status(:unprocessable_entity)
       expect(json_response.fetch("errors")).to include("Already confirmed")
+    end
+
+    it "copies icons from PlayerCharacters to Characters in picks order" do
+      challenger_characters[0].update!(icon: "warrior")
+      challenger_characters[1].update!(icon: "mage")
+      challenged_characters[0].update!(icon: "rogue")
+      challenged_characters[1].update!(icon: "archer")
+
+      post "/games/#{game.id}/select_characters",
+        params: { player_character_ids: challenger_characters.map(&:id) },
+        headers: auth_headers(challenger)
+
+      post "/games/#{game.id}/select_characters",
+        params: { player_character_ids: challenged_characters.map(&:id) },
+        headers: auth_headers(challenged)
+
+      game.reload
+      challenger_chars = game.characters.where(user_id: challenger.id).order(:id)
+      challenged_chars = game.characters.where(user_id: challenged.id).order(:id)
+
+      expect(challenger_chars.map(&:icon)).to eq([ "warrior", "mage" ])
+      expect(challenged_chars.map(&:icon)).to eq([ "rogue", "archer" ])
     end
   end
 

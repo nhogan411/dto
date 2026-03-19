@@ -23,7 +23,7 @@ RSpec.describe GameStateService do
       )
       expect(snapshot[:turn_number]).to eq(1)
       expect(snapshot[:characters].size).to eq(2)
-      expect(snapshot[:characters].first).to include(:id, :user_id, :position, :facing_tile, :current_hp, :max_hp, :is_defending, :stats, :alive)
+      expect(snapshot[:characters].first).to include(:id, :user_id, :position, :facing_tile, :current_hp, :max_hp, :is_defending, :stats, :alive, :icon)
       expect(snapshot[:last_action]["id"]).to eq(new_action.id)
       expect(snapshot[:last_action]["id"]).not_to eq(old_action.id)
     end
@@ -36,6 +36,17 @@ RSpec.describe GameStateService do
 
       snapshot = described_class.new(game).snapshot
       expect(snapshot[:last_action]).to be_nil
+    end
+
+    it "includes icon in character snapshots" do
+      game = create(:game, status: :active, current_turn_user: nil)
+      game.update!(current_turn_user: game.challenger)
+      char = create(:character, game:, user: game.challenger, icon: "mage")
+
+      snapshot = described_class.new(game).snapshot
+      character_snapshot = snapshot[:characters].find { |c| c[:id] == char.id }
+
+      expect(character_snapshot[:icon]).to eq("mage")
     end
   end
 end

@@ -81,11 +81,18 @@ class CharacterSelectionsController < ApplicationController
     challenger_tiles = BoardConfig.spawn_tiles(config, "challenger").shuffle
     challenged_tiles = BoardConfig.spawn_tiles(config, "challenged").shuffle
 
-    2.times.each_with_index { |_, i| game.characters.create!(character_attributes_for(game.challenger, challenger_tiles[i])) }
-    2.times.each_with_index { |_, i| game.characters.create!(character_attributes_for(game.challenged, challenged_tiles[i])) }
+    # Load PlayerCharacters in picks order (not DB order)
+    pcs_by_id = PlayerCharacter.where(id: game.challenger_picks).index_by(&:id)
+    challenger_pcs = game.challenger_picks.map { |id| pcs_by_id[id] || raise("PlayerCharacter #{id} not found for game #{game.id}") }
+
+    pcs_by_id = PlayerCharacter.where(id: game.challenged_picks).index_by(&:id)
+    challenged_pcs = game.challenged_picks.map { |id| pcs_by_id[id] || raise("PlayerCharacter #{id} not found for game #{game.id}") }
+
+    challenger_pcs.zip(challenger_tiles).each { |pc, tile| game.characters.create!(character_attributes_for(game.challenger, tile, player_character: pc)) }
+    challenged_pcs.zip(challenged_tiles).each { |pc, tile| game.characters.create!(character_attributes_for(game.challenged, tile, player_character: pc)) }
   end
 
-  def character_attributes_for(user, position)
+  def character_attributes_for(user, position, player_character:)
     x, y = position[0], position[1]
     facing = y > 1 ? { x: x, y: y - 1 } : { x: x, y: y + 1 }
 
@@ -96,7 +103,8 @@ class CharacterSelectionsController < ApplicationController
       is_defending: false,
       stats: {},
       position: { x: x, y: y },
-      facing_tile: facing
+      facing_tile: facing,
+      icon: player_character.icon
     }
   end
 
@@ -136,7 +144,8 @@ class CharacterSelectionsController < ApplicationController
       current_hp: character.current_hp,
       max_hp: character.max_hp,
       is_defending: character.is_defending,
-      stats: character.stats
+      stats: character.stats,
+      icon: character.icon
     }
   end
 

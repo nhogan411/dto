@@ -7,11 +7,12 @@ describe('CharacterRenderer', () => {
     userId: 1,
     currentHp: 10,
     maxHp: 10,
-    facing: '↑' as const,
+    facing: '↑',
     isCurrentUser: true,
-    team: 'challenger' as const,
+    team: 'challenger',
     isDead: false,
-    mode: 'token' as const,
+    mode: 'token',
+    icon: 'warrior',
   };
 
   const renderChar = (overrides = {}) => {
@@ -20,26 +21,51 @@ describe('CharacterRenderer', () => {
     return { container };
   };
 
-  // GROUP 1: Emoji by role
-  describe('Emoji by role', () => {
-    it('renders ⚔️ emoji when isCurrentUser is true', () => {
-      render(
-        <CharacterRenderer
-          {...baseProps}
-          isCurrentUser={true}
-        />
-      );
-      expect(screen.getByText('⚔️')).toBeInTheDocument();
+  // GROUP 1: Icon emoji mapping
+  describe('Icon emoji mapping', () => {
+    it('renders ⚔️ emoji for warrior icon', () => {
+      renderChar({ icon: 'warrior' });
+      expect(screen.getByRole('img')).toHaveTextContent('⚔️');
     });
 
-    it('renders 🛡️ emoji when isCurrentUser is false', () => {
-      render(
-        <CharacterRenderer
-          {...baseProps}
-          isCurrentUser={false}
-        />
-      );
-      expect(screen.getByText('🛡️')).toBeInTheDocument();
+    it('renders 🗡️ emoji for rogue icon', () => {
+      renderChar({ icon: 'rogue' });
+      expect(screen.getByRole('img')).toHaveTextContent('🗡️');
+    });
+
+    it('renders 🔮 emoji for mage icon', () => {
+      renderChar({ icon: 'mage' });
+      expect(screen.getByRole('img')).toHaveTextContent('🔮');
+    });
+
+    it('renders 🏹 emoji for archer icon', () => {
+      renderChar({ icon: 'archer' });
+      expect(screen.getByRole('img')).toHaveTextContent('🏹');
+    });
+
+    it('renders 🛡️ emoji for paladin icon', () => {
+      renderChar({ icon: 'paladin' });
+      expect(screen.getByRole('img')).toHaveTextContent('🛡️');
+    });
+
+    it('renders 🌿 emoji for ranger icon', () => {
+      renderChar({ icon: 'ranger' });
+      expect(screen.getByRole('img')).toHaveTextContent('🌿');
+    });
+
+    it('renders ❓ emoji for unknown icon', () => {
+      renderChar({ icon: 'unknown' });
+      expect(screen.getByRole('img')).toHaveTextContent('❓');
+    });
+
+    it('renders different emojis for warrior and rogue', () => {
+      const { rerender } = render(<CharacterRenderer {...baseProps} icon="warrior" />);
+      const warriorText = screen.getByRole('img').textContent;
+
+      rerender(<CharacterRenderer {...baseProps} icon="rogue" />);
+      const rogueText = screen.getByRole('img').textContent;
+
+      expect(warriorText).not.toBe(rogueText);
     });
   });
 

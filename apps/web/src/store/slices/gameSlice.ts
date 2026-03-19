@@ -10,6 +10,7 @@ export interface CharacterState {
   currentHp: number;
   maxHp: number;
   isDefending: boolean;
+  icon: string;
   alive: boolean;
   stats: Record<string, unknown>;
 }
@@ -107,6 +108,7 @@ const mapApiCharacterToCharacterState = (character: ApiCharacter): CharacterStat
   currentHp: character.current_hp,
   maxHp: character.max_hp,
   isDefending: character.is_defending,
+  icon: character.icon,
   alive: character.alive ?? character.current_hp > 0,
   stats: character.stats ?? {},
 });
@@ -119,6 +121,7 @@ const mapCharacterStateToApiCharacter = (character: CharacterState): ApiCharacte
   current_hp: character.currentHp,
   max_hp: character.maxHp,
   is_defending: character.isDefending,
+  icon: character.icon,
   alive: character.alive,
   stats: character.stats,
 });

@@ -54,7 +54,8 @@ class GameStateService
       max_hp: character.max_hp,
       is_defending: character.is_defending,
       stats: character.stats,
-      alive: character.alive?
+      alive: character.alive?,
+      icon: character.icon
     }
   end
 end

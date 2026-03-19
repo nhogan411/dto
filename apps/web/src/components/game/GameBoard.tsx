@@ -75,17 +75,18 @@ export function GameBoard({
     for (let x = 1; x <= 12; x++) {
       const char = getCharacterAt(x, y);
        const characterData = char
-         ? {
-             userId: char.userId,
-             currentHp: char.currentHp,
-             maxHp: char.maxHp,
-             facing: getFacingDirection(char.position, char.facingTile),
-             isCurrentUser: char.userId === user?.id,
-             team: char.userId === challengerId ? ('challenger' as const) : char.userId === challengedId ? ('challenged' as const) : undefined,
-             isDead: char.alive === false || char.currentHp <= 0,
-             isActiveTurn: char.id === gameState!.actingCharacterId,
-           }
-         : null;
+          ? {
+              userId: char.userId,
+              currentHp: char.currentHp,
+              maxHp: char.maxHp,
+              facing: getFacingDirection(char.position, char.facingTile),
+              isCurrentUser: char.userId === user?.id,
+              team: char.userId === challengerId ? ('challenger' as const) : char.userId === challengedId ? ('challenged' as const) : undefined,
+              isDead: char.alive === false || char.currentHp <= 0,
+              isActiveTurn: char.id === gameState!.actingCharacterId,
+              icon: char.icon,
+            }
+          : null;
 
       squares.push(
         <GameBoardSquare

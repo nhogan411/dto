@@ -39,6 +39,7 @@ describe('gameSlice', () => {
         current_hp: 10,
         max_hp: 10,
         is_defending: false,
+        icon: 'warrior',
         alive: true,
         stats: { move: 3 },
       },
@@ -64,6 +65,7 @@ describe('gameSlice', () => {
         currentHp: 10,
         maxHp: 10,
         isDefending: false,
+        icon: 'warrior',
         alive: true,
         stats: { move: 3 },
       },
@@ -125,6 +127,14 @@ describe('gameSlice', () => {
 
     expect(state.currentGame).toEqual(mockApiGame);
     expect(state.gameState).toEqual(mockGameState);
+  });
+
+  it('should map icon in mapApiCharacterToCharacterState', () => {
+    const store = setupStore();
+    store.dispatch(setCurrentGame(mockApiGame));
+    const state = store.getState().game;
+
+    expect(state.gameState?.characters[0].icon).toBe('warrior');
   });
 
   it('should handle updateGameState', () => {

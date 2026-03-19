@@ -8,8 +8,11 @@
 - [x] Movement zone showed all the options for where the character could move, but only allowed me to move them one square and then I was unable to make another "move". Each character should be allowed to move until they no longer have moves to make - meaning they could move one square, attack an opponent, and then move two more squares. once they've exhausted all three moves, then we should gray out movement as an option in the action popup.
 - [ ] i didn't get to choose tiles for my characters at game start
 - [ ] forfeit game option
+- [ ] add character name to game history
 - [ ] remove the character action menu below the game board
 - [ ] make the game board color a lighter gray
+- [ ] i thought we setup characters to receive an icon on creation that was editable from the edit character view. my understanding is this icon would serve as their avatar on the gae board.
+- [ ] let's remove everything about the player time limit for now. i think we'll need something eventually, but for now i don't want to bother with it.
 
 ## Ready
 
