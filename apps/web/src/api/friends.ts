@@ -16,10 +16,10 @@ export interface UserSearch {
 
 export interface Friendship {
   id: number;
-  sender_id: number;
+  requester_id?: number;
   recipient_id: number;
   status: 'pending' | 'accepted' | 'declined';
-  sender?: UserSearch;
+  requester?: UserSearch;
   recipient?: UserSearch;
   created_at?: string;
   updated_at?: string;

@@ -42,20 +42,20 @@ export const FriendRequests: React.FC = () => {
               className="flex justify-between items-center py-4 border-b border-neutral-800 last:border-b-0 bg-neutral-800 px-4 rounded-md mb-2 last:mb-0"
             >
               <div className="text-white font-bold">
-                {request.sender?.username || 'Unknown User'}
+                {request.requester?.username || 'Unknown User'}
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => handleAccept(request.id)}
                   className="bg-[var(--team-green)] text-neutral-950 border-none px-4 py-2 rounded-md font-bold cursor-pointer focus-ring transition-colors hover:brightness-110"
-                  aria-label={`Accept friend request from ${request.sender?.username || 'Unknown User'}`}
+                  aria-label={`Accept friend request from ${request.requester?.username || 'Unknown User'}`}
                 >
                   Accept
                 </button>
                 <button
                   onClick={() => handleDecline(request.id)}
                   className="bg-transparent text-red-400 border border-red-500/50 hover:bg-red-500/10 px-4 py-2 rounded-md font-bold cursor-pointer focus-ring transition-colors"
-                  aria-label={`Decline friend request from ${request.sender?.username || 'Unknown User'}`}
+                  aria-label={`Decline friend request from ${request.requester?.username || 'Unknown User'}`}
                 >
                   Decline
                 </button>

@@ -36,7 +36,7 @@ describe('friendsSlice', () => {
   it('handles clearFriendsState', () => {
     const initialState = {
       friends: [{ id: 1, email: 'test@example.com', username: 'test', friendship_id: 1 }],
-      pendingRequests: [{ id: 2, sender_id: 3, recipient_id: 1, status: 'pending' as const }],
+      pendingRequests: [{ id: 2, requester_id: 3, recipient_id: 1, status: 'pending' as const }],
       searchResults: [{ id: 4, email: 'search@example.com', username: 'search' }],
       status: 'failed' as const,
       error: 'An error occurred',
@@ -62,7 +62,7 @@ describe('friendsSlice', () => {
   });
 
   it('handles fetchFriendRequestsThunk.fulfilled', () => {
-    const requests = [{ id: 2, sender_id: 3, recipient_id: 1, status: 'pending' }];
+    const requests = [{ id: 2, requester_id: 3, recipient_id: 1, status: 'pending' }];
     const action = { type: fetchFriendRequestsThunk.fulfilled.type, payload: requests };
     const state = friendsReducer(undefined, action);
     
@@ -74,8 +74,8 @@ describe('friendsSlice', () => {
     const initialState = {
       friends: [],
       pendingRequests: [
-        { id: 1, sender_id: 2, recipient_id: 3, status: 'pending' as const },
-        { id: 2, sender_id: 4, recipient_id: 3, status: 'pending' as const },
+        { id: 1, requester_id: 2, recipient_id: 3, status: 'pending' as const },
+        { id: 2, requester_id: 4, recipient_id: 3, status: 'pending' as const },
       ],
       searchResults: [],
       status: 'idle' as const,
@@ -96,7 +96,7 @@ describe('friendsSlice', () => {
     const initialState = {
       friends: [],
       pendingRequests: [
-        { id: 1, sender_id: 2, recipient_id: 3, status: 'pending' as const },
+        { id: 1, requester_id: 2, recipient_id: 3, status: 'pending' as const },
       ],
       searchResults: [],
       status: 'idle' as const,
