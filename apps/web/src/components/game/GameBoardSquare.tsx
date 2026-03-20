@@ -34,7 +34,7 @@ export function GameBoardSquare({
   onHover,
   renderingMode,
 }: GameBoardSquareProps) {
-  let backgroundColor = '#1e1e1e';
+  let backgroundColor = '#6b7280';
   let borderColor = '#333';
 
   if (isBlocked) {

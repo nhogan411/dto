@@ -65,7 +65,7 @@ export function GameBoard({
     width: '100%',
     aspectRatio: '1',
     maxWidth: '600px',
-    backgroundColor: '#888',
+    backgroundColor: '#bbb',
     padding: '2px',
     margin: '0 auto',
   };
