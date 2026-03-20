@@ -15,10 +15,14 @@ export function CharacterInfo() {
   const gameState = useAppSelector((state) => state.game.gameState);
   const currentGame = useAppSelector((state) => state.game.currentGame);
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
+  const actingCharacterId = useAppSelector(s =>
+    s.game.gameState?.actingCharacterId ??
+    (s.game.gameState?.turnOrder[s.game.gameState?.currentTurnIndex ?? 0] ?? null)
+  );
 
-  if (!selectedCharacterId || !gameState) return null;
-
-  const character = gameState.characters.find((c) => c.id === selectedCharacterId);
+  const displayId = selectedCharacterId ?? actingCharacterId;
+  if (!displayId || !gameState) return null;
+  const character = gameState.characters.find(c => c.id === displayId);
   if (!character) return null;
 
   const owner = character.userId === currentUserId ? 'You' : 'Opponent';

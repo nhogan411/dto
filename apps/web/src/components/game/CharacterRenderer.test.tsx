@@ -9,9 +9,9 @@ describe('CharacterRenderer', () => {
     maxHp: 10,
     facing: '↑',
     isCurrentUser: true,
-    team: 'challenger',
+    team: 'challenger' as const,
     isDead: false,
-    mode: 'token',
+    mode: 'token' as const,
     icon: 'warrior',
   };
 

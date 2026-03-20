@@ -15,6 +15,7 @@ import {
 } from '../store/slices/gameSlice';
 import { GameBoard } from '../components/game/GameBoard';
 import { TurnReplay } from '../components/game/TurnReplay';
+import { TurnOrderStrip } from '../components/game/TurnOrderStrip';
 import { CharacterInfo } from '../components/game/CharacterInfo';
 import { GameHistory } from '../components/game/GameHistory';
 import { useGameChannel } from '../cable/useGameChannel';
@@ -427,39 +428,17 @@ export default function GamePage() {
 
    const isMyTurn = gameState?.currentTurnUserId === currentUserId;
 
-   // Derive turn indicator color from acting character's team, not from viewer's perspective
-   const getActingTeamColor = () => {
-     if (!actingCharacter || !currentGame) {
-        return { bg: 'bg-neutral-400', text: 'text-neutral-300' };
-     }
-     
-     const isActingCharacterChallenger = actingCharacter.userId === currentGame.challenger_id;
-     return isActingCharacterChallenger
-       ? { bg: 'bg-[var(--team-blue)]', text: 'text-blue-400' }
-       : { bg: 'bg-[var(--team-green)]', text: 'text-emerald-400' };
-   };
-
-   const teamColor = getActingTeamColor();
-
    const remainingMoveBudget = actingCharacter ? getRemainingMoveBudget(actingCharacter) : 0;
    const canMove = !!(isMyTurn && !isSubmitting && activeMode !== 'move' && remainingMoveBudget > 0);
 
-   return (
-     <div className="p-8 flex flex-col items-center relative">
-       <TurnReplay />
-        <h1 className="text-2xl font-bold mb-4 text-white">Game #{gameState.id}</h1>
-       
-       {/* Turn indicator */}
-       <div className="mb-6 flex items-center gap-3">
-         <div className={`w-3 h-3 rounded-full ${teamColor.bg}`} />
-         <span className={`text-sm font-medium ${teamColor.text}`}>
-           {isMyTurn ? 'Your Turn' : "Opponent's Turn"}
-         </span>
-         <span className="text-neutral-300 text-sm">· Turn {gameState.turnNumber}</span>
-         <span className="text-neutral-300 text-sm">· {gameState.status}</span>
-       </div>
+    return (
+      <div className="p-8 flex flex-col items-center relative">
+        <TurnReplay />
+         <h1 className="text-2xl font-bold mb-4 text-white">Game #{gameState.id}</h1>
+        
+        <TurnOrderStrip />
 
-      <div className="flex gap-6 items-start w-full max-w-5xl justify-center">
+       <div className="flex gap-6 items-start w-full max-w-5xl justify-center">
         <div>
           <GameBoard
             boardConfig={boardConfig}

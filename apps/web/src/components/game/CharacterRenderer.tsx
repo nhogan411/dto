@@ -1,3 +1,5 @@
+import { ICON_EMOJI } from '../../constants/icons';
+
 interface CharacterRendererProps {
   userId: number;
   currentHp: number;
@@ -9,15 +11,6 @@ interface CharacterRendererProps {
   mode?: 'token';
   icon: string;
 }
-
-const ICON_EMOJI: Record<string, string> = {
-  warrior: '⚔️',
-  rogue: '🗡️',
-  mage: '🔮',
-  archer: '🏹',
-  paladin: '🛡️',
-  ranger: '🌿',
-};
 
 function getHpColor(current: number, max: number): string {
   const ratio = current / max;

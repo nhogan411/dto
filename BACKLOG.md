@@ -15,7 +15,7 @@
 - [x] let's remove everything about the player time limit for now. i think we'll need something eventually, but for now i don't want to bother with it.
 - [x] when you forfeit a game you get stuck in th confirmation modal. after a reload you get a modal that says "you fortfeited", but i shouldn't have to refresh
 - [ ] we're getting stuck in the game. character 1 has finished his turn (used the End Turn action). the active player highlight has moved to the next character, but when i open the action modal for character 2, everything is grayed out, and when i click on character 1 his Details card indicates he is still the active character
-- [ ] This was mentioned during the buildout for a previous issue, can we fix this: These are pre-existing test failures (the name field was added to the character model at some point but the test fixtures weren't updated). Let me confirm these failures existed before our changes
+- [x] This was mentioned during the buildout for a previous issue, can we fix this: These are pre-existing test failures (the name field was added to the character model at some point but the test fixtures weren't updated). Let me confirm these failures existed before our changes
 
 ## Ready
 
