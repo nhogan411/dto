@@ -92,18 +92,20 @@ RSpec.describe Broadcaster do
       described_class.game_action_completed(game, action)
     end
 
-    it "broadcasts turn changes" do
-      expect(ActionCable.server).to receive(:broadcast).with(
-        GameChannel.broadcasting_for(game),
-        {
-          event: "turn_changed",
-          game_id: game.id,
-          current_turn_user_id: challenger.id
-        }
-      )
+     it "broadcasts turn changes" do
+       expect(ActionCable.server).to receive(:broadcast).with(
+         GameChannel.broadcasting_for(game),
+         hash_including(
+           event: "turn_changed",
+           game_id: game.id,
+           current_turn_user_id: challenger.id,
+           current_turn_index: game.current_turn_index,
+           next_character_id: game.acting_character&.id
+         )
+       )
 
-      described_class.turn_changed(game)
-    end
+       described_class.turn_changed(game)
+     end
 
     it "broadcasts game over events" do
       expect(ActionCable.server).to receive(:broadcast).with(

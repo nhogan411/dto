@@ -4,7 +4,14 @@ class Broadcaster
   end
 
   def self.turn_changed(game)
-    broadcast_to_game(game, { event: "turn_changed", game_id: game.id, current_turn_user_id: game.current_turn_user_id })
+    next_char = game.acting_character
+    broadcast_to_game(game, {
+      event: "turn_changed",
+      game_id: game.id,
+      current_turn_user_id: game.current_turn_user_id,
+      current_turn_index: game.current_turn_index,
+      next_character_id: next_char&.id
+    })
   end
 
   def self.game_over(game)

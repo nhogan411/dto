@@ -280,6 +280,7 @@ class GameActionsController < ApplicationController
 
     game.update!(
       current_turn_index: next_index || game.current_turn_index,
+      current_turn_user_id: next_character ? next_character.user_id : game.current_turn_user_id,
       turn_deadline: Time.current + game.turn_time_limit.seconds
     )
   end
@@ -291,6 +292,7 @@ class GameActionsController < ApplicationController
 
     game.update!(
       current_turn_index: next_index || game.current_turn_index,
+      current_turn_user_id: next_character ? next_character.user_id : game.current_turn_user_id,
       turn_deadline: Time.current + game.turn_time_limit.seconds
     )
   end
