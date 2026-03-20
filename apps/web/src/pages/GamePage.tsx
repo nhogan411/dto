@@ -14,7 +14,6 @@ import {
   type GameChannelMessage,
 } from '../store/slices/gameSlice';
 import { GameBoard } from '../components/game/GameBoard';
-import { ActionControls } from '../components/game/ActionControls';
 import { TurnReplay } from '../components/game/TurnReplay';
 import { CharacterInfo } from '../components/game/CharacterInfo';
 import { GameHistory } from '../components/game/GameHistory';
@@ -37,7 +36,6 @@ export default function GamePage() {
   const parsedGameId = gameId !== null && !Number.isNaN(gameId) ? gameId : null;
 
   const [selectedSquare, setSelectedSquare] = useState<{ x: number; y: number } | null>(null);
-  const [selectedTarget, setSelectedTarget] = useState<number | null>(null);
   const [activeMode, setActiveMode] = useState<'move' | 'attack' | null>(null);
   const [popoverState, setPopoverState] = useState<{ x: number; y: number } | null>(null);
   const [attackPreview, setAttackPreview] = useState<AttackPreviewResponse | null>(null);
@@ -242,7 +240,6 @@ export default function GamePage() {
     if (activeMode === 'attack') {
       const char = gameState?.characters.find((c) => c.position.x === x && c.position.y === y);
       if (char && char.userId !== currentUserId) {
-        setSelectedTarget(char.id);
         if (parsedGameId !== null) {
           void dispatch(submitActionThunk({
             gameId: parsedGameId,
@@ -251,12 +248,9 @@ export default function GamePage() {
           })).then((result) => {
             if (submitActionThunk.fulfilled.match(result)) {
               setActiveMode(null);
-              setSelectedTarget(null);
             }
           });
         }
-      } else {
-        setSelectedTarget(null);
       }
       return;
     }
@@ -451,15 +445,6 @@ export default function GamePage() {
             challengedId={currentGame?.challenged_id}
           />
 
-          <ActionControls
-            gameId={gameState.id}
-            currentUserId={currentUserId}
-            gameState={gameState}
-            selectedSquare={selectedSquare}
-            selectedTarget={selectedTarget}
-            onSelectMode={setActiveMode}
-            activeMode={activeMode}
-          />
         </div>
         <div className="min-w-[260px] max-w-xs h-[600px] flex flex-col">
           <CharacterInfo />

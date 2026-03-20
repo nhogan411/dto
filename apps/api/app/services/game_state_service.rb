@@ -44,18 +44,19 @@ class GameStateService
     }
   end
 
-  def character_snapshot(character)
-    {
-      id: character.id,
-      user_id: character.user_id,
-      position: character.position,
-      facing_tile: character.facing_tile,
-      current_hp: character.current_hp,
-      max_hp: character.max_hp,
-      is_defending: character.is_defending,
-      stats: character.stats,
-      alive: character.alive?,
-      icon: character.icon
-    }
-  end
+   def character_snapshot(character)
+     {
+       id: character.id,
+       user_id: character.user_id,
+       position: character.position,
+       facing_tile: character.facing_tile,
+       current_hp: character.current_hp,
+       max_hp: character.max_hp,
+       is_defending: character.is_defending,
+       stats: character.stats,
+       alive: character.alive?,
+       icon: character.icon,
+       name: character.name
+     }
+   end
 end

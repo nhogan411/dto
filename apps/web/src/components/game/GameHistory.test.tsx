@@ -3,7 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { describe, it, expect } from 'vitest';
 import type { GameHistoryAction } from '../../api/game';
-import gameReducer, { gameActionsReceived } from '../../store/slices/gameSlice';
+import gameReducer, { gameActionsReceived, updateGameState } from '../../store/slices/gameSlice';
+import type { CharacterState } from '../../store/slices/gameSlice';
 import { GameHistory } from './GameHistory';
 
 const makeAttackAction = (overrides: Partial<GameHistoryAction> = {}): GameHistoryAction => ({
@@ -25,6 +26,21 @@ const makeAttackAction = (overrides: Partial<GameHistoryAction> = {}): GameHisto
   ...overrides,
 });
 
+const makeCharacterState = (overrides: Partial<CharacterState> = {}): CharacterState => ({
+  id: 1,
+  userId: 1,
+  position: { x: 1, y: 1 },
+  facingTile: { x: 1, y: 2 },
+  currentHp: 10,
+  maxHp: 10,
+  isDefending: false,
+  icon: 'warrior',
+  name: 'Thorin',
+  alive: true,
+  stats: {},
+  ...overrides,
+});
+
 const renderWithActions = (actions: GameHistoryAction[]) => {
   const store = configureStore({
     reducer: {
@@ -33,6 +49,35 @@ const renderWithActions = (actions: GameHistoryAction[]) => {
   });
 
   store.dispatch(gameActionsReceived(actions));
+
+  return render(
+    <Provider store={store}>
+      <GameHistory />
+    </Provider>,
+  );
+};
+
+const renderWithActionsAndCharacters = (actions: GameHistoryAction[], characters: CharacterState[]) => {
+  const store = configureStore({
+    reducer: {
+      game: gameReducer,
+    },
+  });
+
+  store.dispatch(gameActionsReceived(actions));
+  store.dispatch(updateGameState({
+    id: 1,
+    status: 'active',
+    boardConfig: { tiles: [] },
+    currentTurnUserId: 1,
+    actingCharacterId: 1,
+    turnOrder: [],
+    currentTurnIndex: 0,
+    characters,
+    turnNumber: 1,
+    winnerId: null,
+    turnDeadline: null,
+  }));
 
   return render(
     <Provider store={store}>
@@ -84,5 +129,26 @@ describe('GameHistory D20 attack display', () => {
     ]);
 
     expect(screen.getByText(/Attacked and hit for 1 damage/i)).toBeInTheDocument();
+  });
+});
+
+describe('GameHistory character name rendering', () => {
+  it('renders character name before action type', () => {
+    renderWithActionsAndCharacters(
+      [makeAttackAction({ character_id: 1 })],
+      [makeCharacterState({ id: 1, name: 'Thorin' })]
+    );
+    expect(screen.getByText(/Thorin attack/i)).toBeInTheDocument();
+  });
+
+  it('renders without crashing when character not in state', () => {
+    renderWithActionsAndCharacters(
+      [makeAttackAction({ character_id: 99 })],
+      [] // no characters in state
+    );
+    // Should not render "undefined" anywhere
+    expect(screen.queryByText(/undefined/i)).not.toBeInTheDocument();
+    // Should still render the turn info
+    expect(screen.getByText(/Turn 1/i)).toBeInTheDocument();
   });
 });

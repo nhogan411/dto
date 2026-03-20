@@ -3,6 +3,7 @@ import { useAppSelector } from '../../store/hooks';
 
 export function GameHistory() {
   const gameActions = useAppSelector((state) => state.game.gameActions);
+  const gameState = useAppSelector((state) => state.game.gameState);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -99,16 +100,19 @@ export function GameHistory() {
         tabIndex={0}
         className="flex-1 overflow-y-auto flex flex-col gap-2 pr-2"
       >
-        {gameActions.map((action) => (
-          <div key={action.id} className="p-2 bg-neutral-700 rounded text-sm">
-            <div className="text-neutral-300 text-xs mb-0.5">
-              Turn {action.turn_number}
+        {gameActions.map((action) => {
+          const charName = gameState?.characters.find(c => c.id === action.character_id)?.name ?? '';
+          return (
+            <div key={action.id} className="p-2 bg-neutral-700 rounded text-sm">
+              <div className="text-neutral-300 text-xs mb-0.5">
+                Turn {action.turn_number}
+              </div>
+              <div>
+                <strong>{charName ? `${charName} ` : ''}{action.action_type}:</strong> {renderActionDescription(action)}
+              </div>
             </div>
-            <div>
-              <strong>{action.action_type}:</strong> {renderActionDescription(action)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

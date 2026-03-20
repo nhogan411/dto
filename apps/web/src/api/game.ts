@@ -16,6 +16,7 @@ export interface ApiCharacter {
   max_hp: number;
   is_defending: boolean;
   icon: string;
+  name?: string;
   alive?: boolean;
   stats?: Record<string, unknown>;
 }
