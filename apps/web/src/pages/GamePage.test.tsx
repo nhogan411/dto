@@ -303,7 +303,10 @@ describe('GamePage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Forfeit game' }));
     fireEvent.click(screen.getByRole('button', { name: 'Forfeit' }));
 
-    expect(forfeitGameThunk).toHaveBeenCalledWith(1);
+    // Wait for forfeit thunk to dispatch and timeout to be set
+    await vi.waitFor(() => {
+      expect(forfeitGameThunk).toHaveBeenCalledWith(1);
+    });
 
     // Unmount component before timeout
     unmount();
@@ -311,10 +314,8 @@ describe('GamePage', () => {
     // Advance past timeout
     await vi.advanceTimersByTimeAsync(6000);
 
-    // RED PHASE: Expects cleanup to prevent dispatch, but cleanup doesn't exist yet
-    // In reality, once timeout is implemented (Task 5), this will fail without cleanup
-    // For now it passes because no timeout exists, but logically it should fail
-    // because the cleanup mechanism isn't implemented
-    expect(fetchGameStateThunk).toHaveBeenCalled();
+    // GREEN PHASE: Unmount clears forfeitTimeoutRef → timeout callback never fires
+    // fetchGameStateThunk must NOT be called after component unmounts
+    expect(fetchGameStateThunk).not.toHaveBeenCalled();
   });
 });

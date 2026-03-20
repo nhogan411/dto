@@ -92,7 +92,6 @@ vi.mock('../hooks/usePageTitle', () => ({
   usePageTitle: vi.fn(),
 }));
 
-import { fetchGameThunk } from '../store/slices/gameSlice';
 import { gameApi } from '../api/game';
 
 describe('LobbyPage', () => {
@@ -135,11 +134,11 @@ describe('LobbyPage', () => {
       id: 1,
       challenger_id: currentUserId,
       challenged_id: opponentUserId,
-      status: 'active' as const,
+      status: 'active' as never,
       challenger_username: 'player1',
       challenged_username: 'player2',
-      challenger_picks: [1, 2],
-      challenged_picks: [3, 4],
+      challenger_picks: [1, 2] as unknown as null,
+      challenged_picks: [3, 4] as unknown as null,
       board_config: {
         tiles: Array.from({ length: 12 }, () =>
           Array.from({ length: 12 }, () => ({ type: 'open' }))
