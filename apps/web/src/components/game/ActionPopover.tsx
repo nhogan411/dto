@@ -6,7 +6,7 @@ export interface ActionPopoverProps {
   onClose: () => void;
   onMove: () => void;
   onAttack: () => void;
-  onDefend: () => void;
+  onDefend: (direction: 'north' | 'south' | 'east' | 'west') => void;
   onEndTurn: (direction: 'north' | 'south' | 'east' | 'west') => void;
   canMove: boolean;
   canAttack: boolean;
@@ -32,7 +32,7 @@ export function ActionPopover({
   const popoverRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<Element | null>(null);
   const prevActingId = useRef<number | null>(actingCharacterId);
-  const [facingMode, setFacingMode] = useState(false);
+  const [pendingFacingAction, setPendingFacingAction] = useState<'defend' | 'endTurn' | null>(null);
 
   useEffect(() => {
     if (!previousFocusRef.current) {
@@ -41,7 +41,7 @@ export function ActionPopover({
 
     const firstEnabledButton = popoverRef.current?.querySelector<HTMLButtonElement>('button:not([disabled])');
     firstEnabledButton?.focus();
-  }, [facingMode]);
+  }, [pendingFacingAction]);
 
   useEffect(() => {
     return () => {
@@ -54,7 +54,7 @@ export function ActionPopover({
   useEffect(() => {
     if (prevActingId.current !== actingCharacterId) {
       onClose();
-      setFacingMode(false);
+      setPendingFacingAction(null);
     }
     prevActingId.current = actingCharacterId;
   }, [actingCharacterId, onClose]);
@@ -62,8 +62,8 @@ export function ActionPopover({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (facingMode) {
-          setFacingMode(false);
+        if (pendingFacingAction !== null) {
+          setPendingFacingAction(null);
         } else {
           onClose();
         }
@@ -83,9 +83,9 @@ export function ActionPopover({
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [onClose, facingMode]);
+  }, [onClose, pendingFacingAction]);
 
-  if (facingMode) {
+  if (pendingFacingAction !== null) {
     return (
       <div
         ref={popoverRef}
@@ -101,7 +101,7 @@ export function ActionPopover({
         <button
           role="menuitem"
           aria-label="Face North"
-          onClick={(e) => { e.stopPropagation(); onEndTurn('north'); }}
+          onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('north') : onEndTurn('north'); }}
           className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
         >
           North (Up)
@@ -109,7 +109,7 @@ export function ActionPopover({
         <button
           role="menuitem"
           aria-label="Face South"
-          onClick={(e) => { e.stopPropagation(); onEndTurn('south'); }}
+          onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('south') : onEndTurn('south'); }}
           className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
         >
           South (Down)
@@ -117,7 +117,7 @@ export function ActionPopover({
         <button
           role="menuitem"
           aria-label="Face East"
-          onClick={(e) => { e.stopPropagation(); onEndTurn('east'); }}
+          onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('east') : onEndTurn('east'); }}
           className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
         >
           East (Right)
@@ -125,7 +125,7 @@ export function ActionPopover({
         <button
           role="menuitem"
           aria-label="Face West"
-          onClick={(e) => { e.stopPropagation(); onEndTurn('west'); }}
+          onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('west') : onEndTurn('west'); }}
           className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
         >
           West (Left)
@@ -170,7 +170,7 @@ export function ActionPopover({
         aria-label="Defend Action"
         aria-disabled={!canDefend}
         disabled={!canDefend}
-        onClick={(e) => { e.stopPropagation(); onDefend(); }}
+        onClick={(e) => { e.stopPropagation(); setPendingFacingAction('defend'); }}
         className="w-full text-left px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
       >
         Defend
@@ -181,7 +181,7 @@ export function ActionPopover({
         aria-label="End Turn Action"
         aria-disabled={!canEndTurn}
         disabled={!canEndTurn}
-        onClick={(e) => { e.stopPropagation(); setFacingMode(true); }}
+        onClick={(e) => { e.stopPropagation(); setPendingFacingAction('endTurn'); }}
         className="w-full text-left px-3 py-2 rounded text-[#4ade80] bg-transparent hover:bg-[#333] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
       >
         End Turn

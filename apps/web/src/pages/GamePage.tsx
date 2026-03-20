@@ -368,12 +368,19 @@ export default function GamePage() {
     setPopoverState(null);
   };
 
-  const handlePopoverDefend = () => {
-    if (parsedGameId !== null) {
+  const handlePopoverDefend = (direction: 'north' | 'south' | 'east' | 'west') => {
+    if (parsedGameId !== null && actingCharacter) {
+      const facingTile = { ...actingCharacter.position };
+
+      if (direction === 'north') facingTile.y -= 1;
+      else if (direction === 'south') facingTile.y += 1;
+      else if (direction === 'east') facingTile.x += 1;
+      else if (direction === 'west') facingTile.x -= 1;
+
       void dispatch(submitActionThunk({
         gameId: parsedGameId,
         actionType: 'defend',
-        actionData: {}
+        actionData: { facing_tile: facingTile }
       }));
     }
     setPopoverState(null);

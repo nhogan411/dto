@@ -97,4 +97,95 @@ describe('ActionPopover', () => {
     rerender(<ActionPopover {...defaultProps} actingCharacterId={2} />);
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
+
+  describe('Defend direction picker', () => {
+    it('shows direction picker after clicking Defend', async () => {
+      render(<ActionPopover {...defaultProps} />);
+      
+      await userEvent.click(screen.getByRole('menuitem', { name: /defend action/i }));
+      
+      // Direction picker should be visible with direction buttons
+      expect(screen.getByRole('menuitem', { name: /face north/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /face south/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /face east/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /face west/i })).toBeInTheDocument();
+    });
+
+    it('calls onDefend with "north" when North is clicked', async () => {
+      render(<ActionPopover {...defaultProps} />);
+      
+      await userEvent.click(screen.getByRole('menuitem', { name: /defend action/i }));
+      await userEvent.click(screen.getByRole('menuitem', { name: /face north/i }));
+      
+      expect(defaultProps.onDefend).toHaveBeenCalledWith('north');
+    });
+
+    it('calls onDefend with "south" when South is clicked', async () => {
+      render(<ActionPopover {...defaultProps} />);
+      
+      await userEvent.click(screen.getByRole('menuitem', { name: /defend action/i }));
+      await userEvent.click(screen.getByRole('menuitem', { name: /face south/i }));
+      
+      expect(defaultProps.onDefend).toHaveBeenCalledWith('south');
+    });
+
+    it('pressing Escape on direction picker cancels without calling onDefend', async () => {
+      render(<ActionPopover {...defaultProps} />);
+      
+      await userEvent.click(screen.getByRole('menuitem', { name: /defend action/i }));
+      fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' });
+      
+      expect(defaultProps.onDefend).not.toHaveBeenCalled();
+      // Direction picker should be gone, action menu should return
+      expect(screen.getByRole('menuitem', { name: /defend action/i })).toBeInTheDocument();
+    });
+
+    it('clicking outside cancels direction picker without calling onDefend', async () => {
+      render(
+        <div>
+          <div data-testid="outside">Outside</div>
+          <ActionPopover {...defaultProps} />
+        </div>
+      );
+      
+      await userEvent.click(screen.getByRole('menuitem', { name: /defend action/i }));
+      await userEvent.click(screen.getByTestId('outside'));
+      
+      expect(defaultProps.onDefend).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('End Turn direction picker', () => {
+    it('shows direction picker after clicking End Turn', async () => {
+      render(<ActionPopover {...defaultProps} />);
+      
+      await userEvent.click(screen.getByRole('menuitem', { name: /end turn action/i }));
+      
+      // Direction picker should be visible with direction buttons
+      expect(screen.getByRole('menuitem', { name: /face north/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /face south/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /face east/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /face west/i })).toBeInTheDocument();
+    });
+
+    it('calls onEndTurn with "north" when North is clicked', async () => {
+      render(<ActionPopover {...defaultProps} />);
+      
+      await userEvent.click(screen.getByRole('menuitem', { name: /end turn action/i }));
+      await userEvent.click(screen.getByRole('menuitem', { name: /face north/i }));
+      
+      expect(defaultProps.onEndTurn).toHaveBeenCalledWith('north');
+    });
+
+    it('pressing Escape from direction picker returns to action menu', async () => {
+      render(<ActionPopover {...defaultProps} />);
+      
+      await userEvent.click(screen.getByRole('menuitem', { name: /end turn action/i }));
+      fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' });
+      
+      // Direction picker should be gone, action menu should return
+      expect(screen.getByRole('menuitem', { name: /defend action/i })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: /face north/i })).not.toBeInTheDocument();
+    });
+  });
 });

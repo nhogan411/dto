@@ -269,7 +269,8 @@ export const submitActionThunk = createAsyncThunk<
       const path = actionData.path as { x: number; y: number }[];
       dispatch(optimisticMove({ characterId: activeCharacter.id, newPosition: path[path.length - 1] }));
     } else if (actionType === 'defend') {
-      dispatch(optimisticDefend({ characterId: activeCharacter.id }));
+      const facingTile = (actionData as { facing_tile?: { x: number; y: number } }).facing_tile;
+      dispatch(optimisticDefend({ characterId: activeCharacter.id, facingTile: facingTile ?? { x: 0, y: 0 } }));
     }
   }
 
@@ -435,11 +436,12 @@ const gameSlice = createSlice({
         }
       }
     },
-    optimisticDefend: (state, action: PayloadAction<{ characterId: number }>) => {
+    optimisticDefend: (state, action: PayloadAction<{ characterId: number; facingTile: { x: number; y: number } }>) => {
       if (state.gameState) {
         const character = state.gameState.characters.find((entry) => entry.id === action.payload.characterId);
         if (character) {
           character.isDefending = true;
+          character.facingTile = action.payload.facingTile;
         }
       }
     },

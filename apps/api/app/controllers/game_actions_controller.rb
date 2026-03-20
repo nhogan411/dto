@@ -246,20 +246,21 @@ class GameActionsController < ApplicationController
     }
   end
 
-  def apply_action!(game:, actor:, action_result:)
-    case action_type_param
-    when "move"
-      to_position = action_result[:to_position].with_indifferent_access
-      actor.update!(position: { x: to_position[:x], y: to_position[:y] })
-    when "attack"
-      apply_attack!(game:, action_result:)
-    when "defend"
-      actor.update!(is_defending: true)
-      apply_defend_turn_change!(game:, actor:)
-    when "end_turn"
-      apply_end_turn!(game:, actor:)
-    end
-  end
+   def apply_action!(game:, actor:, action_result:)
+     case action_type_param
+     when "move"
+       to_position = action_result[:to_position].with_indifferent_access
+       actor.update!(position: { x: to_position[:x], y: to_position[:y] })
+     when "attack"
+       apply_attack!(game:, action_result:)
+     when "defend"
+       facing_tile = action_data_param.with_indifferent_access[:facing_tile].to_h.with_indifferent_access
+       actor.update!(is_defending: true, facing_tile: { x: facing_tile[:x], y: facing_tile[:y] })
+       apply_defend_turn_change!(game:, actor:)
+     when "end_turn"
+       apply_end_turn!(game:, actor:)
+     end
+   end
 
   def apply_attack!(game:, action_result:)
     target = game.characters.find(action_result[:target_id])
