@@ -62,7 +62,7 @@ describe('FriendsList', () => {
     fireEvent.click(inviteButtons[0]);
 
     await waitFor(() => {
-      expect(gameApi.gameApi.createGame).toHaveBeenCalledWith(1, 86400);
+      expect(gameApi.gameApi.createGame).toHaveBeenCalledWith(1);
     });
   });
 

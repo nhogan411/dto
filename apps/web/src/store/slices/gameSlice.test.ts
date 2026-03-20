@@ -33,19 +33,20 @@ describe('gameSlice', () => {
     challenger_username: 'testuser1',
     challenged_username: 'testuser2',
     characters: [
-      {
-        id: 1,
-        user_id: 1,
-        position: { x: 1, y: 1 },
-        facing_tile: { x: 1, y: 2 },
-        current_hp: 10,
-        max_hp: 10,
-        is_defending: false,
-        icon: 'warrior',
-        alive: true,
-        stats: { move: 3 },
-      },
-    ],
+       {
+         id: 1,
+         user_id: 1,
+         name: '',
+         position: { x: 1, y: 1 },
+         facing_tile: { x: 1, y: 2 },
+         current_hp: 10,
+         max_hp: 10,
+         is_defending: false,
+         icon: 'warrior',
+         alive: true,
+         stats: { move: 3 },
+       },
+     ],
     turn_number: 1,
     winner_id: null,
   };
@@ -59,22 +60,22 @@ describe('gameSlice', () => {
     turnOrder: [1],
     currentTurnIndex: 0,
     characters: [
-      {
-        id: 1,
-        userId: 1,
-        position: { x: 1, y: 1 },
-        facingTile: { x: 1, y: 2 },
-        currentHp: 10,
-        maxHp: 10,
-        isDefending: false,
-        icon: 'warrior',
-        alive: true,
-        stats: { move: 3 },
-      },
-    ],
+       {
+         id: 1,
+         userId: 1,
+         name: '',
+         position: { x: 1, y: 1 },
+         facingTile: { x: 1, y: 2 },
+         currentHp: 10,
+         maxHp: 10,
+         isDefending: false,
+         icon: 'warrior',
+         alive: true,
+         stats: { move: 3 },
+       },
+     ],
     turnNumber: 1,
     winnerId: null,
-    turnDeadline: null,
     actingCharacterActions: null,
     challengerPicks: undefined,
     challengedPicks: undefined,
@@ -87,7 +88,6 @@ describe('gameSlice', () => {
     acting_character_id: 1,
     turn_order: [1],
     current_turn_index: 0,
-    turn_deadline: '2026-03-15T12:00:00.000Z',
     winner_id: null,
     board_config: { tiles: [[{ type: 'open' }]] },
     characters: mockApiGame.characters,
@@ -158,10 +158,7 @@ describe('gameSlice', () => {
     store.dispatch(updateGameState(mockGameState));
     store.dispatch(handleGameChannelMessage({ event: 'game_updated', data: mockSnapshot }));
 
-    expect(store.getState().game.gameState).toEqual({
-      ...mockGameState,
-      turnDeadline: '2026-03-15T12:00:00.000Z',
-    });
+    expect(store.getState().game.gameState).toEqual(mockGameState);
   });
 
   describe('handleGameChannelMessage action_completed', () => {
@@ -200,7 +197,6 @@ describe('gameSlice', () => {
       expect(state.gameState).toEqual({
         ...mockGameState,
         turnNumber: 2,
-        turnDeadline: '2026-03-15T12:00:00.000Z',
       });
       expect(state.gameActions).toHaveLength(1);
       expect(state.gameActions[0]).toMatchObject({ id: 42, action_type: 'move' });
@@ -247,7 +243,6 @@ describe('gameSlice', () => {
       expect(store.getState().game.gameState).toEqual({
         ...mockGameState,
         turnNumber: 2,
-        turnDeadline: '2026-03-15T12:00:00.000Z',
       });
     });
   });
@@ -340,10 +335,7 @@ describe('gameSlice', () => {
 
       const state = store.getState().game;
       expect(state.status).toBe('succeeded');
-      expect(state.gameState).toEqual({
-        ...mockGameState,
-        turnDeadline: '2026-03-15T12:00:00.000Z',
-      });
+      expect(state.gameState).toEqual(mockGameState);
     });
 
     it('fetchGameStateThunk fallback on error', async () => {

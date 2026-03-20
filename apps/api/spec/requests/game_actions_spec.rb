@@ -13,8 +13,6 @@ RSpec.describe "GameActions", type: :request do
       challenged: challenged,
       status: :active,
       current_turn_user: challenger,
-      turn_time_limit: 3600,
-      turn_deadline: Time.current + 1.hour,
       board_config: board_config
     )
   end
@@ -171,26 +169,25 @@ RSpec.describe "GameActions", type: :request do
       expect(json_response.fetch("errors").join(" ")).to include("not your turn")
     end
 
-     it "advances turn on defend action and broadcasts turn_changed" do
-       travel_to Time.zone.parse("2026-03-15 12:00:00") do
-         expect(ActionCable.server).to receive(:broadcast).at_least(:once)
+      it "advances turn on defend action and broadcasts turn_changed" do
+        travel_to Time.zone.parse("2026-03-15 12:00:00") do
+          expect(ActionCable.server).to receive(:broadcast).at_least(:once)
 
-         post "/games/#{game.id}/actions",
-           params: {
-             action_type: :defend,
-             action_data: {}
-           },
-           headers: challenger_headers
+          post "/games/#{game.id}/actions",
+            params: {
+              action_type: :defend,
+              action_data: { facing_tile: { x: 2, y: 3 } }
+            },
+            headers: challenger_headers
 
-         expect(response).to have_http_status(:ok)
-         game.reload
+           expect(response).to have_http_status(:ok)
+           game.reload
 
-         expect(game.current_turn_index).to eq(1)
-         expect(game.turn_deadline).to eq(Time.current + game.turn_time_limit.seconds)
-         expect(game.current_turn_user_id).to eq(challenged.id)
-         expect(challenger_character.reload.is_defending).to be(true)
-       end
-     end
+           expect(game.current_turn_index).to eq(1)
+           expect(game.current_turn_user_id).to eq(challenged.id)
+          expect(challenger_character.reload.is_defending).to be(true)
+        end
+      end
 
      it "advances turn on end_turn action" do
        travel_to Time.zone.parse("2026-03-15 12:00:00") do
@@ -213,12 +210,11 @@ RSpec.describe "GameActions", type: :request do
            },
            headers: challenger_headers
 
-         expect(response).to have_http_status(:ok)
-         game.reload
+          expect(response).to have_http_status(:ok)
+          game.reload
 
-         expect(game.current_turn_index).to eq(1)
-         expect(game.turn_deadline).to eq(Time.current + game.turn_time_limit.seconds)
-         expect(json_response.dig("data", "action", "result_data", "next_character_id")).to eq(challenged_character.id)
+          expect(game.current_turn_index).to eq(1)
+          expect(json_response.dig("data", "action", "result_data", "next_character_id")).to eq(challenged_character.id)
          expect(game.reload.current_turn_user_id).to eq(challenged.id)
        end
      end
@@ -248,8 +244,6 @@ RSpec.describe "GameActions", type: :request do
           challenger: challenger,
           challenged: challenged,
           status: :active,
-          turn_time_limit: 3600,
-          turn_deadline: Time.current + 1.hour,
           board_config: board_config
         )
       end

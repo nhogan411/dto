@@ -3,7 +3,6 @@ FactoryBot.define do
     association :challenger, factory: :user
     association :challenged, factory: :user
     status { :pending }
-    turn_time_limit { 3600 }
     board_config do
       {
         tiles: (1..12).map do |y|

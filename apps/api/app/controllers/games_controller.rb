@@ -24,7 +24,6 @@ class GamesController < ApplicationController
         challenged: challenged_user,
         status: :pending,
         expires_at: 48.hours.from_now,
-        turn_time_limit: create_params[:turn_time_limit],
         board_config: BoardGenerator.call
       )
 
@@ -79,16 +78,13 @@ class GamesController < ApplicationController
       @game.characters.create!(character_attributes_for(current_user, challenged_position))
 
       first_turn_user_id = first_move ? current_user.id : @game.challenger_id
-      @game.update!(
-        status: :active,
-        current_turn_user_id: first_turn_user_id,
-        turn_deadline: Time.current + @game.turn_time_limit.seconds
-      )
-    end
+       @game.update!(
+         status: :active,
+         current_turn_user_id: first_turn_user_id
+       )
+     end
 
-    TurnTimeoutJob.set(wait_until: @game.turn_deadline).perform_later(@game.id, @game.turn_deadline.iso8601)
-
-    broadcast_game_acceptance(@game.reload)
+     broadcast_game_acceptance(@game.reload)
 
     render json: { data: { game: serialize_game(@game) } }
   rescue GameError => e
@@ -151,12 +147,10 @@ class GamesController < ApplicationController
       challenged_user = User.find(@game.challenged_id)
       @game.characters.create!(character_attributes_for(challenged_user, challenged_position))
 
-      @game.update!(status: :active, turn_deadline: Time.current + @game.turn_time_limit.seconds)
-    end
+       @game.update!(status: :active)
+     end
 
-    TurnTimeoutJob.set(wait_until: @game.turn_deadline).perform_later(@game.id, @game.turn_deadline.iso8601)
-
-    broadcast_game_acceptance(@game.reload)
+     broadcast_game_acceptance(@game.reload)
 
     render json: { data: { game: serialize_game(@game) } }
   rescue GameError => e
@@ -186,7 +180,7 @@ class GamesController < ApplicationController
   private
 
   def create_params
-    params.permit(:challenged_id, :turn_time_limit)
+    params.permit(:challenged_id)
   end
 
   def visible_games
@@ -282,21 +276,19 @@ class GamesController < ApplicationController
   end
 
    def serialize_game(game)
-     {
-       id: game.id,
-       challenger_id: game.challenger_id,
-       challenged_id: game.challenged_id,
-       challenger_username: game.challenger.username,
-       challenged_username: game.challenged.username,
-       status: game.status,
-       board_config: serialize_board_config(game.board_config),
-       current_turn_user_id: game.current_turn_user_id,
-       turn_time_limit: game.turn_time_limit,
-       turn_deadline: game.turn_deadline&.iso8601,
-       winner_id: game.winner_id,
-       characters: game.characters.order(:id).map { |character| serialize_character(character) }
-     }
-   end
+      {
+        id: game.id,
+        challenger_id: game.challenger_id,
+        challenged_id: game.challenged_id,
+        challenger_username: game.challenger.username,
+        challenged_username: game.challenged.username,
+        status: game.status,
+        board_config: serialize_board_config(game.board_config),
+        current_turn_user_id: game.current_turn_user_id,
+        winner_id: game.winner_id,
+        characters: game.characters.order(:id).map { |character| serialize_character(character) }
+      }
+    end
 
    def serialize_board_config(board_config)
      config = board_config.with_indifferent_access

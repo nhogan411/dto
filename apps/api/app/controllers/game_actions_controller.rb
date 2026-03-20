@@ -45,12 +45,10 @@ class GameActionsController < ApplicationController
         result_data: action_result,
         turn_number: turn_number,
         sequence_number: sequence_number
-      )
-    end
+       )
+     end
 
-    TurnTimeoutJob.set(wait_until: game.turn_deadline).perform_later(game.id, game.turn_deadline.iso8601) if turn_changed
-
-    Broadcaster.game_action_completed(game.reload, action)
+     Broadcaster.game_action_completed(game.reload, action)
     Broadcaster.turn_changed(game) if turn_changed
     Broadcaster.game_over(game) if game_over
 
@@ -281,8 +279,7 @@ class GameActionsController < ApplicationController
 
     game.update!(
       current_turn_index: next_index || game.current_turn_index,
-      current_turn_user_id: next_character ? next_character.user_id : game.current_turn_user_id,
-      turn_deadline: Time.current + game.turn_time_limit.seconds
+      current_turn_user_id: next_character ? next_character.user_id : game.current_turn_user_id
     )
   end
 
@@ -293,8 +290,7 @@ class GameActionsController < ApplicationController
 
     game.update!(
       current_turn_index: next_index || game.current_turn_index,
-      current_turn_user_id: next_character ? next_character.user_id : game.current_turn_user_id,
-      turn_deadline: Time.current + game.turn_time_limit.seconds
+      current_turn_user_id: next_character ? next_character.user_id : game.current_turn_user_id
     )
   end
 

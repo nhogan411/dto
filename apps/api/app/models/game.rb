@@ -9,8 +9,7 @@ class Game < ApplicationRecord
 
    enum :status, { pending: 0, active: 1, completed: 2, forfeited: 3, accepted: 4, declined: 5 }
 
-  validates :turn_time_limit, presence: true, inclusion: { in: [ 600, 3600, 7200, 86_400, 172_800, 604_800 ] }
-  validates :board_config, presence: true
+   validates :board_config, presence: true
   validate :different_players
 
   def acting_character

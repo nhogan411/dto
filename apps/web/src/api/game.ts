@@ -36,7 +36,6 @@ export interface ApiGame {
   characters: ApiCharacter[];
   turn_number: number;
   winner_id: number | null;
-  turn_time_limit?: number;
   challenger_picks?: number[];
   challenged_picks?: number[];
 }
@@ -59,7 +58,6 @@ export interface ApiGameSnapshot {
   acting_character_id?: number;
   turn_order?: number[];
   current_turn_index?: number;
-  turn_deadline: string | null;
   winner_id: number | null;
   board_config: { tiles: Array<Array<{ type: string }>> };
    acting_character_actions?: { has_moved: boolean; has_attacked: boolean; has_defended: boolean; moves_taken: number };
@@ -116,10 +114,9 @@ export const gameApi = {
       target_y: params.target_y,
       action_data: { path: [{ x: params.target_x, y: params.target_y }] },
     }),
-  createGame: (challengedId: number, turnTimeLimit?: number) =>
+  createGame: (challengedId: number) =>
     apiClient.post<GameResponse>('/games', {
       challenged_id: challengedId,
-      turn_time_limit: turnTimeLimit,
     }),
   selectCharacters: (id: number, characterIds: number[]) =>
     apiClient.post<GameResponse>(`/games/${id}/select_characters`, { player_character_ids: characterIds }),

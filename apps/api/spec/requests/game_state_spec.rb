@@ -13,7 +13,6 @@ RSpec.describe "GameState", type: :request do
       challenged: challenged,
       status: :active,
       current_turn_user: challenged,
-      turn_deadline: Time.zone.parse("2026-03-15T12:00:00Z"),
       board_config: board_config,
       winner_id: challenged.id
     )
@@ -55,7 +54,6 @@ RSpec.describe "GameState", type: :request do
         "game_id" => game.id,
         "status" => "active",
         "current_turn_user_id" => challenged.id,
-        "turn_deadline" => game.turn_deadline.iso8601,
         "winner_id" => challenged.id,
         "board_config" => board_config.stringify_keys
       )

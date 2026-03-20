@@ -6,7 +6,7 @@ RSpec.describe "CharacterSelections", type: :request do
   describe "POST /games/:id/select_characters" do
     let(:challenger) { create(:user) }
     let(:challenged) { create(:user) }
-    let(:game) { create(:game, challenger: challenger, challenged: challenged, status: :pending, turn_time_limit: 3600) }
+    let(:game) { create(:game, challenger: challenger, challenged: challenged, status: :pending) }
 
     let(:challenger_characters) { create_list(:player_character, 2, user: challenger) }
     let(:challenged_characters) { create_list(:player_character, 2, user: challenged) }
@@ -43,11 +43,9 @@ RSpec.describe "CharacterSelections", type: :request do
       end
 
       travel_to Time.zone.parse("2026-03-17 13:00:00") do
-        expect do
-          post "/games/#{game.id}/select_characters",
-            params: { player_character_ids: challenged_characters.map(&:id) },
-            headers: auth_headers(challenged)
-        end.to have_enqueued_job(TurnTimeoutJob).with(game.id, (Time.current + 3600.seconds).iso8601)
+        post "/games/#{game.id}/select_characters",
+          params: { player_character_ids: challenged_characters.map(&:id) },
+          headers: auth_headers(challenged)
       end
 
       expect(response).to have_http_status(:ok)
@@ -56,7 +54,6 @@ RSpec.describe "CharacterSelections", type: :request do
       expect(game.status).to eq("active")
       expect(game.turn_order).to eq(game.characters.order(id: :desc).pluck(:id))
       expect(game.current_turn_index).to eq(0)
-      expect(game.turn_deadline).to eq(Time.zone.parse("2026-03-17 14:00:00"))
       expect(game.characters.count).to eq(4)
       expect(game.characters.where(user_id: challenger.id).count).to eq(2)
       expect(game.characters.where(user_id: challenged.id).count).to eq(2)

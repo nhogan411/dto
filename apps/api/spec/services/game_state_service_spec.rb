@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe GameStateService do
   describe "#snapshot" do
     it "returns canonical snapshot including ordered last_action" do
-      game = create(:game, status: :active, current_turn_user: nil, turn_deadline: 1.hour.from_now)
+      game = create(:game, status: :active, current_turn_user: nil)
       game.update!(current_turn_user: game.challenger)
       attacker = create(:character, game:, user: game.challenger, position: { x: 1, y: 1 })
       _defender = create(:character, game:, user: game.challenged, position: { x: 1, y: 2 })
@@ -17,7 +17,6 @@ RSpec.describe GameStateService do
         game_id: game.id,
         status: "active",
         current_turn_user_id: game.current_turn_user_id,
-        turn_deadline: game.turn_deadline.iso8601,
         winner_id: game.winner_id,
         board_config: game.board_config
       )

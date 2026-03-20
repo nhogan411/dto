@@ -76,7 +76,6 @@ const renderWithActionsAndCharacters = (actions: GameHistoryAction[], characters
     characters,
     turnNumber: 1,
     winnerId: null,
-    turnDeadline: null,
   }));
 
   return render(

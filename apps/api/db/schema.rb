@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_19_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_20_125637) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -62,9 +62,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_19_000001) do
     t.integer "status", default: 0, null: false
     t.jsonb "board_config", default: {}, null: false
     t.integer "current_turn_user_id"
-    t.integer "turn_time_limit", null: false
     t.integer "winner_id"
-    t.datetime "turn_deadline"
     t.integer "lock_version", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

@@ -27,7 +27,6 @@ export interface GameState {
   characters: CharacterState[];
   turnNumber: number;
   winnerId: number | null;
-  turnDeadline: string | null;
   actingCharacterActions?: { hasMoved: boolean; hasAttacked: boolean; hasDefended: boolean; movesTaken: number } | null;
   challengerPicks?: number[];
   challengedPicks?: number[];
@@ -156,7 +155,6 @@ const mapApiGameToGameState = (game: ApiGame): GameState => ({
   actingCharacterActions: null,
   challengerPicks: game.challenger_picks,
   challengedPicks: game.challenged_picks,
-  turnDeadline: null,
   characters: game.characters.map(mapApiCharacterToCharacterState),
 });
 
@@ -178,7 +176,6 @@ const mapSnapshotToGameState = (snapshot: ApiGameSnapshot): GameState => ({
   } : null,
   challengerPicks: snapshot.challenger_picks,
   challengedPicks: snapshot.challenged_picks,
-  turnDeadline: snapshot.turn_deadline,
   characters: snapshot.characters.map(mapApiCharacterToCharacterState),
 });
 

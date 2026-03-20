@@ -29,20 +29,17 @@ class CharacterSelectionsController < ApplicationController
 
         initiative_order = InitiativeService.roll(@game.characters.reload)
         current_turn_character = @game.characters.find_by(id: initiative_order.first)
-        deadline = Time.current + @game.turn_time_limit.seconds
 
         @game.update!(
           status: :active,
           turn_order: initiative_order,
           current_turn_index: 0,
-          current_turn_user_id: current_turn_character&.user_id,
-          turn_deadline: deadline
+          current_turn_user_id: current_turn_character&.user_id
         )
       end
     end
 
     if @game.reload.active?
-      TurnTimeoutJob.set(wait_until: @game.turn_deadline).perform_later(@game.id, @game.turn_deadline.iso8601)
       Broadcaster.game_updated(@game, status: @game.status, turn_order: @game.turn_order, current_turn_index: @game.current_turn_index)
     end
 
@@ -109,24 +106,22 @@ class CharacterSelectionsController < ApplicationController
      }
    end
 
-  def serialize_game(game)
-    {
-      id: game.id,
-      challenger_id: game.challenger_id,
-      challenged_id: game.challenged_id,
-      challenger_username: game.challenger.username,
-      challenged_username: game.challenged.username,
-      status: game.status,
-      board_config: serialize_board_config(game.board_config),
-      current_turn_user_id: game.current_turn_user_id,
-      turn_time_limit: game.turn_time_limit,
-      turn_deadline: game.turn_deadline&.iso8601,
-      winner_id: game.winner_id,
-      turn_order: game.turn_order,
-      current_turn_index: game.current_turn_index,
-      characters: game.characters.order(:id).map { |character| serialize_character(character) }
-    }
-  end
+   def serialize_game(game)
+     {
+       id: game.id,
+       challenger_id: game.challenger_id,
+       challenged_id: game.challenged_id,
+       challenger_username: game.challenger.username,
+       challenged_username: game.challenged.username,
+       status: game.status,
+       board_config: serialize_board_config(game.board_config),
+       current_turn_user_id: game.current_turn_user_id,
+       winner_id: game.winner_id,
+       turn_order: game.turn_order,
+       current_turn_index: game.current_turn_index,
+       characters: game.characters.order(:id).map { |character| serialize_character(character) }
+     }
+   end
 
    def serialize_board_config(board_config)
      config = board_config.with_indifferent_access

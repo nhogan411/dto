@@ -17,9 +17,7 @@ RSpec.describe Game, type: :model do
   end
 
   describe 'validations' do
-    it { is_expected.to validate_presence_of(:turn_time_limit) }
     it { is_expected.to validate_presence_of(:board_config) }
-    it { is_expected.to validate_inclusion_of(:turn_time_limit).in_array([ 600, 3600, 7200, 86_400, 172_800, 604_800 ]) }
 
     it 'requires challenger and challenged' do
       game.challenger = nil

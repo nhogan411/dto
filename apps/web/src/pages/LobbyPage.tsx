@@ -6,13 +6,6 @@ import { fetchPlayerCharactersThunk } from '../store/slices/playerCharactersSlic
 import { gameApi } from '../api/game';
 import { usePageTitle } from '../hooks/usePageTitle';
 
-function formatTimeLimit(seconds?: number) {
-  if (!seconds) return 'Unknown';
-  if (seconds < 3600) return `${Math.round(seconds / 60)} minutes`;
-  if (seconds < 86400) return `${Math.round(seconds / 3600)} hours`;
-  return `${Math.round(seconds / 86400)} days`;
-}
-
 export default function LobbyPage() {
   usePageTitle('Game Lobby');
   const { id } = useParams<{ id: string }>();
@@ -69,7 +62,6 @@ export default function LobbyPage() {
 
   const isChallenger = currentUser?.id === currentGame.challenger_id;
   const boardConfig = currentGame.board_config;
-  const timeLimit = formatTimeLimit(currentGame.turn_time_limit);
 
   const opponentUsername = isChallenger ? currentGame.challenged_username : currentGame.challenger_username;
   
@@ -175,11 +167,6 @@ export default function LobbyPage() {
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight m-0 text-white mb-2">
               {isChallenger ? 'Game Lobby' : 'Game Invitation'}
             </h1>
-            <p className="text-neutral-300 flex items-center justify-center md:justify-start gap-2">
-              <span className="font-mono text-sm bg-neutral-800 px-2 py-1 rounded text-neutral-300 border border-neutral-700">
-                Time limit: {timeLimit}
-              </span>
-            </p>
           </div>
 
           <div className="flex flex-col items-center md:items-end gap-2">

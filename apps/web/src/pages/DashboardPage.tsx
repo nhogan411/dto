@@ -39,7 +39,6 @@ export default function DashboardPage() {
 
   const [isNewGameModalOpen, setIsNewGameModalOpen] = useState(false);
   const [newGameChallengedId, setNewGameChallengedId] = useState<number | ''>('');
-  const [newGameTimeLimit, setNewGameTimeLimit] = useState<number>(86400);
   const [newGameError, setNewGameError] = useState<string | null>(null);
   const [newGameSuccess, setNewGameSuccess] = useState<string | null>(null);
   const [isCreatingGame, setIsCreatingGame] = useState(false);
@@ -123,7 +122,7 @@ export default function DashboardPage() {
     setNewGameError(null);
     setNewGameSuccess(null);
     try {
-      await gameApi.createGame(newGameChallengedId, newGameTimeLimit);
+      await gameApi.createGame(newGameChallengedId);
       setNewGameSuccess('Game invitation sent successfully!');
       void dispatch(fetchGamesThunk());
       setTimeout(() => {
@@ -202,23 +201,6 @@ export default function DashboardPage() {
                 {friends.map(f => (
                   <option key={f.id} value={f.id}>{f.username}</option>
                 ))}
-              </select>
-            </div>
-
-            <div className="mb-6">
-              <label htmlFor="time-limit-select" className="block mb-2">Turn Time Limit</label>
-              <select
-                id="time-limit-select"
-                value={newGameTimeLimit}
-                onChange={(e) => setNewGameTimeLimit(Number(e.target.value))}
-                className="w-full p-2 rounded bg-neutral-800 text-white border-none focus-ring"
-              >
-                <option value={600}>10 minutes</option>
-                <option value={3600}>1 hour</option>
-                <option value={7200}>2 hours</option>
-                <option value={86400}>1 day</option>
-                <option value={172800}>2 days</option>
-                <option value={604800}>1 week</option>
               </select>
             </div>
 
