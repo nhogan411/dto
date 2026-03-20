@@ -15,6 +15,7 @@ class User < ApplicationRecord
            inverse_of: :recipient,
            dependent: :destroy
   has_many :characters, dependent: :destroy
+  has_many :player_characters, class_name: "PlayerCharacter", foreign_key: :user_id, dependent: :destroy
   has_many :notifications, dependent: :destroy
 
   validates :email,
