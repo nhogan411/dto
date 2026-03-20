@@ -48,6 +48,7 @@ export default function GamePage() {
   const [showForfeitModal, setShowForfeitModal] = useState(false);
   const [isForfeiting, setIsForfeiting] = useState(false);
   const forfeitModalRef = useRef<HTMLDivElement>(null);
+  const forfeitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isCurrentPlayer = !!(currentGame && currentUserId && 
     (currentGame.challenger_id === currentUserId || currentGame.challenged_id === currentUserId));
 
@@ -69,6 +70,14 @@ export default function GamePage() {
     try {
       await dispatch(forfeitGameThunk(parsedGameId));
       // Do NOT close the modal — wait for game_over WS event to drive transition
+      // Fallback: if WS never arrives within 5s, HTTP-refetch game state
+      forfeitTimeoutRef.current = setTimeout(() => {
+        if (parsedGameId) {
+          void dispatch(fetchGameStateThunk(parsedGameId)).catch(() => {
+            setIsForfeiting(false);
+          });
+        }
+      }, 5000);
     } catch {
       setIsForfeiting(false);
     }
@@ -136,6 +145,15 @@ export default function GamePage() {
   const onGameChannelMessage = useCallback(
     (data: GameChannelMessage) => {
       dispatch(handleGameChannelMessage(data));
+      
+      if (data.event === 'game_over') {
+        if (forfeitTimeoutRef.current) {
+          clearTimeout(forfeitTimeoutRef.current);
+          forfeitTimeoutRef.current = null;
+        }
+        setShowForfeitModal(false);
+        setIsForfeiting(false);
+      }
     },
     [dispatch],
   );
@@ -171,6 +189,10 @@ export default function GamePage() {
     return () => {
       gameActionsCanceled = true;
       dispatch(clearGame());
+      if (forfeitTimeoutRef.current) {
+        clearTimeout(forfeitTimeoutRef.current);
+        forfeitTimeoutRef.current = null;
+      }
     };
   }, [dispatch, parsedGameId, currentUserId]);
 
