@@ -10,30 +10,33 @@ const mockDispatch = vi.fn((action) => Promise.resolve(action));
 const mockNavigate = vi.fn();
 
 // Mock state factory
-function createMockState(overrides = {}) {
-  return {
+function createMockState(overrides: any = {}) {
+  const baseState = {
     notifications: {
       notifications: [],
       count: 0,
-      ...overrides.notifications,
     },
     auth: {
       user: { id: 1, username: 'testuser' },
       token: 'token',
-      ...overrides.auth,
     },
     dashboard: {
       games: [],
-      gamesStatus: 'idle',
-      ...overrides.dashboard,
+      gamesStatus: 'idle' as const,
     },
     friends: {
       friends: [
         { id: 2, username: 'alice' },
         { id: 3, username: 'bob' },
       ],
-      ...overrides.friends,
     },
+  };
+
+  return {
+    notifications: { ...baseState.notifications, ...(overrides.notifications || {}) },
+    auth: { ...baseState.auth, ...(overrides.auth || {}) },
+    dashboard: { ...baseState.dashboard, ...(overrides.dashboard || {}) },
+    friends: { ...baseState.friends, ...(overrides.friends || {}) },
   };
 }
 
