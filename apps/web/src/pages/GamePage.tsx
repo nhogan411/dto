@@ -89,37 +89,44 @@ export default function GamePage() {
     return gameState.characters.find((character) => character.userId === gameState.currentTurnUserId) ?? null;
   })();
 
-  const getMoveBudget = (character: { stats: Record<string, unknown> }) => {
-    const moveStat = Number(character.stats.move);
-    if (Number.isFinite(moveStat) && moveStat > 0) {
-      return Math.floor(moveStat);
-    }
+  const getMoveBudget = useCallback(
+    (character: { stats: Record<string, unknown> }) => {
+      const moveStat = Number(character.stats.move);
+      if (Number.isFinite(moveStat) && moveStat > 0) {
+        return Math.floor(moveStat);
+      }
 
-    return 3;
-  };
+      return 3;
+    },
+    [],
+  );
 
-  const getRemainingMoveBudget = (
-    character: typeof actingCharacter,
-  ): number => {
-    if (!character) return 0;
-    const total = getMoveBudget(character);
-    const taken = gameState?.actingCharacterActions?.movesTaken ?? 0;
-    return Math.max(0, total - taken);
-  };
+  const getRemainingMoveBudget = useCallback(
+    (character: typeof actingCharacter): number => {
+      if (!character) return 0;
+      const total = getMoveBudget(character);
+      const taken = gameState?.actingCharacterActions?.movesTaken ?? 0;
+      return Math.max(0, total - taken);
+    },
+    [gameState, getMoveBudget],
+  );
 
-  const computeReachableSquares = (character: typeof actingCharacter) => {
-    if (!gameState || !character) return [];
+  const computeReachableSquares = useCallback(
+    (character: typeof actingCharacter) => {
+      if (!gameState || !character) return [];
 
-    return getReachableSquares({
-      origin: character.position,
-      moveBudget: getRemainingMoveBudget(character),
-      boardTiles: gameState.boardConfig.tiles,
-      characters: gameState.characters,
-      currentUserId: character.userId,
-      boardMin: 1,
-      boardMax: 12,
-    });
-  };
+      return getReachableSquares({
+        origin: character.position,
+        moveBudget: getRemainingMoveBudget(character),
+        boardTiles: gameState.boardConfig.tiles,
+        characters: gameState.characters,
+        currentUserId: character.userId,
+        boardMin: 1,
+        boardMax: 12,
+      });
+    },
+    [gameState, getRemainingMoveBudget],
+  );
 
   const clearMoveSelection = () => {
     setReachableSquares([]);
@@ -300,15 +307,7 @@ export default function GamePage() {
     }
 
     setReachableSquares(computeReachableSquares(actingCharacter));
-  }, [
-    activeMode,
-    currentUserId,
-    gameState?.turnNumber,
-    gameState?.currentTurnUserId,
-    gameState?.actingCharacterId,
-    gameState?.currentTurnIndex,
-    gameState?.actingCharacterActions?.movesTaken,
-  ]);
+  }, [activeMode, actingCharacter, computeReachableSquares, currentUserId]);
 
   const getHighlightedSquares = () => {
     if (activeMode !== 'move') return [];
