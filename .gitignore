@@ -27,6 +27,8 @@ apps/web/npm-debug.log*
 apps/web/yarn-debug.log*
 apps/web/yarn-error.log*
 apps/web/.vite/
+apps/web/playwright-report/
+apps/web/test-results/
 
 # IDE and Editor files
 .vscode/
