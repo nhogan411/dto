@@ -37,9 +37,9 @@ vi.mock('../store/hooks', () => ({
       },
       playerCharacters: {
         characters: [
-          { id: 1, name: 'Warrior', icon: '⚔️' },
-          { id: 2, name: 'Mage', icon: '🔮' },
-          { id: 3, name: 'Rogue', icon: '🗡️' },
+          { id: 1, name: 'Warrior', icon: '⚔️', locked: false },
+          { id: 2, name: 'Mage', icon: '🔮', locked: false },
+          { id: 3, name: 'Rogue', icon: '🗡️', locked: false },
         ],
         status: 'succeeded',
       },

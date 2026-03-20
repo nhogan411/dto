@@ -12,6 +12,7 @@ describe('GameBoardSquare', () => {
     team: 'challenger' as const,
     isDead: false,
     isActiveTurn: false,
+    icon: 'warrior',
   };
 
   const baseProps = {
