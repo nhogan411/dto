@@ -14,7 +14,6 @@ export function CharacterInfo() {
   const selectedCharacterId = useAppSelector((state) => state.game.selectedCharacterId);
   const gameState = useAppSelector((state) => state.game.gameState);
   const currentGame = useAppSelector((state) => state.game.currentGame);
-  const currentUserId = useAppSelector((state) => state.auth.user?.id);
   const actingCharacterId = useAppSelector(s =>
     s.game.gameState?.actingCharacterId ??
     (s.game.gameState?.turnOrder[s.game.gameState?.currentTurnIndex ?? 0] ?? null)
@@ -25,7 +24,9 @@ export function CharacterInfo() {
   const character = gameState.characters.find(c => c.id === displayId);
   if (!character) return null;
 
-  const owner = character.userId === currentUserId ? 'You' : 'Opponent';
+  const owner = character.userId === currentGame?.challenger_id
+    ? (currentGame?.challenger_username ?? 'Unknown')
+    : (currentGame?.challenged_username ?? 'Unknown');
   const isActiveTurn = gameState.currentTurnUserId === character.userId;
   const hpPercent = Math.max(0, Math.min(100, (character.currentHp / character.maxHp) * 100));
   const isDead = character.alive === false || character.currentHp <= 0;

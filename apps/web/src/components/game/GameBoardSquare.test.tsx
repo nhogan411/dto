@@ -82,12 +82,12 @@ describe('GameBoardSquare', () => {
 
   // GROUP 2: Existing border colors
   describe('Border colors', () => {
-    it('preserves team-blue border for challenger character without isActiveTurn', () => {
+    it('uses neutral #555 border for challenger character without isActiveTurn', () => {
       const { container } = renderSquare({
         character: { ...baseCharacter, team: 'challenger', isActiveTurn: false },
       });
       const square = container.firstChild as HTMLElement;
-      expect(square.style.border).toContain('var(--team-blue)');
+      expect(square.style.border).toContain('#555');
     });
 
     it('uses yellow selection border when isSelected is true', () => {

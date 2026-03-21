@@ -46,7 +46,7 @@ export function GameBoardSquare({
   if (isSelected) {
     borderColor = '#fbbf24';
   } else if (character) {
-    borderColor = character.team === 'challenger' ? 'var(--team-blue)' : character.team === 'challenged' ? 'var(--team-green)' : (character.isCurrentUser ? '#4ade80' : '#ef4444');
+    borderColor = '#555';
   }
 
   const isActiveAndAlive = !!(character && character.isActiveTurn && !character.isDead && !isSelected);

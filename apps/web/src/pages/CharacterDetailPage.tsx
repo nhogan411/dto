@@ -71,7 +71,7 @@ export default function CharacterDetailPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8 text-white bg-neutral-900 min-h-screen">
+    <div style={{ padding: '2rem' }} className="max-w-4xl mx-auto p-8 text-white bg-neutral-900 min-h-screen">
       <div className="mb-8 flex items-center gap-4">
         <button
           onClick={() => navigate('/characters')}

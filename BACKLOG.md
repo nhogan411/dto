@@ -72,6 +72,8 @@ Ideas discussed but explicitly deferred. Will need full design sessions before i
 - [ ] User/player roles - I want to be able to designate users as 'admin' users that can create and edit boards
 - [ ] Board status - 'draft', 'active', 'archived'
 - [ ] Board editor - I want a UI for admin users to create/modify boards
+- [ ] All characters
+- [ ] All players/users
 
 ## Open Questions
 

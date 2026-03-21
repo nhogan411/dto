@@ -432,13 +432,15 @@ export default function GamePage() {
    const canMove = !!(isMyTurn && !isSubmitting && activeMode !== 'move' && remainingMoveBudget > 0);
 
     return (
-      <div className="p-8 flex flex-col items-center relative">
+      <div className="flex flex-col items-center relative">
         <TurnReplay />
-         <h1 className="text-2xl font-bold mb-4 text-white">Game #{gameState.id}</h1>
         
         <TurnOrderStrip />
 
-       <div className="flex gap-6 items-start w-full max-w-5xl justify-center">
+       <div className="flex gap-4 items-start w-full max-w-7xl justify-center">
+        <div className="min-w-[240px] max-w-[260px] flex-shrink-0">
+          <CharacterInfo />
+        </div>
         <div>
           <GameBoard
             boardConfig={boardConfig}
@@ -453,8 +455,7 @@ export default function GamePage() {
           />
 
         </div>
-        <div className="min-w-[260px] max-w-xs h-[600px] flex flex-col">
-          <CharacterInfo />
+        <div className="min-w-[240px] max-w-[260px] h-[600px] flex flex-col flex-shrink-0">
           <GameHistory />
         </div>
       </div>

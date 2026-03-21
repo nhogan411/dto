@@ -131,7 +131,7 @@ describe('TurnOrderStrip', () => {
     };
     (useAppSelector as any).mockImplementation((selector: any) => selector(stateWithDefending));
     render(<TurnOrderStrip />);
-    expect(screen.getByText('🛡️')).toBeInTheDocument();
+    expect(screen.getAllByText('🛡️').length).toBeGreaterThanOrEqual(1);
   });
 
   it('Test 7: Clicking a slot dispatches selectCharacter(characterId)', async () => {

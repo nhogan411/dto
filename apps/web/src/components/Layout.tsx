@@ -52,7 +52,7 @@ export default function Layout() {
           </button>
         </div>
       </nav>
-      <main id="main-content" tabIndex={-1} style={{ padding: '2rem' }}>
+      <main id="main-content" tabIndex={-1} style={{ padding: '0' }}>
         <Outlet />
       </main>
     </div>
