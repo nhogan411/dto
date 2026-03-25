@@ -13,7 +13,7 @@ export interface CharacterState {
   icon: string;
   name: string;
   alive: boolean;
-  stats: Record<string, unknown>;
+  stats: Record<string, unknown> & { movement?: number; str?: number; dex?: number };
 }
 
 export interface GameState {
@@ -111,7 +111,12 @@ const mapApiCharacterToCharacterState = (character: ApiGameCharacter): Character
   icon: character.icon,
   name: character.name ?? '',
   alive: character.alive ?? character.current_hp > 0,
-  stats: character.stats ?? {},
+  stats: {
+    ...(character.stats ?? {}),
+    movement: parseNumber((character.stats ?? {})['movement']),
+    str: parseNumber((character.stats ?? {})['str']),
+    dex: parseNumber((character.stats ?? {})['dex']),
+  },
 });
 
 const mapCharacterStateToApiCharacter = (character: CharacterState): ApiGameCharacter => ({

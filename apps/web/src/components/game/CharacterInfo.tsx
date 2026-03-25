@@ -80,6 +80,14 @@ export function CharacterInfo() {
         <span className="sr-only">{character.currentHp} out of {character.maxHp} HP ({Math.round(hpPercent)}%)</span>
       </div>
 
+      {character.stats && (
+        <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm" style={{ color: '#d4d4d4' }}>
+          <span><strong>MOV</strong> {character.stats.movement ?? '—'}</span>
+          <span><strong>STR</strong> {character.stats.str ?? '—'}</span>
+          <span><strong>DEX</strong> {character.stats.dex ?? '—'}</span>
+        </div>
+      )}
+
       <p className="my-1" style={{ color: isDead ? '#d4d4d4' : 'inherit' }}>
         <strong>Facing:</strong> {getFacingDirection(character.position, character.facingTile)}
       </p>
