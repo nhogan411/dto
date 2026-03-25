@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchPlayerCharactersThunk, updatePlayerCharacterThunk, resetUpdateStatus } from '../store/slices/playerCharactersSlice';
-import { IconPicker } from '../components/characters/IconPicker';
+import { ArchetypePicker } from '../components/characters/ArchetypePicker';
 import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function CharacterDetailPage() {
@@ -15,7 +15,7 @@ export default function CharacterDetailPage() {
   const character = characters.find((c) => c.id === Number(id));
 
   const [name, setName] = useState('');
-  const [icon, setIcon] = useState('warrior');
+  const [archetype, setArchetype] = useState<'warrior' | 'scout'>('warrior');
 
   useEffect(() => {
     if (status === 'idle') {
@@ -26,7 +26,7 @@ export default function CharacterDetailPage() {
   useEffect(() => {
     if (character) {
       setName(character.name);
-      setIcon(character.icon);
+      setArchetype(character.archetype);
     }
   }, [character]);
 
@@ -42,7 +42,7 @@ export default function CharacterDetailPage() {
     
     await dispatch(updatePlayerCharacterThunk({
       id: character.id,
-      payload: { name, icon },
+      payload: { name, archetype },
     }));
   };
 
@@ -124,11 +124,11 @@ export default function CharacterDetailPage() {
 
         <div className="mb-8">
           <label className="block text-sm font-medium text-neutral-300 mb-2">
-            Character Icon
+            Character Archetype
           </label>
-          <IconPicker
-            value={icon}
-            onChange={setIcon}
+          <ArchetypePicker
+            value={archetype}
+            onChange={setArchetype}
             disabled={character?.locked || updateStatus === 'loading'}
           />
         </div>
