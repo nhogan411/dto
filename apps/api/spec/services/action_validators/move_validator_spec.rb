@@ -44,7 +44,39 @@ RSpec.describe ActionValidators::MoveValidator do
     validator = described_class.new(game:, character: actor, action_data: long_path, turn_context:)
 
     expect { validator.validate! }
-      .to raise_error(ActionValidators::BaseValidator::ValidationError, "Path must contain 1 to 3 steps")
+      .to raise_error(ActionValidators::BaseValidator::ValidationError, /Path must contain 1 to 3 steps/)
+  end
+
+  context 'when character is a scout with movement 5' do
+    before do
+      actor.update!(stats: { "movement" => 5 })
+    end
+
+    it 'allows a path of up to 5 steps' do
+      five_step_path = { path: [
+        { x: 6, y: 7 },
+        { x: 6, y: 8 },
+        { x: 7, y: 8 },
+        { x: 8, y: 8 },
+        { x: 9, y: 8 }
+      ] }
+      validator = described_class.new(game:, character: actor, action_data: five_step_path, turn_context:)
+      expect { validator.validate! }.not_to raise_error
+    end
+
+    it 'rejects a path of 6 steps' do
+      six_step_path = { path: [
+        { x: 6, y: 7 },
+        { x: 6, y: 8 },
+        { x: 6, y: 9 },
+        { x: 7, y: 9 },
+        { x: 7, y: 8 },
+        { x: 7, y: 7 }
+      ] }
+      validator = described_class.new(game:, character: actor, action_data: six_step_path, turn_context:)
+      expect { validator.validate! }
+        .to raise_error(ActionValidators::BaseValidator::ValidationError, /Path must contain 1 to 5 steps/)
+    end
   end
 
   it "rejects landing on opponent position" do

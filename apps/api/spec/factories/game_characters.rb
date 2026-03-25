@@ -7,6 +7,6 @@ FactoryBot.define do
     current_hp { 10 }
     is_defending { false }
     max_hp { 10 }
-    stats { {} }
+    stats { { "movement" => 3 } }
   end
 end

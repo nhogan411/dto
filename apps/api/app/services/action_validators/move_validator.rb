@@ -9,16 +9,20 @@ module ActionValidators
 
     private
 
-    def validate_path_shape!
-      unless path.is_a?(Array) && path.any? && path.length <= 3
-        raise ValidationError, "Path must contain 1 to 3 steps"
-      end
+  def validate_path_shape!
+    unless path.is_a?(Array) && path.any? && path.length <= movement_budget
+      raise ValidationError, "Path must contain 1 to #{movement_budget} steps"
     end
+  end
 
-    def validate_move_budget!
-      moves_taken = turn_context[:moves_taken].to_i
-      raise ValidationError, "Move budget exceeded for this turn" if moves_taken + path.length > 3
-    end
+  def validate_move_budget!
+    moves_taken = turn_context[:moves_taken].to_i
+    raise ValidationError, "Move budget exceeded for this turn" if moves_taken + path.length > movement_budget
+  end
+
+  def movement_budget
+    character.stats["movement"].to_i
+  end
 
     def validate_steps!
       previous = normalize_position(character.position)
