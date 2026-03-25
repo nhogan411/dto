@@ -15,23 +15,28 @@ class PlayerCharacter < ApplicationRecord
     Brock Cho Mac Hudson Chris Powell Brooks Brian Douglas Foley Greg Dwayne
     Taylor Alexander Cage Miles Morales Hobie Ross Barnes Monroe Nico
   ].freeze
-  AVAILABLE_ICONS = %w[warrior rogue mage archer paladin ranger].freeze
-
   belongs_to :user
 
   validates :name, presence: true
-  validates :icon, presence: true
+  validates :archetype, presence: true, inclusion: { in: ArchetypeDefinitions::VALID_ARCHETYPES }
+
+  before_validation :derive_icon_from_archetype
 
   scope :for_owner, ->(user_or_id) { where(user_id: user_or_id.is_a?(User) ? user_or_id.id : user_or_id) }
 
   def self.provision_for(user)
     names = AVAILABLE_NAMES.sample(PROVISION_COUNT)
-    icons = AVAILABLE_ICONS.cycle.take(PROVISION_COUNT)
 
     transaction do
-      names.each_with_index.map do |name, index|
-        create!(user: user, name: name, icon: icons[index], locked: false)
+      names.map do |name|
+        create!(user: user, name: name, archetype: "warrior", locked: false)
       end
     end
+  end
+
+  private
+
+  def derive_icon_from_archetype
+    self.icon = ArchetypeDefinitions.icon_for(archetype) if archetype.present?
   end
 end

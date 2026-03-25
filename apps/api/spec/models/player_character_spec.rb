@@ -9,7 +9,40 @@ RSpec.describe PlayerCharacter, type: :model do
 
   describe 'validations' do
     it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_presence_of(:icon) }
+  end
+
+  describe 'archetype validations' do
+    it { is_expected.to validate_presence_of(:archetype) }
+
+    it 'is valid with warrior archetype' do
+      player_character.archetype = 'warrior'
+      expect(player_character).to be_valid
+    end
+
+    it 'is valid with scout archetype' do
+      player_character.archetype = 'scout'
+      expect(player_character).to be_valid
+    end
+
+    it 'is invalid with an unknown archetype' do
+      player_character.archetype = 'mage'
+      expect(player_character).not_to be_valid
+      expect(player_character.errors[:archetype]).to include("is not included in the list")
+    end
+  end
+
+  describe 'icon derivation' do
+    it 'sets icon to warrior when archetype is warrior' do
+      player_character.archetype = 'warrior'
+      player_character.valid?
+      expect(player_character.icon).to eq('warrior')
+    end
+
+    it 'sets icon to rogue when archetype is scout' do
+      player_character.archetype = 'scout'
+      player_character.valid?
+      expect(player_character.icon).to eq('rogue')
+    end
   end
 
   describe '.for_owner' do
@@ -24,7 +57,13 @@ RSpec.describe PlayerCharacter, type: :model do
   end
 
   describe '.provision_for' do
-    it 'creates six unlocked player characters using seeded names and icons' do
+    it 'creates six characters all with warrior archetype by default' do
+      user = create(:user)
+      provisioned = described_class.provision_for(user)
+      expect(provisioned.map(&:archetype).uniq).to eq([ 'warrior' ])
+    end
+
+    it 'creates six unlocked player characters using seeded names and derived icons' do
       user = create(:user)
 
       provisioned = described_class.provision_for(user)
@@ -35,7 +74,7 @@ RSpec.describe PlayerCharacter, type: :model do
       expect(provisioned.map(&:user_id).uniq).to eq([ user.id ])
       expect(provisioned.map(&:name).uniq.size).to eq(6)
       expect(provisioned.map(&:name)).to all(be_in(described_class::AVAILABLE_NAMES))
-      expect(provisioned.map(&:icon)).to all(be_in(described_class::AVAILABLE_ICONS))
+      expect(provisioned.map(&:icon).uniq).to eq([ 'warrior' ])
       expect(provisioned).to all(have_attributes(locked: false))
     end
   end
