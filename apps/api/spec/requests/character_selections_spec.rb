@@ -132,10 +132,10 @@ RSpec.describe "CharacterSelections", type: :request do
     end
 
     it "copies icons from PlayerCharacters to Characters in picks order" do
-      challenger_characters[0].update!(icon: "warrior")
-      challenger_characters[1].update!(icon: "mage")
-      challenged_characters[0].update!(icon: "rogue")
-      challenged_characters[1].update!(icon: "archer")
+      challenger_characters[0].update!(archetype: "warrior")
+      challenger_characters[1].update!(archetype: "scout")
+      challenged_characters[0].update!(archetype: "scout")
+      challenged_characters[1].update!(archetype: "warrior")
 
       post "/games/#{game.id}/select_characters",
         params: { player_character_ids: challenger_characters.map(&:id) },
@@ -149,8 +149,45 @@ RSpec.describe "CharacterSelections", type: :request do
       challenger_chars = game.game_characters.where(user_id: challenger.id).order(:id)
       challenged_chars = game.game_characters.where(user_id: challenged.id).order(:id)
 
-      expect(challenger_chars.map(&:icon)).to eq([ "warrior", "mage" ])
-      expect(challenged_chars.map(&:icon)).to eq([ "rogue", "archer" ])
+      expect(challenger_chars.map(&:icon)).to eq([ "warrior", "rogue" ])
+      expect(challenged_chars.map(&:icon)).to eq([ "rogue", "warrior" ])
+    end
+
+    context 'when both players select characters with different archetypes' do
+      it 'creates game_characters with stats from archetype' do
+        warrior_pcs = create_list(:player_character, 2, user: challenger, archetype: 'warrior')
+        scout_pcs   = create_list(:player_character, 2, user: challenged, archetype: 'scout')
+
+        post "/games/#{game.id}/select_characters",
+          params: { player_character_ids: warrior_pcs.map(&:id) },
+          headers: auth_headers(challenger)
+
+        post "/games/#{game.id}/select_characters",
+          params: { player_character_ids: scout_pcs.map(&:id) },
+          headers: auth_headers(challenged)
+
+        expect(response).to have_http_status(:ok)
+        game.reload
+
+        warrior_gcs = game.game_characters.where(user: challenger).order(:id)
+        scout_gcs   = game.game_characters.where(user: challenged).order(:id)
+
+        warrior_gcs.each do |gc|
+          expect(gc.max_hp).to eq(16)
+          expect(gc.current_hp).to eq(16)
+          expect(gc.stats["movement"]).to eq(3)
+          expect(gc.stats["str"]).to eq(14)
+          expect(gc.stats["dex"]).to eq(8)
+        end
+
+        scout_gcs.each do |gc|
+          expect(gc.max_hp).to eq(10)
+          expect(gc.current_hp).to eq(10)
+          expect(gc.stats["movement"]).to eq(5)
+          expect(gc.stats["str"]).to eq(8)
+          expect(gc.stats["dex"]).to eq(14)
+        end
+      end
     end
   end
 

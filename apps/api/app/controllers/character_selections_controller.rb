@@ -89,19 +89,24 @@ class CharacterSelectionsController < ApplicationController
      challenged_pcs.zip(challenged_tiles).each { |pc, tile| game.game_characters.create!(character_attributes_for(game.challenged, tile, player_character: pc)) }
   end
 
-   def character_attributes_for(user, position, player_character:)
-     x, y = position[0], position[1]
-     facing = y > 1 ? { x: x, y: y - 1 } : { x: x, y: y + 1 }
+  def character_attributes_for(user, position, player_character:)
+    x, y = position[0], position[1]
+    facing = y > 1 ? { x: x, y: y - 1 } : { x: x, y: y + 1 }
+    archetype_stats = ArchetypeDefinitions.stats_for(player_character.archetype)
 
-     {
-       user: user,
-       max_hp: 10,
-       current_hp: 10,
-       is_defending: false,
-       stats: {},
-       position: { x: x, y: y },
-       facing_tile: facing,
-       icon: player_character.icon,
+    {
+      user: user,
+      max_hp: archetype_stats[:max_hp],
+      current_hp: archetype_stats[:max_hp],
+      is_defending: false,
+      stats: {
+        movement: archetype_stats[:movement],
+        str: archetype_stats[:str],
+        dex: archetype_stats[:dex]
+      },
+      position: { x: x, y: y },
+      facing_tile: facing,
+      icon: player_character.icon,
        name: player_character.name
      }
    end
