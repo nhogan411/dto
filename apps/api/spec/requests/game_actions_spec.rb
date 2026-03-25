@@ -132,6 +132,29 @@ RSpec.describe "GameActions", type: :request do
       expect(challenged_character.reload.current_hp).to eq(3)
     end
 
+    it "applies +6 to-hit threshold when target is defending" do
+      challenged_character.update!(
+        position: { x: 2, y: 3 },
+        facing_tile: { x: 2, y: 2 },
+        is_defending: true,
+        current_hp: 10
+      )
+
+      post "/games/#{game.id}/actions",
+        params: {
+          action_type: :attack,
+          action_data: {
+            target_character_id: challenged_character.id,
+            rand_val: 20
+          }
+        },
+        headers: challenger_headers
+
+      expect(response).to have_http_status(:ok)
+      result = json_response.dig("data", "action", "result_data")
+      expect(result["threshold"]).to eq(17)
+    end
+
     it "rejects second combat action in same turn with 422" do
       post "/games/#{game.id}/actions",
         params: {
@@ -345,6 +368,61 @@ RSpec.describe "GameActions", type: :request do
 
         expect(game.current_turn_index).to eq(2)
         expect(json_response.dig("data", "action", "result_data", "next_character_id")).to eq(challenger_character_two.id)
+      end
+
+      it "skips two consecutive dead characters when advancing turn" do
+        challenged_character.update!(current_hp: 0)
+        challenger_character_two.update!(current_hp: 0)
+
+        post "/games/#{game.id}/actions",
+          params: { action_type: :move, action_data: { path: [ { x: 2, y: 1 } ] } },
+          headers: challenger_headers
+        expect(response).to have_http_status(:ok)
+
+        post "/games/#{game.id}/actions",
+          params: { action_type: :end_turn, action_data: { facing_tile: { x: 2, y: 2 } } },
+          headers: challenger_headers
+
+        expect(response).to have_http_status(:ok)
+        game.reload
+        expect(game.current_turn_index).to eq(3)
+        expect(json_response.dig("data", "action", "result_data", "next_character_id")).to eq(challenged_character_two.id)
+      end
+    end
+
+    context "with four characters (2v2)" do
+      let!(:challenger_character_two) do
+        create(:game_character, game: game, user: challenger, position: { x: 3, y: 2 }, facing_tile: { x: 3, y: 3 }, current_hp: 10)
+      end
+      let!(:challenged_character_two) do
+        create(:game_character, game: game, user: challenged, position: { x: 2, y: 4 }, facing_tile: { x: 2, y: 3 }, current_hp: 10)
+      end
+
+      before do
+        game.update!(
+          turn_order: [ challenger_character.id, challenged_character.id, challenger_character_two.id, challenged_character_two.id ],
+          current_turn_index: 0
+        )
+      end
+
+      it "does not end the game when only one of two opponents is killed" do
+        challenged_character.update!(current_hp: 1, position: { x: 2, y: 3 }, facing_tile: { x: 2, y: 2 })
+
+        post "/games/#{game.id}/actions",
+          params: {
+            action_type: :attack,
+            action_data: {
+              target_character_id: challenged_character.id,
+              rand_val: 20
+            }
+          },
+          headers: challenger_headers
+
+        expect(response).to have_http_status(:ok)
+        game.reload
+        expect(game.status).to eq("active")
+        expect(game.winner_id).to be_nil
+        expect(challenged_character.reload.current_hp).to eq(0)
       end
     end
 
