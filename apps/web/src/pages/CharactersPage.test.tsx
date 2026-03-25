@@ -28,9 +28,9 @@ describe('CharactersPage', () => {
 
   it('renders characters when succeeded', () => {
     const store = configureStore({
-      reducer: {
-        playerCharacters: (state = { characters: [{ id: 1, name: 'Conan', icon: 'warrior', locked: true }], status: 'succeeded', updateStatus: 'idle', error: null }) => state,
-      },
+        reducer: {
+          playerCharacters: (state = { characters: [{ id: 1, name: 'Conan', icon: 'warrior', archetype: 'warrior', locked: true }], status: 'succeeded', updateStatus: 'idle', error: null }) => state,
+        },
     });
 
     render(

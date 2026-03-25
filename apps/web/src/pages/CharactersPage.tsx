@@ -43,7 +43,21 @@ export default function CharactersPage() {
             <div className="flex justify-between items-start">
               <div>
                 <h2 className="text-xl font-bold m-0 text-white">{character.name}</h2>
-                <div className="text-neutral-300 capitalize mt-1">{character.icon}</div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide
+                    ${character.archetype === 'warrior'
+                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                      : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    }`}>
+                    {character.archetype}
+                  </span>
+                </div>
+                <div className="text-neutral-400 text-sm mt-2 flex gap-3">
+                  <span>HP {character.archetype === 'warrior' ? 16 : 10}</span>
+                  <span>MOV {character.archetype === 'warrior' ? 3 : 5}</span>
+                  <span>STR {character.archetype === 'warrior' ? 14 : 8}</span>
+                  <span>DEX {character.archetype === 'warrior' ? 8 : 14}</span>
+                </div>
               </div>
               {character.locked && (
                 <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
