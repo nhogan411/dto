@@ -78,7 +78,7 @@ RSpec.describe "Admin::PlayerCharacters", type: :request do
         body = JSON.parse(response.body)
         character = body["data"].first
 
-        expect(character.keys).to match_array(%w[id user_id name icon locked])
+        expect(character.keys).to match_array(%w[id user_id name icon locked archetype])
         expect(character["id"]).to be_a(Integer)
         expect(character["user_id"]).to be_a(Integer)
         expect(character["name"]).to be_a(String)
@@ -168,7 +168,7 @@ RSpec.describe "Admin::PlayerCharacters", type: :request do
         access_token = JsonWebToken.encode(user_id: admin_user.id)
 
         expect {
-          post "/admin/player_characters", params: { user_id: regular_user.id, name: "New Char", icon: "mage", locked: true }, headers: { "Authorization" => "Bearer #{access_token}" }
+          post "/admin/player_characters", params: { user_id: regular_user.id, name: "New Char", archetype: "scout", locked: true }, headers: { "Authorization" => "Bearer #{access_token}" }
         }.to change(PlayerCharacter, :count).by(1)
 
         expect(response).to have_http_status(:created)
@@ -177,14 +177,15 @@ RSpec.describe "Admin::PlayerCharacters", type: :request do
 
         expect(data["user_id"]).to eq(regular_user.id)
         expect(data["name"]).to eq("New Char")
-        expect(data["icon"]).to eq("mage")
+        expect(data["archetype"]).to eq("scout")
+        expect(data["icon"]).to eq("rogue")
         expect(data["locked"]).to eq(true)
       end
 
       it "returns 422 with validation errors for invalid data" do
         access_token = JsonWebToken.encode(user_id: admin_user.id)
 
-        post "/admin/player_characters", params: { user_id: regular_user.id, name: "", icon: "mage" }, headers: { "Authorization" => "Bearer #{access_token}" }
+        post "/admin/player_characters", params: { user_id: regular_user.id, name: "", archetype: "warrior" }, headers: { "Authorization" => "Bearer #{access_token}" }
 
         expect(response).to have_http_status(:unprocessable_entity)
         body = JSON.parse(response.body)
@@ -221,18 +222,20 @@ RSpec.describe "Admin::PlayerCharacters", type: :request do
       it "updates the player character and returns 200" do
         access_token = JsonWebToken.encode(user_id: admin_user.id)
 
-        patch "/admin/player_characters/#{player_character.id}", params: { name: "Updated Name", icon: "rogue", locked: true }, headers: { "Authorization" => "Bearer #{access_token}" }
+        patch "/admin/player_characters/#{player_character.id}", params: { name: "Updated Name", archetype: "scout", locked: true }, headers: { "Authorization" => "Bearer #{access_token}" }
 
         expect(response).to have_http_status(:ok)
         body = JSON.parse(response.body)
         data = body["data"]
 
         expect(data["name"]).to eq("Updated Name")
+        expect(data["archetype"]).to eq("scout")
         expect(data["icon"]).to eq("rogue")
         expect(data["locked"]).to eq(true)
 
         player_character.reload
         expect(player_character.name).to eq("Updated Name")
+        expect(player_character.archetype).to eq("scout")
         expect(player_character.icon).to eq("rogue")
         expect(player_character.locked).to eq(true)
       end
