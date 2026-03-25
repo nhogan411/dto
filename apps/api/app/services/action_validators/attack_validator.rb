@@ -3,6 +3,7 @@ module ActionValidators
     def validate!
       super
       validate_not_already_attacked!
+      validate_not_already_defended!
       validate_target_exists!
       validate_target_belongs_to_opponent!
       validate_target_alive!
@@ -13,6 +14,10 @@ module ActionValidators
 
     def validate_not_already_attacked!
       raise ValidationError, "Character has already attacked this turn" if turn_context[:has_attacked]
+    end
+
+    def validate_not_already_defended!
+      raise ValidationError, "Character has already defended this turn" if turn_context[:has_defended]
     end
 
     def validate_target_exists!

@@ -34,6 +34,15 @@ RSpec.describe ActionValidators::AttackValidator do
       .to raise_error(ActionValidators::BaseValidator::ValidationError, "Character has already attacked this turn")
   end
 
+  context 'when character has already defended this turn' do
+    let(:turn_context) { { current_user_id: challenger.id, has_attacked: false, has_defended: true } }
+
+    it 'raises ValidationError' do
+      expect { validator.validate! }
+        .to raise_error(ActionValidators::BaseValidator::ValidationError, "Character has already defended this turn")
+    end
+  end
+
   it "rejects missing target" do
     validator = described_class.new(game:, character: actor, action_data: { target_character_id: -1 }, turn_context:)
 
