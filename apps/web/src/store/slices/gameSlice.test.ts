@@ -6,8 +6,11 @@ import gameReducer, {
   clearGame,
   fetchGameThunk,
   fetchGameStateThunk,
+  submitActionThunk,
   handleGameChannelMessage,
   forfeitGameThunk,
+  optimisticDefend,
+  rollbackGameState,
 } from './gameSlice';
 import { gameApi } from '../../api/game';
 
@@ -15,6 +18,7 @@ vi.mock('../../api/game', () => ({
   gameApi: {
     getGame: vi.fn(),
     getGameState: vi.fn(),
+    submitAction: vi.fn(),
     forfeitGame: vi.fn(),
   },
 }));
@@ -151,6 +155,61 @@ describe('gameSlice', () => {
     store.dispatch(handleGameChannelMessage({ event: 'turn_changed', current_turn_user_id: 2 }));
 
     expect(store.getState().game.gameState?.currentTurnUserId).toBe(2);
+  });
+
+  it('should handle optimisticDefend reducer', () => {
+    const store = setupStore();
+    store.dispatch(updateGameState(mockGameState));
+
+    store.dispatch(optimisticDefend({
+      characterId: 1,
+      facingTile: { x: 1, y: 3 },
+    }));
+
+    const character = store.getState().game.gameState?.characters[0];
+    expect(character?.isDefending).toBe(true);
+    expect(character?.facingTile).toEqual({ x: 1, y: 3 });
+  });
+
+  it('should handle rollbackGameState reducer', () => {
+    const store = setupStore();
+    const alteredState = {
+      ...mockGameState,
+      characters: [{ ...mockGameState.characters[0], position: { x: 5, y: 5 } }],
+    };
+    store.dispatch(updateGameState(alteredState));
+    store.dispatch(rollbackGameState(mockGameState));
+
+    expect(store.getState().game.gameState?.characters[0].position).toEqual({ x: 1, y: 1 });
+  });
+
+  it('should handle turn_changed updating actingCharacterId', () => {
+    const store = setupStore();
+    store.dispatch(updateGameState({ ...mockGameState, actingCharacterId: 1 }));
+    store.dispatch(handleGameChannelMessage({
+      event: 'turn_changed',
+      data: { next_character_id: 2, current_turn_user_id: 2 },
+    }));
+
+    expect(store.getState().game.gameState?.actingCharacterId).toBe(2);
+    expect(store.getState().game.gameState?.currentTurnUserId).toBe(2);
+  });
+
+  it('submitActionThunk rolls back optimistic move on API failure', async () => {
+    vi.mocked(gameApi.submitAction).mockRejectedValueOnce(new Error('422'));
+
+    const store = setupStore();
+    store.dispatch(updateGameState(mockGameState));
+
+    const originalPosition = store.getState().game.gameState?.characters[0].position;
+
+    await store.dispatch(submitActionThunk({
+      gameId: 1,
+      actionType: 'move',
+      actionData: { path: [{ x: 5, y: 5 }] },
+    }));
+
+    expect(store.getState().game.gameState?.characters[0].position).toEqual(originalPosition);
   });
 
   it('should handle handleGameChannelMessage game_updated', () => {
