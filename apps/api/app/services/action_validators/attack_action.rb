@@ -37,7 +37,11 @@ module ActionValidators
     def apply!(result:)
       target = game.game_characters.find(result[:target_id])
       target.update!(current_hp: result[:target_hp_remaining])
-      game.update!(status: :completed, winner_id: current_user.id) if target.current_hp <= 0
+
+      return unless target.current_hp <= 0
+
+      opponents_remaining = game.game_characters.where(user_id: target.user_id).where("current_hp > 0").exists?
+      game.update!(status: :completed, winner_id: current_user.id) unless opponents_remaining
     end
 
     private
