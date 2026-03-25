@@ -17,6 +17,17 @@ RSpec.describe "PlayerCharacters", type: :request do
       expect(data.pluck("id")).to contain_exactly(*user_id_ordered_character_ids(user))
       expect(data.pluck("name")).to all(be_in(PlayerCharacter::AVAILABLE_NAMES))
     end
+
+    it 'includes archetype in the response' do
+      user = create(:user)
+      create(:player_character, user: user, archetype: 'scout')
+
+      get '/player_characters', headers: auth_headers(user)
+
+      expect(response).to have_http_status(:ok)
+      character = response.parsed_body.dig('data', 0)
+      expect(character['archetype']).to eq('scout')
+    end
   end
 
   describe "PATCH /player_characters/:id" do
@@ -25,15 +36,15 @@ RSpec.describe "PlayerCharacters", type: :request do
       player_character = create(:player_character, user: user, name: "Aldric", icon: "warrior", locked: false)
 
       patch "/player_characters/#{player_character.id}",
-        params: { name: "Brenna", icon: "mage" },
+        params: { name: "Brenna", archetype: "scout" },
         headers: auth_headers(user)
 
       expect(response).to have_http_status(:ok)
       expect(player_character.reload.name).to eq("Brenna")
-      expect(player_character.icon).to eq("mage")
+      expect(player_character.icon).to eq("rogue")
       expect(player_character.locked).to be(false)
       expect(json_response.dig("data", "name")).to eq("Brenna")
-      expect(json_response.dig("data", "icon")).to eq("mage")
+      expect(json_response.dig("data", "icon")).to eq("rogue")
     end
 
     it "does not allow users to update locked" do
@@ -41,7 +52,7 @@ RSpec.describe "PlayerCharacters", type: :request do
       player_character = create(:player_character, user: user, locked: false)
 
       patch "/player_characters/#{player_character.id}",
-        params: { name: "Caelum", icon: "archer", locked: true },
+        params: { name: "Caelum", archetype: "warrior", locked: true },
         headers: auth_headers(user)
 
       expect(response).to have_http_status(:ok)
@@ -55,12 +66,41 @@ RSpec.describe "PlayerCharacters", type: :request do
       player_character = create(:player_character, user: other_user)
 
       patch "/player_characters/#{player_character.id}",
-        params: { name: "Dara", icon: "rogue" },
+        params: { name: "Dara", archetype: "scout" },
         headers: auth_headers(user)
 
       expect(response).to have_http_status(:not_found)
       expect(json_response.fetch("errors")).to include("Player character not found")
       expect(player_character.reload.name).not_to eq("Dara")
+    end
+
+    context 'when updating archetype to scout' do
+      it 'updates archetype and derives icon' do
+        user = create(:user)
+        character = create(:player_character, user: user, archetype: 'warrior')
+
+        patch "/player_characters/#{character.id}",
+          params: { archetype: 'scout' },
+          headers: auth_headers(user)
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json.dig('data', 'archetype')).to eq('scout')
+        expect(json.dig('data', 'icon')).to eq('rogue')
+      end
+    end
+
+    context 'when sending an invalid archetype' do
+      it 'returns 422' do
+        user = create(:user)
+        character = create(:player_character, user: user)
+
+        patch "/player_characters/#{character.id}",
+          params: { archetype: 'mage' },
+          headers: auth_headers(user)
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
     end
   end
 
@@ -86,7 +126,7 @@ RSpec.describe "PlayerCharacters", type: :request do
       expect(characters.size).to eq(6)
       expect(characters.map(&:name).uniq.size).to eq(6)
       expect(characters.map(&:name)).to all(be_in(PlayerCharacter::AVAILABLE_NAMES))
-      expect(characters.map(&:icon)).to eq(PlayerCharacter::AVAILABLE_ICONS.cycle.take(6))
+      expect(characters.map(&:icon).uniq).to eq([ "warrior" ])
       expect(characters).to all(have_attributes(locked: false))
     end
   end
