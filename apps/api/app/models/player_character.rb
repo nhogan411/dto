@@ -29,7 +29,7 @@ class PlayerCharacter < ApplicationRecord
 
     transaction do
       names.map do |name|
-        create!(user: user, name: name, archetype: "warrior", locked: false)
+        create!(user: user, name: name, archetype: ArchetypeDefinitions::VALID_ARCHETYPES.sample, locked: false)
       end
     end
   end
