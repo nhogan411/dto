@@ -1,0 +1,49 @@
+module ActionValidators
+  class AttackAction < BaseAction
+    def validate!
+      AttackValidator.new(game:, character:, action_data:, turn_context:).validate!
+    end
+
+    def build_result
+      target = game.game_characters.find(target_id)
+      success_rate = CombatCalculator.success_rate(
+        character.position.with_indifferent_access,
+        character.facing_tile.with_indifferent_access,
+        target.position.with_indifferent_access,
+        target.facing_tile.with_indifferent_access,
+        target.is_defending
+      )
+      roll = CombatCalculator.roll_attack(success_rate, rand_val: action_data.with_indifferent_access[:rand_val])
+      target_hp_remaining = [ target.current_hp - roll[:damage].to_i, 0 ].max
+      direction = CombatCalculator.attack_direction(
+        character.position.with_indifferent_access,
+        target.position.with_indifferent_access,
+        target.facing_tile.with_indifferent_access
+      )
+
+      {
+        hit: roll[:hit],
+        critical: roll[:critical],
+        damage: roll[:damage],
+        roll: roll[:roll],
+        threshold: success_rate,
+        direction: direction.to_s,
+        target_hp_remaining:,
+        success_rate:,
+        target_id: target.id
+      }
+    end
+
+    def apply!(result:)
+      target = game.game_characters.find(result[:target_id])
+      target.update!(current_hp: result[:target_hp_remaining])
+      game.update!(status: :completed, winner_id: current_user.id) if target.current_hp <= 0
+    end
+
+    private
+
+    def target_id
+      action_data.with_indifferent_access[:target_character_id]
+    end
+  end
+end
