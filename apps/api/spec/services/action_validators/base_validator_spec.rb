@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe ActionValidators::BaseValidator do
   let(:game) { create(:game, status: :active, current_turn_user: nil) }
   let(:attacker_user) { game.challenger }
-  let(:character) { create(:character, game:, user: attacker_user) }
+  let(:character) { create(:game_character, game:, user: attacker_user) }
   let(:turn_context) { { current_user_id: attacker_user.id } }
 
   before do
@@ -33,7 +33,7 @@ RSpec.describe ActionValidators::BaseValidator do
     end
 
     it "raises when it is not the character turn" do
-      outsider = create(:character, game:, user: game.challenged)
+      outsider = create(:game_character, game:, user: game.challenged)
       game.update!(current_turn_user: game.challenged, turn_order: [ outsider.id ], current_turn_index: 0)
 
       expect { validator.validate! }

@@ -3,8 +3,8 @@ require "rails_helper"
 RSpec.describe ActionValidators::MoveValidator do
   let(:game) { create(:game, status: :active, current_turn_user: nil) }
   let(:challenger) { game.challenger }
-  let(:actor) { create(:character, game:, user: challenger, position: { x: 6, y: 6 }) }
-  let(:opponent) { create(:character, game:, user: game.challenged, position: { x: 8, y: 6 }) }
+  let(:actor) { create(:game_character, game:, user: challenger, position: { x: 6, y: 6 }) }
+  let(:opponent) { create(:game_character, game:, user: game.challenged, position: { x: 8, y: 6 }) }
   let(:turn_context) { { current_user_id: challenger.id, moves_taken: 0 } }
   let(:action_data) { { path: [ { x: 7, y: 6 } ] } }
 
@@ -63,7 +63,7 @@ RSpec.describe ActionValidators::MoveValidator do
   end
 
   it "allows path through ally position mid-path" do
-    ally = create(:character, game:, user: challenger, position: { x: 7, y: 6 })
+    ally = create(:game_character, game:, user: challenger, position: { x: 7, y: 6 })
     game.update!(turn_order: [ actor.id, ally.id ])
 
     path_through_ally = { path: [ { x: 7, y: 6 }, { x: 7, y: 7 } ] }
@@ -73,7 +73,7 @@ RSpec.describe ActionValidators::MoveValidator do
   end
 
   it "rejects path ending on ally position" do
-    ally = create(:character, game:, user: challenger, position: { x: 7, y: 6 })
+    ally = create(:game_character, game:, user: challenger, position: { x: 7, y: 6 })
     game.update!(turn_order: [ actor.id, ally.id ])
 
     path_to_ally = { path: [ { x: 7, y: 6 } ] }

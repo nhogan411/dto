@@ -17,10 +17,10 @@ RSpec.describe "GameActions", type: :request do
     )
   end
   let!(:challenger_character) do
-    create(:character, game: game, user: challenger, position: { x: 2, y: 2 }, facing_tile: { x: 2, y: 3 }, current_hp: 10)
+    create(:game_character, game: game, user: challenger, position: { x: 2, y: 2 }, facing_tile: { x: 2, y: 3 }, current_hp: 10)
   end
   let!(:challenged_character) do
-    create(:character, game: game, user: challenged, position: { x: 2, y: 3 }, facing_tile: { x: 2, y: 2 }, current_hp: 10)
+    create(:game_character, game: game, user: challenged, position: { x: 2, y: 3 }, facing_tile: { x: 2, y: 2 }, current_hp: 10)
   end
   let(:challenger_headers) { auth_headers(challenger) }
   let(:challenged_headers) { auth_headers(challenged) }
@@ -249,16 +249,16 @@ RSpec.describe "GameActions", type: :request do
       end
 
       let!(:challenger_character) do
-        create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 2 }, current_hp: 10)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 2 }, current_hp: 10)
       end
       let!(:challenged_character) do
-        create(:character, game: game, user: challenged, position: { x: 8, y: 8 }, facing_tile: { x: 8, y: 7 }, current_hp: 10)
+        create(:game_character, game: game, user: challenged, position: { x: 8, y: 8 }, facing_tile: { x: 8, y: 7 }, current_hp: 10)
       end
       let!(:challenger_character_two) do
-        create(:character, game: game, user: challenger, position: { x: 1, y: 4 }, facing_tile: { x: 1, y: 5 }, current_hp: 10)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 4 }, facing_tile: { x: 1, y: 5 }, current_hp: 10)
       end
       let!(:challenged_character_two) do
-        create(:character, game: game, user: challenged, position: { x: 8, y: 5 }, facing_tile: { x: 8, y: 4 }, current_hp: 10)
+        create(:game_character, game: game, user: challenged, position: { x: 8, y: 5 }, facing_tile: { x: 8, y: 4 }, current_hp: 10)
       end
 
       before do
@@ -422,9 +422,9 @@ RSpec.describe "GameActions", type: :request do
 
   describe "GET /games/:id/actions" do
     it "returns all game actions ordered by turn and sequence" do
-      create(:game_action, game: game, character: challenger_character, action_type: :move, turn_number: 1, sequence_number: 2)
-      create(:game_action, game: game, character: challenger_character, action_type: :end_turn, turn_number: 1, sequence_number: 3)
-      create(:game_action, game: game, character: challenged_character, action_type: :move, turn_number: 2, sequence_number: 1)
+      create(:game_action, game: game, game_character: challenger_character, action_type: :move, turn_number: 1, sequence_number: 2)
+      create(:game_action, game: game, game_character: challenger_character, action_type: :end_turn, turn_number: 1, sequence_number: 3)
+      create(:game_action, game: game, game_character: challenged_character, action_type: :move, turn_number: 2, sequence_number: 1)
 
       get "/games/#{game.id}/actions", headers: challenger_headers
 

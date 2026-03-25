@@ -27,7 +27,7 @@ RSpec.describe "CharacterSelections", type: :request do
       expect(game.status).to eq("pending")
       expect(game.challenger_picks).to eq(challenger_characters.map(&:id))
       expect(game.challenged_picks).to eq([])
-      expect(game.characters.count).to eq(0)
+      expect(game.game_characters.count).to eq(0)
       expect(game.turn_order).to eq([])
     end
 
@@ -52,14 +52,14 @@ RSpec.describe "CharacterSelections", type: :request do
 
       game.reload
       expect(game.status).to eq("active")
-      expect(game.turn_order).to eq(game.characters.order(id: :desc).pluck(:id))
+      expect(game.turn_order).to eq(game.game_characters.order(id: :desc).pluck(:id))
       expect(game.current_turn_index).to eq(0)
-      expect(game.characters.count).to eq(4)
-      expect(game.characters.where(user_id: challenger.id).count).to eq(2)
-      expect(game.characters.where(user_id: challenged.id).count).to eq(2)
+      expect(game.game_characters.count).to eq(4)
+      expect(game.game_characters.where(user_id: challenger.id).count).to eq(2)
+      expect(game.game_characters.where(user_id: challenged.id).count).to eq(2)
 
-      challenger_chars = game.characters.where(user_id: challenger.id).order(:id)
-      challenged_chars = game.characters.where(user_id: challenged.id).order(:id)
+      challenger_chars = game.game_characters.where(user_id: challenger.id).order(:id)
+      challenged_chars = game.game_characters.where(user_id: challenged.id).order(:id)
 
       challenger_positions = challenger_chars.map { |c| [ c.position["x"], c.position["y"] ] }
       challenged_positions = challenged_chars.map { |c| [ c.position["x"], c.position["y"] ] }
@@ -84,7 +84,7 @@ RSpec.describe "CharacterSelections", type: :request do
         params: { player_character_ids: challenged_characters.map(&:id) },
         headers: auth_headers(challenged)
 
-      chars = game.reload.characters
+      chars = game.reload.game_characters
       challenger_chars = chars.select { |c| c.user_id == challenger.id }
       challenged_chars = chars.select { |c| c.user_id == challenged.id }
 
@@ -146,8 +146,8 @@ RSpec.describe "CharacterSelections", type: :request do
         headers: auth_headers(challenged)
 
       game.reload
-      challenger_chars = game.characters.where(user_id: challenger.id).order(:id)
-      challenged_chars = game.characters.where(user_id: challenged.id).order(:id)
+      challenger_chars = game.game_characters.where(user_id: challenger.id).order(:id)
+      challenged_chars = game.game_characters.where(user_id: challenged.id).order(:id)
 
       expect(challenger_chars.map(&:icon)).to eq([ "warrior", "mage" ])
       expect(challenged_chars.map(&:icon)).to eq([ "rogue", "archer" ])

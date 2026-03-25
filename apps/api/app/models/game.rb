@@ -4,7 +4,7 @@ class Game < ApplicationRecord
   belongs_to :current_turn_user, class_name: "User", optional: true
   belongs_to :winner, class_name: "User", optional: true
 
-  has_many :characters, dependent: :destroy
+  has_many :game_characters, dependent: :destroy
   has_many :game_actions, dependent: :destroy
 
    enum :status, { pending: 0, active: 1, completed: 2, forfeited: 3, accepted: 4, declined: 5 }
@@ -13,7 +13,7 @@ class Game < ApplicationRecord
   validate :different_players
 
   def acting_character
-    characters.find_by(id: turn_order[current_turn_index])
+    game_characters.find_by(id: turn_order[current_turn_index])
   end
 
   def both_picked?

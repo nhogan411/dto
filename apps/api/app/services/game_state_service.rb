@@ -18,7 +18,7 @@ class GameStateService
       turn_number: game.game_actions.where(action_type: :end_turn).count + 1,
       board_config: game.board_config,
       acting_character_actions: acting_character_turn_actions,
-      characters: game.characters.map { |character| character_snapshot(character) },
+       characters: game.game_characters.map { |character| character_snapshot(character) },
       last_action: game.game_actions.order(:turn_number, :sequence_number).last&.as_json
     }
   end
@@ -32,7 +32,7 @@ class GameStateService
     return nil unless actor
 
     current_turn_number = game.game_actions.where(action_type: :end_turn).count + 1
-    actions_in_turn = game.game_actions.where(turn_number: current_turn_number, character_id: actor.id)
+     actions_in_turn = game.game_actions.where(turn_number: current_turn_number, game_character_id: actor.id)
     moves_taken = actions_in_turn.where(action_type: :move).sum("jsonb_array_length(action_data->'path')")
 
     {

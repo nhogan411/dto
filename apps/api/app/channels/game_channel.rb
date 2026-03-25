@@ -1,6 +1,6 @@
 class GameChannel < ApplicationCable::Channel
   def subscribed
-    game = Game.includes(:characters, :game_actions).find_by(id: params[:game_id])
+    game = Game.includes(:game_characters, :game_actions).find_by(id: params[:game_id])
     return reject unless game && [ game.challenger_id, game.challenged_id ].include?(current_user.id)
 
     stream_for game
@@ -16,7 +16,7 @@ class GameChannel < ApplicationCable::Channel
   end
 
   def request_resync
-    game = Game.includes(:characters, :game_actions).find_by(id: params[:game_id])
+    game = Game.includes(:game_characters, :game_actions).find_by(id: params[:game_id])
     return unless game
 
     transmit({ event: "resync", game_id: game.id, snapshot: GameStateService.new(game).snapshot })

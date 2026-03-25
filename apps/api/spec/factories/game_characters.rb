@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :character do
+  factory :game_character do
     association :game
     association :user
     position { { x: 1, y: 1 } }

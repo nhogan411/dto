@@ -29,7 +29,7 @@ class GamesController < ApplicationController
 
       challenger_start_position = start_positions_for(game).first
 
-      game.characters.create!(character_attributes_for(current_user, challenger_start_position))
+      game.game_characters.create!(character_attributes_for(current_user, challenger_start_position))
     end
 
     broadcast_game_invitation(challenged_user, game)
@@ -40,10 +40,10 @@ class GamesController < ApplicationController
   end
 
    def index
-     games = visible_games
-       .where(status: VISIBLE_STATUSES)
-       .includes(:characters, :challenger, :challenged)
-       .order(created_at: :desc)
+      games = visible_games
+        .where(status: VISIBLE_STATUSES)
+        .includes(:game_characters, :challenger, :challenged)
+        .order(created_at: :desc)
 
      render json: { data: { games: games.map { |game| serialize_game(game) } } }
    end
@@ -72,10 +72,10 @@ class GamesController < ApplicationController
       start_positions = start_positions_for(@game)
       challenger_position = start_positions[1 - starting_position_index]
       challenged_position = start_positions[starting_position_index]
-      challenger_character = @game.characters.find_by!(user_id: @game.challenger_id)
+      challenger_character = @game.game_characters.find_by!(user_id: @game.challenger_id)
 
       challenger_character.update!(character_position_attributes(challenger_position))
-      @game.characters.create!(character_attributes_for(current_user, challenged_position))
+      @game.game_characters.create!(character_attributes_for(current_user, challenged_position))
 
       first_turn_user_id = first_move ? current_user.id : @game.challenger_id
        @game.update!(
@@ -105,12 +105,12 @@ class GamesController < ApplicationController
   end
 
   def forfeit
-    @game = visible_games.includes(:characters).find_by(id: params[:id])
+    @game = visible_games.includes(:game_characters).find_by(id: params[:id])
     return render_not_found unless @game
     return render_forbidden unless player_in_game?(@game)
     return render_unprocessable_entity("Game is not active") unless @game.active?
 
-    opponent_user_id = @game.characters.find { |c| c.user_id != current_user.id }&.user_id
+     opponent_user_id = @game.game_characters.find { |c| c.user_id != current_user.id }&.user_id
 
     begin
       @game.with_lock do
@@ -141,11 +141,11 @@ class GamesController < ApplicationController
       challenger_position = start_positions[starting_position_index]
       challenged_position = start_positions[1 - starting_position_index]
 
-      challenger_character = @game.characters.find_by!(user_id: current_user.id)
+      challenger_character = @game.game_characters.find_by!(user_id: current_user.id)
       challenger_character.update!(character_position_attributes(challenger_position))
 
       challenged_user = User.find(@game.challenged_id)
-      @game.characters.create!(character_attributes_for(challenged_user, challenged_position))
+      @game.game_characters.create!(character_attributes_for(challenged_user, challenged_position))
 
        @game.update!(status: :active)
      end
@@ -188,7 +188,7 @@ class GamesController < ApplicationController
   end
 
    def set_game
-     @game = visible_games.includes(:characters, :challenger, :challenged).find_by(id: params[:id])
+     @game = visible_games.includes(:game_characters, :challenger, :challenged).find_by(id: params[:id])
      return if @game
 
      render json: { errors: [ "Game not found" ] }, status: :not_found
@@ -202,8 +202,8 @@ class GamesController < ApplicationController
     @game.challenger_id == current_user.id
   end
 
-  def set_game_for_player!
-    @game = Game.includes(:characters, :game_actions).find_by(id: params[:id])
+   def set_game_for_player!
+     @game = Game.includes(:game_characters, :game_actions).find_by(id: params[:id])
     return render_not_found unless @game
     return if player_in_game?(@game)
 
@@ -286,7 +286,7 @@ class GamesController < ApplicationController
         board_config: serialize_board_config(game.board_config),
         current_turn_user_id: game.current_turn_user_id,
         winner_id: game.winner_id,
-        characters: game.characters.order(:id).map { |character| serialize_character(character) }
+         characters: game.game_characters.order(:id).map { |character| serialize_character(character) }
       }
     end
 
@@ -319,7 +319,7 @@ class GamesController < ApplicationController
       result_data: action.result_data,
       turn_number: action.turn_number,
       sequence_number: action.sequence_number,
-      character_id: action.character_id,
+       game_character_id: action.game_character_id,
       created_at: action.created_at.iso8601
     }
   end

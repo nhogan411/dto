@@ -66,6 +66,6 @@ class AuthController < ApplicationController
   end
 
   def serialize_user(user)
-    user.as_json(only: [ :id, :email, :username ])
+    user.as_json(only: [ :id, :email, :username, :role ])
   end
 end

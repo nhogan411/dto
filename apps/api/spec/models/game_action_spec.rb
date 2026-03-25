@@ -3,10 +3,10 @@ require 'rails_helper'
 RSpec.describe GameAction, type: :model do
   subject(:game_action) { build(:game_action) }
 
-  describe 'associations' do
-    it { is_expected.to belong_to(:game) }
-    it { is_expected.to belong_to(:character) }
-  end
+   describe 'associations' do
+     it { is_expected.to belong_to(:game) }
+     it { is_expected.to belong_to(:game_character) }
+   end
 
   describe 'enums' do
     it { is_expected.to define_enum_for(:action_type).with_values(move: 0, attack: 1, defend: 2, end_turn: 3) }
@@ -29,14 +29,14 @@ RSpec.describe GameAction, type: :model do
     it { is_expected.to validate_numericality_of(:turn_number).is_greater_than(0) }
     it { is_expected.to validate_numericality_of(:sequence_number).is_greater_than_or_equal_to(0) }
 
-    it 'requires game and character' do
-      game_action.game = nil
-      game_action.character = nil
+     it 'requires game and game_character' do
+       game_action.game = nil
+       game_action.game_character = nil
 
-      expect(game_action).not_to be_valid
-      expect(game_action.errors[:game]).to be_present
-      expect(game_action.errors[:character]).to be_present
-    end
+       expect(game_action).not_to be_valid
+       expect(game_action.errors[:game]).to be_present
+       expect(game_action.errors[:game_character]).to be_present
+     end
   end
 
   describe 'immutability' do

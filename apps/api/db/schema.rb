@@ -10,26 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_20_125637) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_24_182034) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
-
-  create_table "characters", force: :cascade do |t|
-    t.bigint "game_id", null: false
-    t.bigint "user_id", null: false
-    t.jsonb "position", default: {}, null: false
-    t.jsonb "facing_tile", default: {}, null: false
-    t.integer "current_hp", default: 10, null: false
-    t.boolean "is_defending", default: false, null: false
-    t.integer "max_hp", default: 10, null: false
-    t.jsonb "stats", default: {}, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "icon", default: "warrior", null: false
-    t.string "name", default: "", null: false
-    t.index ["game_id"], name: "index_characters_on_game_id"
-    t.index ["user_id"], name: "index_characters_on_user_id"
-  end
 
   create_table "friendships", force: :cascade do |t|
     t.integer "requester_id", null: false
@@ -43,7 +26,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_20_125637) do
 
   create_table "game_actions", force: :cascade do |t|
     t.bigint "game_id", null: false
-    t.bigint "character_id", null: false
+    t.bigint "game_character_id", null: false
     t.integer "action_type", null: false
     t.jsonb "action_data", default: {}, null: false
     t.integer "turn_number", null: false
@@ -51,9 +34,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_20_125637) do
     t.jsonb "result_data", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["character_id"], name: "index_game_actions_on_character_id"
+    t.index ["game_character_id"], name: "index_game_actions_on_game_character_id"
     t.index ["game_id", "turn_number", "sequence_number"], name: "idx_on_game_id_turn_number_sequence_number_ff3e292003"
     t.index ["game_id"], name: "index_game_actions_on_game_id"
+  end
+
+  create_table "game_characters", force: :cascade do |t|
+    t.bigint "game_id", null: false
+    t.bigint "user_id", null: false
+    t.jsonb "position", default: {}, null: false
+    t.jsonb "facing_tile", default: {}, null: false
+    t.integer "current_hp", default: 10, null: false
+    t.boolean "is_defending", default: false, null: false
+    t.integer "max_hp", default: 10, null: false
+    t.jsonb "stats", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "icon", default: "warrior", null: false
+    t.string "name", default: "", null: false
+    t.index ["game_id"], name: "index_game_characters_on_game_id"
+    t.index ["user_id"], name: "index_game_characters_on_user_id"
   end
 
   create_table "games", force: :cascade do |t|
@@ -235,16 +235,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_20_125637) do
     t.string "password_digest", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "role", default: 0, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["role"], name: "index_users_on_role"
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
-  add_foreign_key "characters", "games"
-  add_foreign_key "characters", "users"
   add_foreign_key "friendships", "users", column: "recipient_id"
   add_foreign_key "friendships", "users", column: "requester_id"
-  add_foreign_key "game_actions", "characters"
+  add_foreign_key "game_actions", "game_characters"
   add_foreign_key "game_actions", "games"
+  add_foreign_key "game_characters", "games"
+  add_foreign_key "game_characters", "users"
   add_foreign_key "games", "users", column: "challenged_id"
   add_foreign_key "games", "users", column: "challenger_id"
   add_foreign_key "games", "users", column: "current_turn_user_id"

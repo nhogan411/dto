@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { authApi, type LoginParams, type RegisterParams, type User } from '../../api/auth';
+import type { RootState } from '../index';
+import { authApi, type LoginParams, type RegisterParams, type User, type UserRole } from '../../api/auth';
 
 const ACCESS_TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
@@ -38,7 +39,11 @@ const getStoredUser = (): User | null => {
   }
   
   try {
-    return JSON.parse(stored) as User;
+    const parsed = JSON.parse(stored);
+    return {
+      ...parsed,
+      role: (parsed.role as UserRole) ?? 'player',
+    };
   } catch {
     return null;
   }
@@ -199,4 +204,8 @@ const authSlice = createSlice({
 
 export const { setCredentials, clearCredentials } = authSlice.actions;
 export const { updateUser } = authSlice.actions;
+
+export const selectIsAdmin = (state: RootState) =>
+  state.auth.user?.role === 'admin';
+
 export default authSlice.reducer;

@@ -35,4 +35,10 @@ Rails.application.routes.draw do
       get :actions, to: "game_actions#index"
     end
   end
+
+  namespace :admin do
+    resources :users, only: [ :index, :show, :update, :destroy ]
+    resources :player_characters
+    resources :friendships, only: [ :index, :show ]
+  end
 end

@@ -3,8 +3,8 @@ require "rails_helper"
 RSpec.describe ActionValidators::AttackValidator do
   let(:game) { create(:game, status: :active, current_turn_user: nil) }
   let(:challenger) { game.challenger }
-  let(:actor) { create(:character, game:, user: challenger, position: { x: 3, y: 3 }) }
-  let(:target) { create(:character, game:, user: game.challenged, position: { x: 3, y: 4 }, current_hp: 5) }
+  let(:actor) { create(:game_character, game:, user: challenger, position: { x: 3, y: 3 }) }
+  let(:target) { create(:game_character, game:, user: game.challenged, position: { x: 3, y: 4 }, current_hp: 5) }
   let(:turn_context) { { current_user_id: challenger.id, has_attacked: false } }
   let(:action_data) { { target_character_id: target.id } }
 
@@ -42,7 +42,7 @@ RSpec.describe ActionValidators::AttackValidator do
   end
 
   it "rejects ally target" do
-    ally = create(:character, game:, user: challenger, position: { x: 3, y: 4 })
+    ally = create(:game_character, game:, user: challenger, position: { x: 3, y: 4 })
     validator = described_class.new(game:, character: actor, action_data: { target_character_id: ally.id }, turn_context:)
 
     expect { validator.validate! }

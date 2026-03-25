@@ -3,8 +3,8 @@ require "rails_helper"
 RSpec.describe ActionValidators::EndTurnValidator do
   let(:game) { create(:game, status: :active, current_turn_user: nil) }
   let(:challenger) { game.challenger }
-  let(:character) { create(:character, game:, user: challenger, position: { x: 4, y: 4 }) }
-  let(:opponent) { create(:character, game:, user: game.challenged, position: { x: 7, y: 7 }) }
+  let(:character) { create(:game_character, game:, user: challenger, position: { x: 4, y: 4 }) }
+  let(:opponent) { create(:game_character, game:, user: game.challenged, position: { x: 7, y: 7 }) }
   let(:action_data) { { facing_tile: { x: 4, y: 3 } } }
   let(:turn_context) { { current_user_id: challenger.id, moves_taken: 1, has_ended_turn: false } }
 

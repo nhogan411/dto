@@ -1,5 +1,7 @@
 import apiClient from './client';
 
+export type UserRole = 'player' | 'admin';
+
 export interface LoginParams {
   email: string;
   password: string;
@@ -15,6 +17,7 @@ export interface User {
   id: number;
   email: string;
   username: string;
+  role?: UserRole;
 }
 
 export interface AuthResponse {

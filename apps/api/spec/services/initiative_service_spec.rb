@@ -4,9 +4,9 @@ RSpec.describe InitiativeService do
   describe ".roll" do
     it "returns character ids ordered by highest roll first" do
       characters = [
-        instance_double(Character, id: 10),
-        instance_double(Character, id: 20),
-        instance_double(Character, id: 30)
+        instance_double(GameCharacter, id: 10),
+        instance_double(GameCharacter, id: 20),
+        instance_double(GameCharacter, id: 30)
       ]
 
       allow(described_class).to receive(:roll_d20).and_return(8, 19, 12)
@@ -16,9 +16,9 @@ RSpec.describe InitiativeService do
 
     it "re-rolls only tied characters until tie is resolved" do
       characters = [
-        instance_double(Character, id: 10),
-        instance_double(Character, id: 20),
-        instance_double(Character, id: 30)
+        instance_double(GameCharacter, id: 10),
+        instance_double(GameCharacter, id: 20),
+        instance_double(GameCharacter, id: 30)
       ]
 
       allow(described_class).to receive(:roll_d20).and_return(
@@ -32,10 +32,10 @@ RSpec.describe InitiativeService do
 
     it "is deterministic with stubbed rolls across multiple tie rounds" do
       characters = [
-        instance_double(Character, id: 1),
-        instance_double(Character, id: 2),
-        instance_double(Character, id: 3),
-        instance_double(Character, id: 4)
+        instance_double(GameCharacter, id: 1),
+        instance_double(GameCharacter, id: 2),
+        instance_double(GameCharacter, id: 3),
+        instance_double(GameCharacter, id: 4)
       ]
 
       allow(described_class).to receive(:roll_d20).and_return(

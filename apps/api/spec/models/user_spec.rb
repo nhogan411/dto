@@ -7,7 +7,7 @@ RSpec.describe User, type: :model do
     it { is_expected.to have_many(:refresh_tokens).dependent(:destroy) }
     it { is_expected.to have_many(:sent_friend_requests).class_name('Friendship').with_foreign_key(:requester_id).dependent(:destroy) }
     it { is_expected.to have_many(:received_friend_requests).class_name('Friendship').with_foreign_key(:recipient_id).dependent(:destroy) }
-    it { is_expected.to have_many(:characters).dependent(:destroy) }
+     it { is_expected.to have_many(:game_characters).dependent(:destroy) }
   end
 
   describe 'validations' do

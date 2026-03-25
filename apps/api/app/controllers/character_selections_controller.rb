@@ -24,11 +24,11 @@ class CharacterSelectionsController < ApplicationController
 
       @game.update!(picks_column => player_character_ids)
 
-      if @game.both_picked?
-        create_characters_for_selections!(@game)
+       if @game.both_picked?
+         create_characters_for_selections!(@game)
 
-        initiative_order = InitiativeService.roll(@game.characters.reload)
-        current_turn_character = @game.characters.find_by(id: initiative_order.first)
+         initiative_order = InitiativeService.roll(@game.game_characters.reload)
+         current_turn_character = @game.game_characters.find_by(id: initiative_order.first)
 
         @game.update!(
           status: :active,
@@ -36,7 +36,7 @@ class CharacterSelectionsController < ApplicationController
           current_turn_index: 0,
           current_turn_user_id: current_turn_character&.user_id
         )
-      end
+       end
     end
 
     if @game.reload.active?
@@ -54,9 +54,9 @@ class CharacterSelectionsController < ApplicationController
 
   class SelectionError < StandardError; end
 
-  def set_game
-    @game = Game.includes(:characters, :challenger, :challenged).find_by(id: params[:id])
-    return if @game
+   def set_game
+     @game = Game.includes(:game_characters, :challenger, :challenged).find_by(id: params[:id])
+     return if @game
 
     render_not_found and return
   end
@@ -71,8 +71,8 @@ class CharacterSelectionsController < ApplicationController
     :challenged_picks
   end
 
-  def create_characters_for_selections!(game)
-    game.characters.destroy_all
+   def create_characters_for_selections!(game)
+     game.game_characters.destroy_all
 
     config = game.board_config.with_indifferent_access
     challenger_tiles = BoardConfig.spawn_tiles(config, "challenger").shuffle
@@ -85,8 +85,8 @@ class CharacterSelectionsController < ApplicationController
     pcs_by_id = PlayerCharacter.where(id: game.challenged_picks).index_by(&:id)
     challenged_pcs = game.challenged_picks.map { |id| pcs_by_id[id] || raise("PlayerCharacter #{id} not found for game #{game.id}") }
 
-    challenger_pcs.zip(challenger_tiles).each { |pc, tile| game.characters.create!(character_attributes_for(game.challenger, tile, player_character: pc)) }
-    challenged_pcs.zip(challenged_tiles).each { |pc, tile| game.characters.create!(character_attributes_for(game.challenged, tile, player_character: pc)) }
+     challenger_pcs.zip(challenger_tiles).each { |pc, tile| game.game_characters.create!(character_attributes_for(game.challenger, tile, player_character: pc)) }
+     challenged_pcs.zip(challenged_tiles).each { |pc, tile| game.game_characters.create!(character_attributes_for(game.challenged, tile, player_character: pc)) }
   end
 
    def character_attributes_for(user, position, player_character:)
@@ -119,7 +119,7 @@ class CharacterSelectionsController < ApplicationController
        winner_id: game.winner_id,
        turn_order: game.turn_order,
        current_turn_index: game.current_turn_index,
-       characters: game.characters.order(:id).map { |character| serialize_character(character) }
+        characters: game.game_characters.order(:id).map { |character| serialize_character(character) }
      }
    end
 

@@ -7,7 +7,7 @@ export interface AttackPreviewResponse {
   is_defending: boolean;
 }
 
-export interface ApiCharacter {
+export interface ApiGameCharacter {
   id: number;
   user_id: number;
   position: { x: number | string; y: number | string };
@@ -33,7 +33,7 @@ export interface ApiGame {
   challenged_id: number;
   challenger_username: string;
   challenged_username: string;
-  characters: ApiCharacter[];
+  characters: ApiGameCharacter[];
   turn_number: number;
   winner_id: number | null;
   challenger_picks?: number[];
@@ -47,7 +47,7 @@ export interface ApiGameAction {
   result_data: Record<string, unknown>;
   turn_number: number;
   sequence_number: number;
-  character_id: number;
+  game_character_id: number;
   created_at: string;
 }
 
@@ -61,7 +61,7 @@ export interface ApiGameSnapshot {
   winner_id: number | null;
   board_config: { tiles: Array<Array<{ type: string }>> };
    acting_character_actions?: { has_moved: boolean; has_attacked: boolean; has_defended: boolean; moves_taken: number };
-  characters: ApiCharacter[];
+  characters: ApiGameCharacter[];
   last_action: ApiGameAction | null;
   turn_number: number;
   challenger_picks?: number[];
@@ -83,16 +83,16 @@ export interface GameListResponse {
 export interface GameHistoryAction {
   id: number;
   game_id: number;
-  character_id: number;
+  game_character_id: number;
   action_type: 'move' | 'attack' | 'defend' | 'end_turn';
   action_data: Record<string, unknown>;
   turn_number: number;
   sequence_number: number;
   /**
-   * For attack actions (after v1.0.2), includes D20 fields:
-   * roll: number (1-20), threshold: number, direction: string,
-   * hit: boolean, critical: boolean, damage: number
-   */
+    * For attack actions (after v1.0.2), includes D20 fields:
+    * roll: number (1-20), threshold: number, direction: string,
+    * hit: boolean, critical: boolean, damage: number
+    */
   result_data: Record<string, unknown> | null;
 }
 

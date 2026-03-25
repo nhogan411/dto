@@ -36,8 +36,8 @@ module ActionValidators
     def target_character
       return @target_character if defined?(@target_character)
 
-      target_id = action_data[:target_character_id]
-      @target_character = target_id.present? ? game.characters.find_by(id: target_id) : nil
+       target_id = action_data[:target_character_id]
+       @target_character = target_id.present? ? game.game_characters.find_by(id: target_id) : nil
     end
   end
 end

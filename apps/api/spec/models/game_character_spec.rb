@@ -1,7 +1,7 @@
 require 'rails_helper'
 
-RSpec.describe Character, type: :model do
-  subject(:character) { build(:character) }
+RSpec.describe GameCharacter, type: :model do
+  subject(:character) { build(:game_character) }
 
   describe 'associations' do
     it { is_expected.to belong_to(:game) }

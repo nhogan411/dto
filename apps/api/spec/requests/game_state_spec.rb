@@ -17,30 +17,30 @@ RSpec.describe "GameState", type: :request do
       winner_id: challenged.id
     )
   end
-  let!(:challenger_character) do
-    create(
-      :character,
-      game: game,
-      user: challenger,
-      position: { x: 1, y: 1 },
-      facing_tile: { x: 1, y: 2 },
-      current_hp: 8,
-      max_hp: 10,
-      is_defending: true
-    )
-  end
-  let!(:challenged_character) do
-    create(
-      :character,
-      game: game,
-      user: challenged,
-      position: { x: 8, y: 8 },
-      facing_tile: { x: 8, y: 7 },
-      current_hp: 10,
-      max_hp: 10,
-      is_defending: false
-    )
-  end
+   let!(:challenger_character) do
+     create(
+       :game_character,
+       game: game,
+       user: challenger,
+       position: { x: 1, y: 1 },
+       facing_tile: { x: 1, y: 2 },
+       current_hp: 8,
+       max_hp: 10,
+       is_defending: true
+     )
+   end
+   let!(:challenged_character) do
+     create(
+       :game_character,
+       game: game,
+       user: challenged,
+       position: { x: 8, y: 8 },
+       facing_tile: { x: 8, y: 7 },
+       current_hp: 10,
+       max_hp: 10,
+       is_defending: false
+     )
+   end
 
   describe "GET /games/:id/state" do
     it "returns the current game snapshot for an authenticated player" do
@@ -97,13 +97,13 @@ RSpec.describe "GameState", type: :request do
 
   describe "GET /games/:id/replay" do
     let!(:late_turn_one_action) do
-      create(:game_action, game: game, character: challenger_character, action_type: :end_turn, turn_number: 1, sequence_number: 2)
+      create(:game_action, game: game, game_character: challenger_character, action_type: :end_turn, turn_number: 1, sequence_number: 2)
     end
     let!(:early_turn_one_action) do
-      create(:game_action, game: game, character: challenger_character, action_type: :move, turn_number: 1, sequence_number: 1, action_data: { path: [ { x: 2, y: 1 } ] })
+      create(:game_action, game: game, game_character: challenger_character, action_type: :move, turn_number: 1, sequence_number: 1, action_data: { path: [ { x: 2, y: 1 } ] })
     end
     let!(:turn_two_action) do
-      create(:game_action, game: game, character: challenged_character, action_type: :attack, turn_number: 2, sequence_number: 1, action_data: { target_character_id: challenger_character.id }, result_data: { damage: 1 })
+      create(:game_action, game: game, game_character: challenged_character, action_type: :attack, turn_number: 2, sequence_number: 1, action_data: { target_character_id: challenger_character.id }, result_data: { damage: 1 })
     end
 
     it "returns the ordered actions list for replay" do
@@ -128,7 +128,7 @@ RSpec.describe "GameState", type: :request do
         "result_data" => early_turn_one_action.result_data.stringify_keys,
         "turn_number" => 1,
         "sequence_number" => 1,
-        "character_id" => challenger_character.id,
+        "game_character_id" => challenger_character.id,
         "created_at" => early_turn_one_action.created_at.iso8601
       )
     end

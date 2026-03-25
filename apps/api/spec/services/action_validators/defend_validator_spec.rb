@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe ActionValidators::DefendValidator do
   let(:game) { create(:game, status: :active, current_turn_user: nil) }
   let(:challenger) { game.challenger }
-  let(:character) { create(:character, game:, user: challenger, position: { x: 4, y: 4 }) }
+  let(:character) { create(:game_character, game:, user: challenger, position: { x: 4, y: 4 }) }
   let(:action_data) { { facing_tile: { x: 4, y: 3 } } }
   let(:turn_context) { { current_user_id: challenger.id, has_defended: false, has_attacked: false, has_ended_turn: false } }
 
@@ -40,7 +40,7 @@ RSpec.describe ActionValidators::DefendValidator do
   end
 
   context "facing tile validation" do
-    let(:character) { create(:character, game:, user: challenger, position: { x: 4, y: 4 }) }
+    let(:character) { create(:game_character, game:, user: challenger, position: { x: 4, y: 4 }) }
 
     it "accepts valid facing tile pointing north" do
       validator = described_class.new(game:, character:, action_data: { facing_tile: { x: 4, y: 3 } }, turn_context:)

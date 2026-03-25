@@ -1,4 +1,4 @@
-class Character < ApplicationRecord
+class GameCharacter < ApplicationRecord
   belongs_to :game
   belongs_to :user
 

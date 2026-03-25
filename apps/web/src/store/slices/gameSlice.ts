@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { gameApi, type ApiGame, type ApiCharacter, type ApiGameSnapshot, type GameHistoryAction } from '../../api/game';
+import { gameApi, type ApiGame, type ApiGameCharacter, type ApiGameSnapshot, type GameHistoryAction } from '../../api/game';
 import type { GameAction } from '../../services/replayService';
 
 export interface CharacterState {
@@ -100,7 +100,7 @@ const normalizePoint = (point: { x: number | string; y: number | string }) => ({
   y: Number(point.y),
 });
 
-const mapApiCharacterToCharacterState = (character: ApiCharacter): CharacterState => ({
+const mapApiCharacterToCharacterState = (character: ApiGameCharacter): CharacterState => ({
   id: character.id,
   userId: character.user_id,
   position: normalizePoint(character.position),
@@ -114,7 +114,7 @@ const mapApiCharacterToCharacterState = (character: ApiCharacter): CharacterStat
   stats: character.stats ?? {},
 });
 
-const mapCharacterStateToApiCharacter = (character: CharacterState): ApiCharacter => ({
+const mapCharacterStateToApiCharacter = (character: CharacterState): ApiGameCharacter => ({
   id: character.id,
   user_id: character.userId,
   position: character.position,

@@ -17,7 +17,7 @@ RSpec.describe "Games", type: :request do
         expect(response).to have_http_status(:created)
 
         game = Game.order(:id).last
-        challenger_character = game.characters.find_by!(user_id: challenger.id)
+        challenger_character = game.game_characters.find_by!(user_id: challenger.id)
         board_config = game.board_config.with_indifferent_access
 
         expect(game.challenger_id).to eq(challenger.id)
@@ -126,18 +126,18 @@ RSpec.describe "Games", type: :request do
      let(:headers) { auth_headers(challenged) }
      let(:board_config) { { start_positions: [ [ 1, 1 ], [ 8, 8 ] ], tiles: create(:game).board_config["tiles"] } }
 
-     it "activates the game, assigns characters, and sets the turn deadline" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :pending, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "activates the game, assigns characters, and sets the turn deadline" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :pending, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
-       travel_to Time.zone.parse("2026-03-14 12:00:00") do
-         patch "/games/#{game.id}/accept", params: { starting_position_index: 0 }, headers: headers
+        travel_to Time.zone.parse("2026-03-14 12:00:00") do
+          patch "/games/#{game.id}/accept", params: { starting_position_index: 0 }, headers: headers
 
-         expect(response).to have_http_status(:ok)
+          expect(response).to have_http_status(:ok)
 
-         game.reload
-         challenger_character = game.characters.find_by!(user_id: challenger.id)
-         challenged_character = game.characters.find_by!(user_id: challenged.id)
+          game.reload
+          challenger_character = game.game_characters.find_by!(user_id: challenger.id)
+          challenged_character = game.game_characters.find_by!(user_id: challenged.id)
 
          expect(game.status).to eq("active")
          expect(game.current_turn_user_id).to eq(challenger.id)
@@ -149,9 +149,9 @@ RSpec.describe "Games", type: :request do
       end
     end
 
-     it "gives first move to the challenged player when first_move is true" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :pending, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "gives first move to the challenged player when first_move is true" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :pending, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
       travel_to Time.zone.parse("2026-03-14 12:00:00") do
         patch "/games/#{game.id}/accept", params: { starting_position_index: 0, first_move: true }, headers: headers
@@ -164,26 +164,26 @@ RSpec.describe "Games", type: :request do
       end
     end
 
-     it "accepts into accepted status when first_move is true without starting position" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :pending, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "accepts into accepted status when first_move is true without starting position" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :pending, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
-       expect(Broadcaster).to receive(:position_pick_needed).with(challenger, game)
+        expect(Broadcaster).to receive(:position_pick_needed).with(challenger, game)
 
-       patch "/games/#{game.id}/accept", params: { first_move: true }, headers: headers
+        patch "/games/#{game.id}/accept", params: { first_move: true }, headers: headers
 
-       expect(response).to have_http_status(:ok)
+        expect(response).to have_http_status(:ok)
 
-       game.reload
-       expect(game.status).to eq("accepted")
-       expect(game.current_turn_user_id).to eq(challenged.id)
-       expect(game.characters.count).to eq(1)
-      expect(game.characters.exists?(user_id: challenged.id)).to be(false)
+        game.reload
+        expect(game.status).to eq("accepted")
+        expect(game.current_turn_user_id).to eq(challenged.id)
+        expect(game.game_characters.count).to eq(1)
+       expect(game.game_characters.exists?(user_id: challenged.id)).to be(false)
     end
 
-     it "returns 422 when first_move accept is attempted for a non-pending game" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "returns 422 when first_move accept is attempted for a non-pending game" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
       patch "/games/#{game.id}/accept", params: { first_move: true }, headers: headers
 
@@ -191,9 +191,9 @@ RSpec.describe "Games", type: :request do
       expect(json_response.fetch("errors")).to include("Game is not pending")
     end
 
-     it "returns 422 when starting_position_index is missing and first_move is not true" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :pending, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "returns 422 when starting_position_index is missing and first_move is not true" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :pending, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
       patch "/games/#{game.id}/accept", headers: headers
 
@@ -225,8 +225,8 @@ RSpec.describe "Games", type: :request do
 
     it "forfeits an active game and sets the winner to the opponent" do
       game = create(:game, challenger: challenger, challenged: challenged, status: :active, current_turn_user_id: challenger.id)
-      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 2 })
-      create(:character, game: game, user: challenged, position: { x: 8, y: 8 }, facing_tile: { x: 8, y: 7 })
+      create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 2 })
+      create(:game_character, game: game, user: challenged, position: { x: 8, y: 8 }, facing_tile: { x: 8, y: 7 })
 
       allow(Broadcaster).to receive(:game_over)
 
@@ -240,8 +240,8 @@ RSpec.describe "Games", type: :request do
 
     it "returns 404 when a non-player attempts to forfeit" do
       game = create(:game, challenger: challenger, challenged: challenged, status: :active)
-      create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 2 })
-      create(:character, game: game, user: challenged, position: { x: 8, y: 8 }, facing_tile: { x: 8, y: 7 })
+      create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 2 })
+      create(:game_character, game: game, user: challenged, position: { x: 8, y: 8 }, facing_tile: { x: 8, y: 7 })
 
       random_user = create(:user)
 
@@ -275,18 +275,18 @@ RSpec.describe "Games", type: :request do
      let(:headers) { auth_headers(challenger) }
      let(:board_config) { { start_positions: [ [ 1, 1 ], [ 8, 8 ] ], tiles: create(:game).board_config["tiles"] } }
 
-     it "activates an accepted game when challenger chooses position index 0" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "activates an accepted game when challenger chooses position index 0" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
-       travel_to Time.zone.parse("2026-03-14 12:00:00") do
-         patch "/games/#{game.id}/choose_position", params: { starting_position_index: 0 }, headers: headers
+        travel_to Time.zone.parse("2026-03-14 12:00:00") do
+          patch "/games/#{game.id}/choose_position", params: { starting_position_index: 0 }, headers: headers
 
-         expect(response).to have_http_status(:ok)
+          expect(response).to have_http_status(:ok)
 
-         game.reload
-         challenger_character = game.characters.find_by!(user_id: challenger.id)
-         challenged_character = game.characters.find_by!(user_id: challenged.id)
+          game.reload
+          challenger_character = game.game_characters.find_by!(user_id: challenger.id)
+          challenged_character = game.game_characters.find_by!(user_id: challenged.id)
 
          expect(game.status).to eq("active")
          expect(game.current_turn_user_id).to eq(challenged.id)
@@ -297,25 +297,25 @@ RSpec.describe "Games", type: :request do
       end
     end
 
-     it "assigns opposite positions when challenger chooses position index 1" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "assigns opposite positions when challenger chooses position index 1" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
-      patch "/games/#{game.id}/choose_position", params: { starting_position_index: 1 }, headers: headers
+       patch "/games/#{game.id}/choose_position", params: { starting_position_index: 1 }, headers: headers
 
-      expect(response).to have_http_status(:ok)
+       expect(response).to have_http_status(:ok)
 
-      game.reload
-      challenger_character = game.characters.find_by!(user_id: challenger.id)
-      challenged_character = game.characters.find_by!(user_id: challenged.id)
+       game.reload
+       challenger_character = game.game_characters.find_by!(user_id: challenger.id)
+       challenged_character = game.game_characters.find_by!(user_id: challenged.id)
 
       expect(challenger_character.position).to eq({ "x" => 8, "y" => 8 })
       expect(challenged_character.position).to eq({ "x" => 1, "y" => 1 })
     end
 
-     it "returns 403 when challenged player attempts to choose a position" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "returns 403 when challenged player attempts to choose a position" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
       patch "/games/#{game.id}/choose_position", params: { starting_position_index: 0 }, headers: auth_headers(challenged)
 
@@ -323,9 +323,9 @@ RSpec.describe "Games", type: :request do
       expect(json_response.fetch("errors")).to include("Forbidden")
     end
 
-     it "returns 404 when a random user attempts to choose a position" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "returns 404 when a random user attempts to choose a position" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
       patch "/games/#{game.id}/choose_position", params: { starting_position_index: 0 }, headers: auth_headers(create(:user))
 
@@ -333,9 +333,9 @@ RSpec.describe "Games", type: :request do
       expect(json_response.fetch("errors")).to include("Game not found")
     end
 
-     it "returns 422 when game is pending" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :pending, current_turn_user_id: challenged.id, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "returns 422 when game is pending" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :pending, current_turn_user_id: challenged.id, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
       patch "/games/#{game.id}/choose_position", params: { starting_position_index: 0 }, headers: headers
 
@@ -343,9 +343,9 @@ RSpec.describe "Games", type: :request do
       expect(json_response.fetch("errors")).to include("Game is not accepted")
     end
 
-     it "returns 422 when game is active" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :active, current_turn_user_id: challenged.id, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "returns 422 when game is active" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :active, current_turn_user_id: challenged.id, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
       patch "/games/#{game.id}/choose_position", params: { starting_position_index: 0 }, headers: headers
 
@@ -353,9 +353,9 @@ RSpec.describe "Games", type: :request do
       expect(json_response.fetch("errors")).to include("Game is not accepted")
     end
 
-     it "returns 422 when starting_position_index is missing" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "returns 422 when starting_position_index is missing" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
       patch "/games/#{game.id}/choose_position", headers: headers
 
@@ -363,9 +363,9 @@ RSpec.describe "Games", type: :request do
       expect(json_response.fetch("errors")).to include("starting_position_index must be 0 or 1")
     end
 
-     it "returns 422 when starting_position_index is not 0 or 1" do
-       game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
-       create(:character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
+      it "returns 422 when starting_position_index is not 0 or 1" do
+        game = create(:game, challenger: challenger, challenged: challenged, status: :accepted, current_turn_user_id: challenged.id, board_config: board_config)
+        create(:game_character, game: game, user: challenger, position: { x: 1, y: 1 }, facing_tile: { x: 1, y: 1 })
 
       patch "/games/#{game.id}/choose_position", params: { starting_position_index: 2 }, headers: headers
 

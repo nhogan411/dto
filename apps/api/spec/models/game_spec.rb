@@ -8,7 +8,7 @@ RSpec.describe Game, type: :model do
     it { is_expected.to belong_to(:challenged).class_name('User') }
     it { is_expected.to belong_to(:current_turn_user).class_name('User').optional }
     it { is_expected.to belong_to(:winner).class_name('User').optional }
-    it { is_expected.to have_many(:characters).dependent(:destroy) }
+     it { is_expected.to have_many(:game_characters).dependent(:destroy) }
     it { is_expected.to have_many(:game_actions).dependent(:destroy) }
   end
 

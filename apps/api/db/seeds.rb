@@ -21,6 +21,7 @@ nhogan = User.find_or_create_by!(email: "nhogan411@gmail.com") do |user|
   user.username = "nhogan411"
   user.password = "Passw0rd"
 end
+nhogan.update!(role: :admin)
 puts "  ✓ nhogan411"
 
 thebadone = User.find_or_create_by!(email: "thebadone411@gmail.com") do |user|

@@ -5,11 +5,11 @@ RSpec.describe GameStateService do
     it "returns canonical snapshot including ordered last_action" do
       game = create(:game, status: :active, current_turn_user: nil)
       game.update!(current_turn_user: game.challenger)
-      attacker = create(:character, game:, user: game.challenger, position: { x: 1, y: 1 })
-      _defender = create(:character, game:, user: game.challenged, position: { x: 1, y: 2 })
+      attacker = create(:game_character, game:, user: game.challenger, position: { x: 1, y: 1 })
+      _defender = create(:game_character, game:, user: game.challenged, position: { x: 1, y: 2 })
 
-      old_action = create(:game_action, game:, character: attacker, turn_number: 1, sequence_number: 0, action_type: :move)
-      new_action = create(:game_action, game:, character: attacker, turn_number: 1, sequence_number: 1, action_type: :attack)
+      old_action = create(:game_action, game:, game_character: attacker, turn_number: 1, sequence_number: 0, action_type: :move)
+      new_action = create(:game_action, game:, game_character: attacker, turn_number: 1, sequence_number: 1, action_type: :attack)
 
       snapshot = described_class.new(game).snapshot
 
@@ -30,8 +30,8 @@ RSpec.describe GameStateService do
     it "returns nil last_action when no actions exist" do
       game = create(:game, status: :active, current_turn_user: nil)
       game.update!(current_turn_user: game.challenger)
-      create(:character, game:, user: game.challenger)
-      create(:character, game:, user: game.challenged)
+      create(:game_character, game:, user: game.challenger)
+      create(:game_character, game:, user: game.challenged)
 
       snapshot = described_class.new(game).snapshot
       expect(snapshot[:last_action]).to be_nil
@@ -40,7 +40,7 @@ RSpec.describe GameStateService do
     it "includes icon in character snapshots" do
       game = create(:game, status: :active, current_turn_user: nil)
       game.update!(current_turn_user: game.challenger)
-      char = create(:character, game:, user: game.challenger, icon: "mage")
+      char = create(:game_character, game:, user: game.challenger, icon: "mage")
 
       snapshot = described_class.new(game).snapshot
       character_snapshot = snapshot[:characters].find { |c| c[:id] == char.id }

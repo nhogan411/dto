@@ -1,6 +1,6 @@
 class GameAction < ApplicationRecord
   belongs_to :game
-  belongs_to :character
+  belongs_to :game_character, foreign_key: :game_character_id
 
   enum :action_type, { move: 0, attack: 1, defend: 2, end_turn: 3 }
 

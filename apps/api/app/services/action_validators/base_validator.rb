@@ -46,9 +46,9 @@ module ActionValidators
       dx.abs + dy.abs == 1
     end
 
-    def other_characters
-      game.characters.select { |c| c.id != character.id }
-    end
+     def other_characters
+       game.game_characters.select { |c| c.id != character.id }
+     end
 
     def normalize_position(position)
       position = (position || {}).to_h.with_indifferent_access

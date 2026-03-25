@@ -16,6 +16,12 @@
 - [x] when you forfeit a game you get stuck in th confirmation modal. after a reload you get a modal that says "you fortfeited", but i shouldn't have to refresh
 - [ ] we're getting stuck in the game. character 1 has finished his turn (used the End Turn action). the active player highlight has moved to the next character, but when i open the action modal for character 2, everything is grayed out, and when i click on character 1 his Details card indicates he is still the active character
 - [x] This was mentioned during the buildout for a previous issue, can we fix this: These are pre-existing test failures (the name field was added to the character model at some point but the test fixtures weren't updated). Let me confirm these failures existed before our changes
+- [ ] make the character icons (in-game) bigger. Don't cap their size to the teardrop shape. Let the icon go back to the original size we were using. It will sit on top of (and over the edge of) the teardrop shape.
+- [ ] players have to reload the game page to receive updates about the game state. this is supposed to be passed over the websocket channel and broadcast out to the other player's browser - eventually triggering an animation on the game board - but for now just update the game's state.
+- [ ] I don't think the game is resetting the state of the action menu between turns. the turn can come back to me, but none of my actions are available.
+- [ ] make the game history as tall as the board
+- [ ] the game ended after one character died
+- [ ] set character movement to 5 instead of 3
 
 ## Ready
 

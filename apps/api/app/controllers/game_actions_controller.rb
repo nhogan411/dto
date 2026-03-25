@@ -17,7 +17,7 @@ class GameActionsController < ApplicationController
     turn_changed = false
 
     ActiveRecord::Base.transaction do
-      game = Game.lock.includes(:characters, :game_actions).find(params[:id])
+      game = Game.lock.includes(:game_characters, :game_actions).find(params[:id])
       actor = actor_for(game)
 
       ensure_active_game!(game)
@@ -38,14 +38,14 @@ class GameActionsController < ApplicationController
       game_over = game.completed?
       turn_changed = action_type_param == "end_turn" || action_type_param == "defend"
 
-      action = game.game_actions.create!(
-        character: actor,
-        action_type: action_type_param,
-        action_data: action_data_param,
-        result_data: action_result,
-        turn_number: turn_number,
-        sequence_number: sequence_number
-       )
+       action = game.game_actions.create!(
+         game_character: actor,
+         action_type: action_type_param,
+         action_data: action_data_param,
+         result_data: action_result,
+         turn_number: turn_number,
+         sequence_number: sequence_number
+        )
      end
 
      Broadcaster.game_action_completed(game.reload, action)
@@ -64,8 +64,8 @@ class GameActionsController < ApplicationController
     render json: { errors: [ e.message ] }, status: :unprocessable_content
   end
 
-  def index
-    game = Game.includes(:characters).find(params[:id])
+   def index
+     game = Game.includes(:game_characters).find(params[:id])
     ensure_player!(game)
 
     render json: {
@@ -79,14 +79,14 @@ class GameActionsController < ApplicationController
     render json: { errors: [ e.message ] }, status: :unprocessable_content
   end
 
-  def attack_preview
-    game = Game.includes(:characters).find(params[:id])
+   def attack_preview
+     game = Game.includes(:game_characters).find(params[:id])
     actor = actor_for(game)
     ensure_active_game!(game)
     ensure_player!(game)
 
-    target_character_id = params[:target_character_id].to_i
-    target = game.characters.find_by(id: target_character_id)
+     target_character_id = params[:target_character_id].to_i
+     target = game.game_characters.find_by(id: target_character_id)
 
     raise ActionValidators::BaseValidator::ValidationError, "Target not found" unless target
     raise ActionValidators::BaseValidator::ValidationError, "Cannot preview attack on own character" if target.user_id == current_user.id
@@ -130,8 +130,8 @@ class GameActionsController < ApplicationController
     raise ActionValidators::BaseValidator::ValidationError, "Game is not active" unless game.active?
   end
 
-  def ensure_player!(game)
-    raise ActionValidators::BaseValidator::ValidationError, "You are not a player in this game" unless game.characters.exists?(user_id: current_user.id)
+   def ensure_player!(game)
+     raise ActionValidators::BaseValidator::ValidationError, "You are not a player in this game" unless game.game_characters.exists?(user_id: current_user.id)
   end
 
   def ensure_current_turn!(game)
@@ -157,51 +157,51 @@ class GameActionsController < ApplicationController
     validator_class.new(game:, character:, action_data: action_data_param, turn_context: turn_context_for(game, character))
   end
 
-  def turn_context_for(game, character)
-    current_turn_number = game.game_actions.where(action_type: :end_turn).count + 1
-    actions_in_turn = game.game_actions.where(turn_number: current_turn_number, character_id: character.id)
+   def turn_context_for(game, character)
+     current_turn_number = game.game_actions.where(action_type: :end_turn).count + 1
+     actions_in_turn = game.game_actions.where(turn_number: current_turn_number, game_character_id: character.id)
 
-    {
-      current_user_id: current_user.id,
-      moves_taken: actions_in_turn.where(action_type: :move).sum("jsonb_array_length(action_data->'path')"),
-      has_attacked: actions_in_turn.where(character_id: character.id, action_type: :attack).exists?,
-      has_defended: actions_in_turn.where(character_id: character.id, action_type: :defend).exists?,
-      has_ended_turn: actions_in_turn.where(character_id: character.id, action_type: :end_turn).exists?
-    }
-  end
+     {
+       current_user_id: current_user.id,
+       moves_taken: actions_in_turn.where(action_type: :move).sum("jsonb_array_length(action_data->'path')"),
+       has_attacked: actions_in_turn.where(game_character_id: character.id, action_type: :attack).exists?,
+       has_defended: actions_in_turn.where(game_character_id: character.id, action_type: :defend).exists?,
+       has_ended_turn: actions_in_turn.where(game_character_id: character.id, action_type: :end_turn).exists?
+     }
+   end
 
-  def validate_combat_budget!(game, character)
-    return unless action_type_param == "attack"
+   def validate_combat_budget!(game, character)
+     return unless action_type_param == "attack"
 
-    current_turn_number = game.game_actions.where(action_type: :end_turn).count + 1
-    defended = game.game_actions.where(turn_number: current_turn_number, character_id: character.id, action_type: :defend).exists?
-    raise ActionValidators::BaseValidator::ValidationError, "Character has already defended this turn" if defended
-  end
+     current_turn_number = game.game_actions.where(action_type: :end_turn).count + 1
+     defended = game.game_actions.where(turn_number: current_turn_number, game_character_id: character.id, action_type: :defend).exists?
+     raise ActionValidators::BaseValidator::ValidationError, "Character has already defended this turn" if defended
+   end
 
   def sequence_number_for(game, turn_number)
     game.game_actions.where(turn_number: turn_number).count + 1
   end
 
-  def build_action_result(game:, actor:)
-    case action_type_param
-    when "move"
-      build_move_result(actor)
-    when "attack"
-      build_attack_result(game:, actor:)
-    when "defend"
-      {}
-    when "end_turn"
-      next_index = compute_next_turn_index(game)
-      next_character = next_index.nil? ? nil : game.characters.find_by(id: game.turn_order[next_index])
+   def build_action_result(game:, actor:)
+     case action_type_param
+     when "move"
+       build_move_result(actor)
+     when "attack"
+       build_attack_result(game:, actor:)
+     when "defend"
+       {}
+     when "end_turn"
+       next_index = compute_next_turn_index(game)
+       next_character = next_index.nil? ? nil : game.game_characters.find_by(id: game.turn_order[next_index])
 
-      {
-        next_character_id: next_character&.id,
-        turn_number: game.game_actions.where(action_type: :end_turn).count + 2
-      }
-    else
-      {}
-    end
-  end
+       {
+         next_character_id: next_character&.id,
+         turn_number: game.game_actions.where(action_type: :end_turn).count + 2
+       }
+     else
+       {}
+     end
+   end
 
   def build_move_result(actor)
     from_position = actor.position.with_indifferent_access.slice(:x, :y)
@@ -214,8 +214,8 @@ class GameActionsController < ApplicationController
     }
   end
 
-  def build_attack_result(game:, actor:)
-    target = game.characters.find(action_data_param[:target_character_id] || action_data_param["target_character_id"])
+   def build_attack_result(game:, actor:)
+     target = game.game_characters.find(action_data_param[:target_character_id] || action_data_param["target_character_id"])
     success_rate = CombatCalculator.success_rate(
       actor.position.with_indifferent_access,
       actor.facing_tile.with_indifferent_access,
@@ -260,8 +260,8 @@ class GameActionsController < ApplicationController
      end
    end
 
-  def apply_attack!(game:, action_result:)
-    target = game.characters.find(action_result[:target_id])
+   def apply_attack!(game:, action_result:)
+     target = game.game_characters.find(action_result[:target_id])
     target.update!(current_hp: action_result[:target_hp_remaining])
 
     return unless target.current_hp <= 0
@@ -269,9 +269,9 @@ class GameActionsController < ApplicationController
     game.update!(status: :completed, winner_id: current_user.id)
   end
 
-  def apply_end_turn!(game:, actor:)
-    next_index = compute_next_turn_index(game)
-    next_character = next_index.nil? ? nil : game.characters.find_by(id: game.turn_order[next_index])
+   def apply_end_turn!(game:, actor:)
+     next_index = compute_next_turn_index(game)
+     next_character = next_index.nil? ? nil : game.game_characters.find_by(id: game.turn_order[next_index])
     facing_tile = action_data_param.with_indifferent_access[:facing_tile].to_h.with_indifferent_access
 
     actor.update!(is_defending: false, facing_tile: { x: facing_tile[:x], y: facing_tile[:y] })
@@ -283,9 +283,9 @@ class GameActionsController < ApplicationController
     )
   end
 
-  def apply_defend_turn_change!(game:, actor:)
-    next_index = compute_next_turn_index(game)
-    next_character = next_index.nil? ? nil : game.characters.find_by(id: game.turn_order[next_index])
+   def apply_defend_turn_change!(game:, actor:)
+     next_index = compute_next_turn_index(game)
+     next_character = next_index.nil? ? nil : game.game_characters.find_by(id: game.turn_order[next_index])
     next_character&.update!(is_defending: false)
 
     game.update!(
@@ -294,24 +294,24 @@ class GameActionsController < ApplicationController
     )
   end
 
-  def compute_next_turn_index(game)
-    turn_order = game.turn_order
-    turn_count = turn_order.length
-    return nil if turn_count.zero?
+   def compute_next_turn_index(game)
+     turn_order = game.turn_order
+     turn_count = turn_order.length
+     return nil if turn_count.zero?
 
-    next_index = (game.current_turn_index + 1) % turn_count
-    iterations = 0
+     next_index = (game.current_turn_index + 1) % turn_count
+     iterations = 0
 
-    while (next_character = game.characters.find_by(id: turn_order[next_index])) && next_character.dead? && iterations < turn_count
-      next_index = (next_index + 1) % turn_count
-      iterations += 1
-    end
+     while (next_character = game.game_characters.find_by(id: turn_order[next_index])) && next_character.dead? && iterations < turn_count
+       next_index = (next_index + 1) % turn_count
+       iterations += 1
+     end
 
-    while game.characters.find_by(id: turn_order[next_index]).nil? && iterations < turn_count
-      next_index = (next_index + 1) % turn_count
-      iterations += 1
-    end
+     while game.game_characters.find_by(id: turn_order[next_index]).nil? && iterations < turn_count
+       next_index = (next_index + 1) % turn_count
+       iterations += 1
+     end
 
-    next_index
-  end
+     next_index
+   end
 end

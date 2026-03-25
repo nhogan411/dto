@@ -78,8 +78,8 @@ RSpec.describe Broadcaster do
     let(:game) { create(:game, challenger:, current_turn_user: challenger, winner: challenger) }
 
     it "broadcasts completed game actions" do
-      character = create(:character, game: game, user: challenger)
-      action = create(:game_action, game: game, character: character, result_data: { "move" => "north" })
+      character = create(:game_character, game: game, user: challenger)
+      action = create(:game_action, game: game, game_character: character, result_data: { "move" => "north" })
 
       expect(ActionCable.server).to receive(:broadcast) do |stream, payload|
         expect(stream).to eq(GameChannel.broadcasting_for(game))

@@ -14,7 +14,7 @@ class User < ApplicationRecord
            foreign_key: :recipient_id,
            inverse_of: :recipient,
            dependent: :destroy
-  has_many :characters, dependent: :destroy
+  has_many :game_characters, dependent: :destroy
   has_many :player_characters, class_name: "PlayerCharacter", foreign_key: :user_id, dependent: :destroy
   has_many :notifications, dependent: :destroy
 
@@ -26,8 +26,11 @@ class User < ApplicationRecord
             length: { minimum: 8 },
             allow_nil: true
   validates :username,
-             presence: true,
-             uniqueness: { case_sensitive: false },
-             length: { minimum: 3, maximum: 30 },
-             format: { with: /\A[a-zA-Z0-9_]+\z/, message: "only letters, numbers, underscores" }
+              presence: true,
+              uniqueness: { case_sensitive: false },
+              length: { minimum: 3, maximum: 30 },
+              format: { with: /\A[a-zA-Z0-9_]+\z/, message: "only letters, numbers, underscores" }
+
+  # FROZEN: never reorder values. Append new roles only.
+  enum :role, { player: 0, admin: 1 }, default: :player
 end
