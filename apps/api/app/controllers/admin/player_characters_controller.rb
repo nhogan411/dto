@@ -46,15 +46,15 @@ module Admin
     end
 
     def create_params
-      params.permit(:user_id, :name, :icon, :locked)
+      params.permit(:user_id, :name, :archetype, :locked)
     end
 
     def update_params
-      params.permit(:name, :icon, :locked)
+      params.permit(:name, :archetype, :locked)
     end
 
     def serialize_player_character(character)
-      character.as_json(only: [ :id, :user_id, :name, :icon, :locked ])
+      character.as_json(only: [ :id, :user_id, :name, :icon, :locked, :archetype ])
     end
   end
 end
