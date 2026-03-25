@@ -4,12 +4,13 @@ export interface PlayerCharacter {
   id: number;
   name: string;
   icon: string;
+  archetype: 'warrior' | 'scout';
   locked: boolean;
 }
 
 export interface UpdatePlayerCharacterPayload {
   name?: string;
-  icon?: string;
+  archetype?: 'warrior' | 'scout';
 }
 
 export const playerCharactersApi = {
