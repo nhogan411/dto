@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, FormEvent } from 'react';
+import type { AdminPlayerCharacter } from '../../api/admin';
 import {
-  AdminPlayerCharacter,
   getAdminPlayerCharacters,
   createAdminPlayerCharacter,
   updateAdminPlayerCharacter,

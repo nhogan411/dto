@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAppSelector } from '../../store/hooks';
+import type { AdminUser } from '../../api/admin';
 import {
-  AdminUser,
   getAdminUsers,
   updateAdminUser,
   deleteAdminUser

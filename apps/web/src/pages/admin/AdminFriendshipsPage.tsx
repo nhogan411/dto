@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, FormEvent } from 'react';
+import type { AdminFriendship } from '../../api/admin';
 import {
-  AdminFriendship,
   getAdminFriendships
 } from '../../api/admin';
 
