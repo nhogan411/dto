@@ -47,4 +47,23 @@ RSpec.describe ActionValidators::EndTurnValidator do
 
     expect { validator.validate! }.not_to raise_error
   end
+
+  context 'when the only adjacent opponent is dead' do
+    let!(:dead_opponent) do
+      create(:game_character, game:, user: game.challenged, position: { x: 5, y: 4 }, current_hp: 0)
+    end
+    let!(:live_opponent) do
+      create(:game_character, game:, user: game.challenged, position: { x: 9, y: 9 }, current_hp: 10)
+    end
+    let(:action_data) { { facing_tile: { x: 4, y: 3 } } }
+
+    it 'requires movement because no living opponent is adjacent' do
+      dead_opponent
+      live_opponent
+      validator = described_class.new(game:, character:, action_data:, turn_context: turn_context.merge(moves_taken: 0))
+
+      expect { validator.validate! }
+        .to raise_error(ActionValidators::BaseValidator::ValidationError, /Must move/)
+    end
+  end
 end

@@ -32,10 +32,8 @@ module ActionValidators
       others = other_characters
       return false if others.empty?
 
-      opponent = others.find { |c| c.user_id != character.user_id }
-      return false unless opponent
-
-      adjacent_cardinal?(normalize_position(character.position), normalize_position(opponent.position))
+      living_opponents = others.select { |c| c.user_id != character.user_id && c.alive? }
+      living_opponents.any? { |opponent| adjacent_cardinal?(normalize_position(character.position), normalize_position(opponent.position)) }
     end
 
     def facing_tile
