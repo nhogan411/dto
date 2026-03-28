@@ -101,7 +101,7 @@ export default function GamePage() {
 
   const getMoveBudget = useCallback(
     (character: { stats: Record<string, unknown> }) => {
-      const moveStat = Number(character.stats.move);
+      const moveStat = Number(character.stats.movement);
       if (Number.isFinite(moveStat) && moveStat > 0) {
         return Math.floor(moveStat);
       }
