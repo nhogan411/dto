@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import GamePage from './GamePage';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { getMoveBudget } from '../utils/character';
 
 // Module-level callback capture
 let capturedOnMessage: ((msg: unknown) => void) | null = null;
@@ -115,7 +116,7 @@ vi.mock('../components/game/ActionPopover', () => ({
   ActionPopover: () => null,
 }));
 
-import { forfeitGameThunk, fetchGameStateThunk } from '../store/slices/gameSlice';
+import { forfeitGameThunk, fetchGameStateThunk, handleGameChannelMessage } from '../store/slices/gameSlice';
 
 describe('GamePage', () => {
   beforeEach(() => {
@@ -318,4 +319,94 @@ describe('GamePage', () => {
     // fetchGameStateThunk must NOT be called after component unmounts
     expect(fetchGameStateThunk).not.toHaveBeenCalled();
   });
+
+  it('Test 9: dispatches handleGameChannelMessage when action_completed WS event received', () => {
+    render(
+      <MemoryRouter initialEntries={['/game/1']}>
+        <Routes>
+          <Route path="/game/:id" element={<GamePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(capturedOnMessage).toBeTruthy();
+
+    const payload = {
+      event: 'action_completed',
+      game_id: 1,
+      data: {
+        game_state: {
+          id: 1,
+          status: 'active',
+          current_turn_user_id: 1,
+          acting_character_id: null,
+          turn_order: [1, 2],
+          current_turn_index: 0,
+          characters: [],
+          turn_number: 1,
+          winner_id: null,
+          acting_character_actions: null,
+        },
+        action: {
+          id: 42,
+          game_id: 1,
+          game_character_id: 10,
+          action_type: 'move',
+          action_data: { direction: 'up' },
+          turn_number: 1,
+          sequence_number: 1,
+          result_data: null,
+          created_at: '2026-03-28T14:02:31.000Z',
+        },
+      },
+    };
+
+    capturedOnMessage!(payload);
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      handleGameChannelMessage(payload)
+    );
+  });
+
+  it('Test 10: dispatches handleGameChannelMessage when turn_changed WS event received', () => {
+    render(
+      <MemoryRouter initialEntries={['/game/1']}>
+        <Routes>
+          <Route path="/game/:id" element={<GamePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(capturedOnMessage).toBeTruthy();
+
+    const payload = {
+      event: 'turn_changed',
+      game_id: 1,
+      current_turn_user_id: 2,
+      current_turn_index: 1,
+      next_character_id: 11,
+    };
+
+    capturedOnMessage!(payload);
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      handleGameChannelMessage(payload)
+    );
+  });
+
+  it('getMoveBudget: Scout character with stats.movement = 5 returns 5', () => {
+    const scoutCharacter = { stats: { movement: 5 } };
+    expect(getMoveBudget(scoutCharacter)).toBe(5);
+  });
+
+  it('getMoveBudget: Warrior character with stats.movement = 3 returns 3', () => {
+    const warriorCharacter = { stats: { movement: 3 } };
+    expect(getMoveBudget(warriorCharacter)).toBe(3);
+  });
+
+  it('getMoveBudget: Character with empty stats returns fallback of 3', () => {
+    const characterWithEmptyStats = { stats: {} };
+    expect(getMoveBudget(characterWithEmptyStats)).toBe(3);
+  });
 });
+

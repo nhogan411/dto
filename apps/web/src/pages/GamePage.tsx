@@ -25,6 +25,7 @@ import { ActionPopover } from '../components/game/ActionPopover';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { getReachableSquares, getShortestPathToTarget, type Coordinate } from '../utils/movement';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { getMoveBudget } from '../utils/character';
 
 export default function GamePage() {
   usePageTitle('Game');
@@ -99,18 +100,6 @@ export default function GamePage() {
     return gameState.characters.find((character) => character.userId === gameState.currentTurnUserId) ?? null;
   })();
 
-  const getMoveBudget = useCallback(
-    (character: { stats: Record<string, unknown> }) => {
-      const moveStat = Number(character.stats.movement);
-      if (Number.isFinite(moveStat) && moveStat > 0) {
-        return Math.floor(moveStat);
-      }
-
-      return 3;
-    },
-    [],
-  );
-
   const getRemainingMoveBudget = useCallback(
     (character: typeof actingCharacter): number => {
       if (!character) return 0;
@@ -118,7 +107,7 @@ export default function GamePage() {
       const taken = gameState?.actingCharacterActions?.movesTaken ?? 0;
       return Math.max(0, total - taken);
     },
-    [gameState, getMoveBudget],
+    [gameState],
   );
 
   const computeReachableSquares = useCallback(
