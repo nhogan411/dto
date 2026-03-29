@@ -7,7 +7,7 @@ module ActionValidators
       validate_target_exists!
       validate_target_belongs_to_opponent!
       validate_target_alive!
-      validate_target_adjacent!
+      validate_range!
     end
 
     private
@@ -32,10 +32,16 @@ module ActionValidators
       raise ValidationError, "Target is not alive" unless target_character.alive?
     end
 
-    def validate_target_adjacent!
+    def validate_range!
       attacker_pos = normalize_position(character.position)
       target_pos = normalize_position(target_character.position)
-      raise ValidationError, "Target must be adjacent (cardinal only)" unless adjacent_cardinal?(attacker_pos, target_pos)
+      
+      range = (character.stats["range"] || 1).to_i
+      dx = (attacker_pos[:x] - target_pos[:x]).abs
+      dy = (attacker_pos[:y] - target_pos[:y]).abs
+      manhattan_distance = dx + dy
+      
+      raise ValidationError, "Target is out of range" if manhattan_distance > range
     end
 
     def target_character

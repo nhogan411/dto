@@ -19,9 +19,11 @@
 - [ ] make the character icons (in-game) bigger. Don't cap their size to the teardrop shape. Let the icon go back to the original size we were using. It will sit on top of (and over the edge of) the teardrop shape.
 - [ ] players have to reload the game page to receive updates about the game state. this is supposed to be passed over the websocket channel and broadcast out to the other player's browser - eventually triggering an animation on the game board - but for now just update the game's state.
 - [ ] I don't think the game is resetting the state of the action menu between turns. the turn can come back to me, but none of my actions are available.
-- [ ] make the game history as tall as the board
+- [x] make the game history as tall as the board
 - [ ] the game ended after one character died
 - [ ] set character movement to 5 instead of 3
+- [ ] add sent/receivd timestamps to game history events
+- [ ]
 
 ## Ready
 

@@ -16,15 +16,42 @@ RSpec.describe ActionValidators::AttackValidator do
     target
   end
 
-  it "accepts adjacent opponent target" do
-    expect { validator.validate! }.not_to raise_error
-  end
+  describe "range validation" do
+    it "accepts target within range (adjacent, manhattan distance = 1)" do
+      # Actor at (3,3), target at (3,4) -> distance = 1
+      # Default range is 1 for melee
+      expect { validator.validate! }.not_to raise_error
+    end
 
-  it "rejects non-adjacent targets" do
-    target.update!(position: { x: 5, y: 5 })
+    it "accepts target at exact range limit" do
+      # Actor at (3,3), target at (4,3) -> distance = 1
+      target.update!(position: { x: 4, y: 3 })
+      expect { validator.validate! }.not_to raise_error
+    end
 
-    expect { validator.validate! }
-      .to raise_error(ActionValidators::BaseValidator::ValidationError, "Target must be adjacent (cardinal only)")
+    it "rejects target out of range (manhattan distance = 2)" do
+      # Actor at (3,3), target at (5,3) -> distance = 2
+      target.update!(position: { x: 5, y: 3 })
+
+      expect { validator.validate! }
+        .to raise_error(ActionValidators::BaseValidator::ValidationError, "Target is out of range")
+    end
+
+    it "rejects target diagonally adjacent (manhattan distance = 2)" do
+      # Actor at (3,3), target at (4,4) -> distance = 2 (1+1)
+      target.update!(position: { x: 4, y: 4 })
+
+      expect { validator.validate! }
+        .to raise_error(ActionValidators::BaseValidator::ValidationError, "Target is out of range")
+    end
+
+    it "rejects target far away (manhattan distance = 4)" do
+      # Actor at (3,3), target at (5,5) -> distance = 4 (2+2)
+      target.update!(position: { x: 5, y: 5 })
+
+      expect { validator.validate! }
+        .to raise_error(ActionValidators::BaseValidator::ValidationError, "Target is out of range")
+    end
   end
 
   it "rejects when already attacked this turn" do

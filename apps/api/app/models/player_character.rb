@@ -19,6 +19,7 @@ class PlayerCharacter < ApplicationRecord
 
   validates :name, presence: true
   validates :archetype, presence: true, inclusion: { in: ArchetypeDefinitions::VALID_ARCHETYPES }
+  validates :race, inclusion: { in: RaceDefinitions::VALID_RACES }
 
   before_validation :derive_icon_from_archetype
 

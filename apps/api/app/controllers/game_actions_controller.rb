@@ -90,6 +90,12 @@ class GameActionsController < ApplicationController
     raise ActionValidators::BaseValidator::ValidationError, "Cannot preview attack on own character" if target.user_id == current_user.id
     raise ActionValidators::BaseValidator::ValidationError, "Target is not alive" unless target.alive?
 
+    # Range check
+    actor_range = (actor.stats["range"] || 1).to_i
+    dx = (actor.position["x"].to_i - target.position["x"].to_i).abs
+    dy = (actor.position["y"].to_i - target.position["y"].to_i).abs
+    raise ActionValidators::BaseValidator::ValidationError, "Target is out of range" if (dx + dy) > actor_range
+
     direction = CombatCalculator.attack_direction(
       actor.position.with_indifferent_access,
       actor.facing_tile.with_indifferent_access,
@@ -101,12 +107,22 @@ class GameActionsController < ApplicationController
     hit_chance_percent = (success_rate * 100).round
     threshold = target.effective_ac - actor.attack_bonus - CombatCalculator::POSITIONAL_BONUS[direction]
 
+    # Damage calculation
+    damage_stat   = actor.stats["attack_stat"]
+    damage_bonus  = actor.stat_modifier(damage_stat)
+    damage_die    = actor.damage_die
+
     render json: {
       data: {
         direction: direction.to_s,
         threshold: threshold,
         hit_chance_percent: hit_chance_percent,
-        is_defending: target.is_defending
+        is_defending: target.is_defending,
+        attack_bonus: actor.attack_bonus,
+        target_ac: target.effective_ac,
+        damage_min: 1 + damage_bonus,
+        damage_max: damage_die + damage_bonus,
+        damage_avg: ((1 + damage_die) / 2.0 + damage_bonus).round(1)
       }
     }, status: :ok
   rescue ActiveRecord::RecordNotFound
@@ -114,8 +130,6 @@ class GameActionsController < ApplicationController
   rescue ActionValidators::BaseValidator::ValidationError => e
     render json: { errors: [ e.message ] }, status: :unprocessable_content
   end
-
-  private
 
   def actor_for(game)
     game.acting_character

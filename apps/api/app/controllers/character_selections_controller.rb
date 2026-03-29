@@ -93,27 +93,33 @@ class CharacterSelectionsController < ApplicationController
     x, y = position[0], position[1]
     facing = y > 1 ? { x: x, y: y - 1 } : { x: x, y: y + 1 }
     archetype_stats = ArchetypeDefinitions.stats_for(player_character.archetype)
+    race_bonuses    = RaceDefinitions.stat_bonuses_for(player_character.race)
 
-     {
-       user: user,
-       max_hp: archetype_stats[:max_hp],
-       current_hp: archetype_stats[:max_hp],
-       is_defending: false,
-       stats: {
-         movement: archetype_stats[:movement],
-         str: archetype_stats[:str],
-         dex: archetype_stats[:dex],
-         attack_stat: archetype_stats[:attack_stat],
-         ac: archetype_stats[:ac],
-         damage_die: archetype_stats[:damage_die],
-         proficiency_bonus: archetype_stats[:proficiency_bonus]
-       },
-       position: { x: x, y: y },
-       facing_tile: facing,
-       icon: player_character.icon,
-        name: player_character.name
-      }
-   end
+    {
+      user: user,
+      max_hp: archetype_stats[:max_hp],
+      current_hp: archetype_stats[:max_hp],
+      is_defending: false,
+      stats: {
+        movement:          archetype_stats[:movement],
+        str:               archetype_stats[:str]  + (race_bonuses[:str]  || 0),
+        dex:               archetype_stats[:dex]  + (race_bonuses[:dex]  || 0),
+        con:               (race_bonuses[:con]  || 0),
+        int:               (race_bonuses[:int]  || 0),
+        wis:               (race_bonuses[:wis]  || 0),
+        cha:               (race_bonuses[:cha]  || 0),
+        attack_stat:       archetype_stats[:attack_stat],
+        ac:                archetype_stats[:ac],
+        damage_die:        archetype_stats[:damage_die],
+        proficiency_bonus: archetype_stats[:proficiency_bonus],
+        range:             archetype_stats[:range]
+      },
+      position: { x: x, y: y },
+      facing_tile: facing,
+      icon: player_character.icon,
+      name: player_character.name
+    }
+  end
 
    def serialize_game(game)
      {

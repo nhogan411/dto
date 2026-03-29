@@ -18,6 +18,7 @@ import { TurnReplay } from '../components/game/TurnReplay';
 import { TurnOrderStrip } from '../components/game/TurnOrderStrip';
 import { CharacterInfo } from '../components/game/CharacterInfo';
 import { GameHistory } from '../components/game/GameHistory';
+import { AttackPreviewTooltip } from '../components/game/AttackPreviewTooltip';
 import { useGameChannel } from '../cable/useGameChannel';
 import { fetchReplayActions } from '../services/replayService';
 import { gameApi, type AttackPreviewResponse } from '../api/game';
@@ -43,6 +44,15 @@ export default function GamePage() {
   const [attackPreview, setAttackPreview] = useState<AttackPreviewResponse | null>(null);
   const [previewTarget, setPreviewTarget] = useState<number | null>(null);
   const [reachableSquares, setReachableSquares] = useState<Coordinate[]>([]);
+  const [attackableSquares, setAttackableSquares] = useState<Coordinate[]>([]);
+  const [selectedAttackTarget, setSelectedAttackTarget] = useState<{
+    charId: number;
+    position: { x: number; y: number };
+  } | null>(null);
+  const [pendingAction, setPendingAction] = useState<{
+    label: string;
+    onConfirm: () => void;
+  } | null>(null);
   const gameOverModalRef = useRef<HTMLDivElement>(null);
   const isGameOver = gameState?.status === 'completed' || gameState?.status === 'forfeited';
   useFocusTrap(gameOverModalRef, isGameOver, () => navigate('/'));
@@ -127,6 +137,19 @@ export default function GamePage() {
     [gameState, getRemainingMoveBudget],
   );
 
+  const computeAttackableSquares = useCallback((character: typeof actingCharacter): Coordinate[] => {
+    if (!gameState || !character) return [];
+    const range = (character.stats?.range as number) ?? 1;
+    return gameState.characters
+      .filter((c) => c.userId !== character.userId && c.alive !== false && c.currentHp > 0)
+      .filter((c) => {
+        const dx = Math.abs(c.position.x - character.position.x);
+        const dy = Math.abs(c.position.y - character.position.y);
+        return dx + dy <= range;
+      })
+      .map((c) => ({ x: c.position.x, y: c.position.y }));
+  }, [gameState]);
+
   const clearMoveSelection = () => {
     setReachableSquares([]);
     setSelectedSquare(null);
@@ -148,7 +171,7 @@ export default function GamePage() {
         }
       }
     },
-    [dispatch],
+    [dispatch, parsedGameId],
   );
 
   useGameChannel(parsedGameId, onGameChannelMessage);
@@ -237,42 +260,71 @@ export default function GamePage() {
       }
 
       setSelectedSquare({ x, y });
-      if (parsedGameId !== null) {
-        void dispatch(submitActionThunk({
-          gameId: parsedGameId,
-          actionType: 'move',
-          actionData: { path },
-        })).then((result) => {
-          if (submitActionThunk.fulfilled.match(result)) {
-            const newGameState = result.payload;
-            const newMovesTaken = newGameState.actingCharacterActions?.movesTaken ?? 0;
-            const totalBudget = getMoveBudget(actingCharacter!);
-            if (newMovesTaken < totalBudget) {
-              setSelectedSquare(null);
-            } else {
-              setActiveMode(null);
-              clearMoveSelection();
-            }
+      setPendingAction({
+        label: 'Move here',
+        onConfirm: () => {
+          if (parsedGameId !== null) {
+            void dispatch(submitActionThunk({
+              gameId: parsedGameId,
+              actionType: 'move',
+              actionData: { path },
+            })).then((result) => {
+              if (submitActionThunk.fulfilled.match(result)) {
+                const newGameState = result.payload;
+                const newMovesTaken = newGameState.actingCharacterActions?.movesTaken ?? 0;
+                const totalBudget = getMoveBudget(actingCharacter!);
+                if (newMovesTaken < totalBudget) {
+                  setSelectedSquare(null);
+                } else {
+                  setActiveMode(null);
+                  clearMoveSelection();
+                }
+              }
+            });
           }
-        });
-      }
+        },
+      });
       return;
     }
 
     if (activeMode === 'attack') {
       const char = gameState?.characters.find((c) => c.position.x === x && c.position.y === y);
-      if (char && char.userId !== currentUserId) {
-        if (parsedGameId !== null) {
-          void dispatch(submitActionThunk({
-            gameId: parsedGameId,
-            actionType: 'attack',
-            actionData: { target_character_id: char.id },
-          })).then((result) => {
-            if (submitActionThunk.fulfilled.match(result)) {
-              setActiveMode(null);
+      const isAttackable = attackableSquares.some((sq) => sq.x === x && sq.y === y);
+
+      if (!char || !isAttackable) {
+        setSelectedAttackTarget(null);
+        setAttackPreview(null);
+        return;
+      }
+
+      if (selectedAttackTarget?.charId === char.id) {
+        setPendingAction({
+          label: `Attack ${char.name ?? 'enemy'}`,
+          onConfirm: () => {
+            if (parsedGameId !== null) {
+              void dispatch(submitActionThunk({
+                gameId: parsedGameId,
+                actionType: 'attack',
+                actionData: { target_character_id: char.id },
+              })).then((result) => {
+                if (submitActionThunk.fulfilled.match(result)) {
+                  setActiveMode(null);
+                  setSelectedAttackTarget(null);
+                  setAttackPreview(null);
+                }
+              });
             }
-          });
-        }
+          },
+        });
+        return;
+      }
+
+      setSelectedAttackTarget({ charId: char.id, position: { x, y } });
+      setPreviewTarget(char.id);
+      if (parsedGameId !== null) {
+        gameApi.getAttackPreview(parsedGameId, char.id)
+          .then((res) => setAttackPreview(res.data.data))
+          .catch(() => setAttackPreview(null));
       }
       return;
     }
@@ -280,35 +332,25 @@ export default function GamePage() {
     setSelectedSquare({ x, y });
   };
 
-  const handleSquareHover = (x: number, y: number) => {
-    if (activeMode !== 'attack' || !gameState || parsedGameId === null || !currentUserId) return;
-
-    const char = gameState.characters.find((c) => c.position.x === x && c.position.y === y);
-    if (char && char.userId !== currentUserId) {
-      if (previewTarget !== char.id) {
-        setPreviewTarget(char.id);
-        gameApi.getAttackPreview(parsedGameId, char.id)
-          .then((res) => {
-            setAttackPreview(res.data.data);
-          })
-          .catch(() => {
-            setAttackPreview(null);
-          });
-      }
-    } else {
-      if (previewTarget !== null) {
-        setPreviewTarget(null);
-        setAttackPreview(null);
-      }
-    }
-  };
+  const handleSquareHover = (_x: number, _y: number) => {};
 
   useEffect(() => {
     if (activeMode !== 'attack') {
       setPreviewTarget(null);
       setAttackPreview(null);
     }
+    setPendingAction(null);
   }, [activeMode]);
+
+  useEffect(() => {
+    if (activeMode !== 'attack' || !actingCharacter || actingCharacter.userId !== currentUserId) {
+      setAttackableSquares([]);
+      setSelectedAttackTarget(null);
+      setAttackPreview(null);
+      return;
+    }
+    setAttackableSquares(computeAttackableSquares(actingCharacter));
+  }, [activeMode, actingCharacter, computeAttackableSquares, currentUserId]);
 
   useEffect(() => {
     if (activeMode !== 'move') {
@@ -391,11 +433,17 @@ export default function GamePage() {
       else if (direction === 'east') facingTile.x += 1;
       else if (direction === 'west') facingTile.x -= 1;
 
-      void dispatch(submitActionThunk({
-        gameId: parsedGameId,
-        actionType: 'defend',
-        actionData: { facing_tile: facingTile }
-      }));
+      const directionLabel = direction.charAt(0).toUpperCase() + direction.slice(1);
+      setPendingAction({
+        label: `Defend (${directionLabel})`,
+        onConfirm: () => {
+          void dispatch(submitActionThunk({
+            gameId: parsedGameId,
+            actionType: 'defend',
+            actionData: { facing_tile: facingTile }
+          }));
+        },
+      });
     }
     setPopoverState(null);
   };
@@ -430,23 +478,65 @@ export default function GamePage() {
         <TurnOrderStrip />
 
        <div className="flex gap-4 items-start w-full max-w-7xl justify-center">
-        <div className="min-w-[240px] max-w-[260px] flex-shrink-0">
-          <CharacterInfo />
+      <div className="min-w-[240px] max-w-[260px] flex-shrink-0">
+        <CharacterInfo />
+      </div>
+      <div>
+        <div className="relative">
+        <GameBoard
+          boardConfig={boardConfig}
+          gameState={gameState}
+          selectedSquare={selectedSquare}
+          highlightedSquares={getHighlightedSquares()}
+          attackableSquares={attackableSquares}
+          onSquareClick={handleSquareClick}
+          onSquareHover={handleSquareHover}
+          attackPreview={null}
+          challengerId={currentGame?.challenger_id}
+          challengedId={currentGame?.challenged_id}
+        />
+          {attackPreview && selectedAttackTarget && (
+            <AttackPreviewTooltip
+              preview={attackPreview}
+              targetGridPosition={selectedAttackTarget.position}
+              tileSize={600 / 12}
+            />
+          )}
         </div>
-        <div>
-          <GameBoard
-            boardConfig={boardConfig}
-            gameState={gameState}
-            selectedSquare={selectedSquare}
-            highlightedSquares={getHighlightedSquares()}
-            onSquareClick={handleSquareClick}
-            onSquareHover={handleSquareHover}
-            attackPreview={attackPreview}
-            challengerId={currentGame?.challenger_id}
-            challengedId={currentGame?.challenged_id}
-          />
 
-        </div>
+        {pendingAction && (
+          <div className="mt-2 flex items-center justify-center gap-3 bg-neutral-800 border border-neutral-600 rounded-lg px-4 py-2 text-white text-sm">
+            <span className="text-neutral-300">{pendingAction.label}</span>
+            <button
+              type="button"
+              onClick={() => {
+                pendingAction.onConfirm();
+                setPendingAction(null);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded px-3 py-1 font-semibold cursor-pointer focus-ring"
+            >
+              Confirm
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPendingAction(null);
+                if (activeMode === 'attack') {
+                  setSelectedAttackTarget(null);
+                  setAttackPreview(null);
+                }
+                if (activeMode === 'move') {
+                  setSelectedSquare(null);
+                }
+              }}
+              className="bg-neutral-700 hover:bg-neutral-600 text-white border-0 rounded px-3 py-1 font-semibold cursor-pointer focus-ring"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+      </div>
         <div className="min-w-[240px] max-w-[260px] h-[600px] flex flex-col flex-shrink-0">
           <GameHistory />
         </div>

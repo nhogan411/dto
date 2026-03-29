@@ -5,6 +5,7 @@ export interface GameBoardSquareProps {
   x: number;
   y: number;
   isBlocked: boolean;
+  isAttackable: boolean;
   character?: {
     userId: number;
     currentHp: number;
@@ -27,6 +28,7 @@ export function GameBoardSquare({
   x,
   y,
   isBlocked,
+  isAttackable,
   character,
   isSelected,
   isHighlighted,
@@ -39,6 +41,8 @@ export function GameBoardSquare({
 
   if (isBlocked) {
     backgroundColor = '#000000';
+  } else if (isAttackable) {
+    backgroundColor = 'rgba(248, 113, 113, 0.25)';
   } else if (isHighlighted) {
     backgroundColor = 'rgba(74, 222, 128, 0.2)';
   }

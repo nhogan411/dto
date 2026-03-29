@@ -176,16 +176,16 @@ RSpec.describe "CharacterSelections", type: :request do
           expect(gc.max_hp).to eq(16)
           expect(gc.current_hp).to eq(16)
           expect(gc.stats["movement"]).to eq(3)
-          expect(gc.stats["str"]).to eq(14)
-          expect(gc.stats["dex"]).to eq(8)
+          expect(gc.stats["str"]).to eq(15)  # 14 base + 1 human bonus
+          expect(gc.stats["dex"]).to eq(9)   # 8 base + 1 human bonus
         end
 
         scout_gcs.each do |gc|
           expect(gc.max_hp).to eq(10)
           expect(gc.current_hp).to eq(10)
           expect(gc.stats["movement"]).to eq(5)
-          expect(gc.stats["str"]).to eq(8)
-          expect(gc.stats["dex"]).to eq(14)
+          expect(gc.stats["str"]).to eq(9)   # 8 base + 1 human bonus
+          expect(gc.stats["dex"]).to eq(15)  # 14 base + 1 human bonus
         end
       end
     end

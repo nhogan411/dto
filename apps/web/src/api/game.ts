@@ -5,6 +5,11 @@ export interface AttackPreviewResponse {
   threshold: number;
   hit_chance_percent: number;
   is_defending: boolean;
+  attack_bonus: number;
+  target_ac: number;
+  damage_min: number;
+  damage_max: number;
+  damage_avg: number;
 }
 
 export interface ApiGameCharacter {
