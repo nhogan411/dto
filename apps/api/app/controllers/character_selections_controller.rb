@@ -94,21 +94,25 @@ class CharacterSelectionsController < ApplicationController
     facing = y > 1 ? { x: x, y: y - 1 } : { x: x, y: y + 1 }
     archetype_stats = ArchetypeDefinitions.stats_for(player_character.archetype)
 
-    {
-      user: user,
-      max_hp: archetype_stats[:max_hp],
-      current_hp: archetype_stats[:max_hp],
-      is_defending: false,
-      stats: {
-        movement: archetype_stats[:movement],
-        str: archetype_stats[:str],
-        dex: archetype_stats[:dex]
-      },
-      position: { x: x, y: y },
-      facing_tile: facing,
-      icon: player_character.icon,
-       name: player_character.name
-     }
+     {
+       user: user,
+       max_hp: archetype_stats[:max_hp],
+       current_hp: archetype_stats[:max_hp],
+       is_defending: false,
+       stats: {
+         movement: archetype_stats[:movement],
+         str: archetype_stats[:str],
+         dex: archetype_stats[:dex],
+         attack_stat: archetype_stats[:attack_stat],
+         ac: archetype_stats[:ac],
+         damage_die: archetype_stats[:damage_die],
+         proficiency_bonus: archetype_stats[:proficiency_bonus]
+       },
+       position: { x: x, y: y },
+       facing_tile: facing,
+       icon: player_character.icon,
+        name: player_character.name
+      }
    end
 
    def serialize_game(game)
