@@ -94,6 +94,10 @@ export interface GameHistoryAction {
     * hit: boolean, critical: boolean, damage: number
     */
   result_data: Record<string, unknown> | null;
+  /** ISO timestamp of when the server created/broadcast this action */
+  created_at?: string;
+  /** ISO timestamp of when the client received this action via WebSocket (WS actions only) */
+  received_at?: string;
 }
 
 export const gameApi = {

@@ -108,7 +108,7 @@ export default function ProfilePage() {
   const hasPasswordErrors = passwordErrors.length > 0;
 
   return (
-    <div style={{ padding: '2rem' }} className="min-h-screen bg-neutral-950 p-8 text-white font-sans">
+    <div className="min-h-screen bg-neutral-950 p-8 text-white font-sans">
       <div className="mx-auto flex max-w-[800px] flex-col gap-8">
         <header className="space-y-2">
           <h1 className="m-0 text-3xl font-bold text-[var(--team-green)]">Profile Settings</h1>

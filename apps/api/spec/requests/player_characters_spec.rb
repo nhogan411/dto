@@ -41,10 +41,10 @@ RSpec.describe "PlayerCharacters", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(player_character.reload.name).to eq("Brenna")
-      expect(player_character.icon).to eq("rogue")
+      expect(player_character.icon).to eq("scout")
       expect(player_character.locked).to be(false)
       expect(json_response.dig("data", "name")).to eq("Brenna")
-      expect(json_response.dig("data", "icon")).to eq("rogue")
+      expect(json_response.dig("data", "icon")).to eq("scout")
     end
 
     it "does not allow users to update locked" do
@@ -86,7 +86,7 @@ RSpec.describe "PlayerCharacters", type: :request do
         expect(response).to have_http_status(:ok)
         json = response.parsed_body
         expect(json.dig('data', 'archetype')).to eq('scout')
-        expect(json.dig('data', 'icon')).to eq('rogue')
+        expect(json.dig('data', 'icon')).to eq('scout')
       end
     end
 
@@ -126,7 +126,8 @@ RSpec.describe "PlayerCharacters", type: :request do
       expect(characters.size).to eq(6)
       expect(characters.map(&:name).uniq.size).to eq(6)
       expect(characters.map(&:name)).to all(be_in(PlayerCharacter::AVAILABLE_NAMES))
-      expect(characters.map(&:icon).uniq).to eq([ "warrior" ])
+      valid_icons = ArchetypeDefinitions::VALID_ARCHETYPES.map { |a| ArchetypeDefinitions.icon_for(a) }
+      expect(characters.map(&:icon)).to all(be_in(valid_icons))
       expect(characters).to all(have_attributes(locked: false))
     end
   end

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, FormEvent } from 'react';
+import { useEffect, useState, useCallback, type FormEvent } from 'react';
 import type { AdminFriendship } from '../../api/admin';
 import {
   getAdminFriendships
@@ -41,17 +41,17 @@ export default function AdminFriendshipsPage() {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="p-5">
       <h1>Admin: Friendships</h1>
       
-      <div style={{ marginBottom: '20px' }}>
+      <div className="mb-5">
         <form onSubmit={handleFilterSubmit}>
           <input
             type="number"
             placeholder="Filter by User ID"
             value={filterUserId}
             onChange={(e) => setFilterUserId(e.target.value)}
-            style={{ marginRight: '10px' }}
+            className="mr-2.5"
           />
           <button type="submit">Filter</button>
           <button
@@ -60,7 +60,7 @@ export default function AdminFriendshipsPage() {
               setFilterUserId('');
               fetchFriendships();
             }}
-            style={{ marginLeft: '10px' }}
+            className="ml-2.5"
           >
             Clear Filter
           </button>
@@ -70,30 +70,30 @@ export default function AdminFriendshipsPage() {
       {loading ? (
         <div>Loading friendships...</div>
       ) : error ? (
-        <div style={{ color: 'red' }}>Error: {error}</div>
+        <div className="text-red-500">Error: {error}</div>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+        <table className="w-full border-collapse mt-5">
           <thead>
-            <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
-              <th style={{ padding: '10px' }}>ID</th>
-              <th style={{ padding: '10px' }}>Requester (id: username)</th>
-              <th style={{ padding: '10px' }}>Recipient (id: username)</th>
-              <th style={{ padding: '10px' }}>Status</th>
-              <th style={{ padding: '10px' }}>Created At</th>
+            <tr className="border-b-2 border-neutral-400 text-left">
+              <th className="p-2.5">ID</th>
+              <th className="p-2.5">Requester (id: username)</th>
+              <th className="p-2.5">Recipient (id: username)</th>
+              <th className="p-2.5">Status</th>
+              <th className="p-2.5">Created At</th>
             </tr>
           </thead>
           <tbody>
             {friendships.map((f) => (
-              <tr key={f.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '10px' }}>{f.id}</td>
-                <td style={{ padding: '10px' }}>
+              <tr key={f.id} className="border-b border-neutral-200">
+                <td className="p-2.5">{f.id}</td>
+                <td className="p-2.5">
                   {f.requester.id}: {f.requester.username}
                 </td>
-                <td style={{ padding: '10px' }}>
+                <td className="p-2.5">
                   {f.recipient.id}: {f.recipient.username}
                 </td>
-                <td style={{ padding: '10px' }}>{f.status}</td>
-                <td style={{ padding: '10px' }}>{new Date(f.created_at).toLocaleString()}</td>
+                <td className="p-2.5">{f.status}</td>
+                <td className="p-2.5">{new Date(f.created_at).toLocaleString()}</td>
               </tr>
             ))}
           </tbody>

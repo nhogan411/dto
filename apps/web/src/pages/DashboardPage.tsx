@@ -162,7 +162,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div style={{ padding: '2rem' }} className="max-w-[1200px] mx-auto p-8 text-white bg-neutral-950 min-h-screen">
+    <div className="max-w-[1200px] mx-auto p-8 text-white bg-neutral-950 min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <h1 className="m-0 text-3xl text-[var(--team-green)]">Dashboard</h1>
         <button

@@ -178,7 +178,7 @@ RSpec.describe "Admin::PlayerCharacters", type: :request do
         expect(data["user_id"]).to eq(regular_user.id)
         expect(data["name"]).to eq("New Char")
         expect(data["archetype"]).to eq("scout")
-        expect(data["icon"]).to eq("rogue")
+        expect(data["icon"]).to eq("scout")
         expect(data["locked"]).to eq(true)
       end
 
@@ -230,13 +230,13 @@ RSpec.describe "Admin::PlayerCharacters", type: :request do
 
         expect(data["name"]).to eq("Updated Name")
         expect(data["archetype"]).to eq("scout")
-        expect(data["icon"]).to eq("rogue")
+        expect(data["icon"]).to eq("scout")
         expect(data["locked"]).to eq(true)
 
         player_character.reload
         expect(player_character.name).to eq("Updated Name")
         expect(player_character.archetype).to eq("scout")
-        expect(player_character.icon).to eq("rogue")
+        expect(player_character.icon).to eq("scout")
         expect(player_character.locked).to eq(true)
       end
 

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchGameThunk, clearGame } from '../store/slices/gameSlice';
+import { fetchGameThunk, clearGame, handleGameChannelMessage, type GameChannelMessage } from '../store/slices/gameSlice';
 import { fetchPlayerCharactersThunk } from '../store/slices/playerCharactersSlice';
 import { gameApi } from '../api/game';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { useGameChannel } from '../cable/useGameChannel';
 
 export default function LobbyPage() {
   usePageTitle('Game Lobby');
@@ -21,6 +22,14 @@ export default function LobbyPage() {
   const [selectError, setSelectError] = useState<string | null>(null);
 
   const parsedGameId = id ? Number.parseInt(id, 10) : null;
+
+  const onGameChannelMessage = useCallback(
+    (data: GameChannelMessage) => {
+      dispatch(handleGameChannelMessage(data));
+    },
+    [dispatch],
+  );
+  useGameChannel(parsedGameId, onGameChannelMessage);
 
   useEffect(() => {
     if (parsedGameId !== null) {
@@ -159,7 +168,7 @@ export default function LobbyPage() {
   const teamBgSoftClass = isChallenger ? 'bg-blue-900/30' : 'bg-green-900/30';
 
   return (
-    <div style={{ padding: '2rem' }} className="min-h-screen bg-neutral-950 text-neutral-100 py-8 px-4 sm:px-8 flex flex-col items-center">
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 py-8 px-4 sm:px-8 flex flex-col items-center">
       <div className={`w-full max-w-4xl bg-neutral-900 rounded-xl border border-neutral-800 shadow-2xl overflow-hidden relative border-t-4 ${teamBorderClass}`}>
         
         <div className="p-6 sm:p-8 border-b border-neutral-800 bg-neutral-900/50 flex flex-col md:flex-row justify-between items-center gap-6">

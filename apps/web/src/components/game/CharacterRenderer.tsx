@@ -33,7 +33,7 @@ export function CharacterRenderer({
   const teamColor = team === 'challenger' ? 'var(--team-blue)' : team === 'challenged' ? 'var(--team-green)' : '#6b7280';
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isDead ? 0.5 : 1, filter: isDead ? 'grayscale(100%)' : 'none' }}>
+    <div className="w-full h-full flex items-center justify-center relative" style={{ opacity: isDead ? 0.5 : 1, filter: isDead ? 'grayscale(100%)' : 'none' }}>
       <svg
         data-testid="teardrop-svg"
         width="75%"
@@ -46,12 +46,13 @@ export function CharacterRenderer({
           d="M20,2 C20,2 6,16 6,28 A14,14 0 0,0 34,28 C34,16 20,2 20,2 Z"
           fill={teamColor}
         />
-        <foreignObject x="6" y="16" width="28" height="28">
-          <div {...({ xmlns: "http://www.w3.org/1999/xhtml" } as React.HTMLAttributes<HTMLDivElement>)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', fontSize: '14px', lineHeight: '1' }}>
-            {ICON_EMOJI[icon] ?? '❓'}
-          </div>
-        </foreignObject>
       </svg>
+      <div
+        data-testid="icon-emoji"
+        className="absolute text-[160%] leading-none pointer-events-none select-none"
+      >
+        {ICON_EMOJI[icon] ?? '❓'}
+      </div>
     </div>
   );
 }

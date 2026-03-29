@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, FormEvent } from 'react';
+import { useEffect, useState, useCallback, type FormEvent } from 'react';
 import type { AdminPlayerCharacter } from '../../api/admin';
 import {
   getAdminPlayerCharacters,
@@ -117,10 +117,10 @@ export default function AdminPlayerCharactersPage() {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="p-5">
       <h1>Admin: Player Characters</h1>
       
-      <div style={{ marginBottom: '20px', padding: '10px', border: '1px solid #ccc' }}>
+      <div className="mb-5 p-2.5 border border-neutral-400">
         <h3>Create New Character</h3>
         <form onSubmit={handleCreate}>
           <input
@@ -129,7 +129,7 @@ export default function AdminPlayerCharactersPage() {
             value={newUserId}
             onChange={(e) => setNewUserId(e.target.value)}
             required
-            style={{ marginRight: '10px' }}
+            className="mr-2.5"
           />
           <input
             type="text"
@@ -137,7 +137,7 @@ export default function AdminPlayerCharactersPage() {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             required
-            style={{ marginRight: '10px' }}
+            className="mr-2.5"
           />
           <input
             type="text"
@@ -145,9 +145,9 @@ export default function AdminPlayerCharactersPage() {
             value={newIcon}
             onChange={(e) => setNewIcon(e.target.value)}
             required
-            style={{ marginRight: '10px' }}
+            className="mr-2.5"
           />
-          <label style={{ marginRight: '10px' }}>
+          <label className="mr-2.5">
             <input
               type="checkbox"
               checked={newLocked}
@@ -159,14 +159,14 @@ export default function AdminPlayerCharactersPage() {
         </form>
       </div>
 
-      <div style={{ marginBottom: '20px' }}>
+      <div className="mb-5">
         <form onSubmit={handleFilterSubmit}>
           <input
             type="number"
             placeholder="Filter by User ID"
             value={filterUserId}
             onChange={(e) => setFilterUserId(e.target.value)}
-            style={{ marginRight: '10px' }}
+            className="mr-2.5"
           />
           <button type="submit">Filter</button>
           <button
@@ -175,7 +175,7 @@ export default function AdminPlayerCharactersPage() {
               setFilterUserId('');
               fetchCharacters();
             }}
-            style={{ marginLeft: '10px' }}
+            className="ml-2.5"
           >
             Clear Filter
           </button>
@@ -185,25 +185,25 @@ export default function AdminPlayerCharactersPage() {
       {loading ? (
         <div>Loading characters...</div>
       ) : error ? (
-        <div style={{ color: 'red' }}>Error: {error}</div>
+        <div className="text-red-500">Error: {error}</div>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+        <table className="w-full border-collapse mt-5">
           <thead>
-            <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
-              <th style={{ padding: '10px' }}>ID</th>
-              <th style={{ padding: '10px' }}>User ID</th>
-              <th style={{ padding: '10px' }}>Name</th>
-              <th style={{ padding: '10px' }}>Icon</th>
-              <th style={{ padding: '10px' }}>Locked</th>
-              <th style={{ padding: '10px' }}>Actions</th>
+            <tr className="border-b-2 border-neutral-400 text-left">
+              <th className="p-2.5">ID</th>
+              <th className="p-2.5">User ID</th>
+              <th className="p-2.5">Name</th>
+              <th className="p-2.5">Icon</th>
+              <th className="p-2.5">Locked</th>
+              <th className="p-2.5">Actions</th>
             </tr>
           </thead>
           <tbody>
             {characters.map((char) => (
-              <tr key={char.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '10px' }}>{char.id}</td>
-                <td style={{ padding: '10px' }}>{char.user_id}</td>
-                <td style={{ padding: '10px' }}>
+              <tr key={char.id} className="border-b border-neutral-200">
+                <td className="p-2.5">{char.id}</td>
+                <td className="p-2.5">{char.user_id}</td>
+                <td className="p-2.5">
                   {editingId === char.id ? (
                     <input
                       type="text"
@@ -214,7 +214,7 @@ export default function AdminPlayerCharactersPage() {
                     char.name
                   )}
                 </td>
-                <td style={{ padding: '10px' }}>
+                <td className="p-2.5">
                   {editingId === char.id ? (
                     <input
                       type="text"
@@ -225,7 +225,7 @@ export default function AdminPlayerCharactersPage() {
                     char.icon
                   )}
                 </td>
-                <td style={{ padding: '10px' }}>
+                <td className="p-2.5">
                   {editingId === char.id ? (
                     <input
                       type="checkbox"
@@ -236,10 +236,10 @@ export default function AdminPlayerCharactersPage() {
                     char.locked ? 'Yes' : 'No'
                   )}
                 </td>
-                <td style={{ padding: '10px' }}>
+                <td className="p-2.5">
                   {editingId === char.id ? (
                     <>
-                      <button type="button" onClick={() => handleEditSave(char.id)} style={{ marginRight: '5px' }}>
+                      <button type="button" onClick={() => handleEditSave(char.id)} className="mr-1.5">
                         Save
                       </button>
                       <button type="button" onClick={handleEditCancel}>
@@ -248,10 +248,10 @@ export default function AdminPlayerCharactersPage() {
                     </>
                   ) : (
                     <>
-                      <button type="button" onClick={() => handleEditClick(char)} style={{ marginRight: '5px' }}>
+                      <button type="button" onClick={() => handleEditClick(char)} className="mr-1.5">
                         Edit
                       </button>
-                      <button type="button" onClick={() => handleDelete(char.id)} style={{ color: 'red' }}>
+                      <button type="button" onClick={() => handleDelete(char.id)} className="text-red-500">
                         Delete
                       </button>
                     </>

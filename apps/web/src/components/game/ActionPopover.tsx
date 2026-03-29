@@ -91,43 +91,43 @@ export function ActionPopover({
         ref={popoverRef}
         role="dialog"
         aria-label="Choose Facing Direction"
-        className="fixed z-50 bg-[#1e1e1e] border border-[#333] rounded-lg shadow-xl p-2 min-w-[140px] flex flex-col gap-1"
+        className="fixed z-50 bg-surface-popover border border-border-subtle rounded-lg shadow-xl p-2 min-w-popover flex flex-col gap-1"
         style={{
           top: Math.max(10, Math.min(window.innerHeight - 200, y)),
           left: Math.max(10, Math.min(window.innerWidth - 150, x)),
         }}
       >
         <div className="text-xs text-neutral-300 mb-1 px-1 font-semibold uppercase tracking-wider text-center">Face Direction</div>
-        <button
-          role="menuitem"
-          aria-label="Face North"
-          onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('north') : onEndTurn('north'); }}
-          className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
-        >
+         <button
+           role="menuitem"
+           aria-label="Face North"
+           onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('north') : onEndTurn('north'); }}
+           className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-border-subtle focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
+         >
           North (Up)
         </button>
-        <button
-          role="menuitem"
-          aria-label="Face South"
-          onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('south') : onEndTurn('south'); }}
-          className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
-        >
+         <button
+           role="menuitem"
+           aria-label="Face South"
+           onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('south') : onEndTurn('south'); }}
+           className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-border-subtle focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
+         >
           South (Down)
         </button>
-        <button
-          role="menuitem"
-          aria-label="Face East"
-          onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('east') : onEndTurn('east'); }}
-          className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
-        >
+         <button
+           role="menuitem"
+           aria-label="Face East"
+           onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('east') : onEndTurn('east'); }}
+           className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-border-subtle focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
+         >
           East (Right)
         </button>
-        <button
-          role="menuitem"
-          aria-label="Face West"
-          onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('west') : onEndTurn('west'); }}
-          className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
-        >
+         <button
+           role="menuitem"
+           aria-label="Face West"
+           onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('west') : onEndTurn('west'); }}
+           className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-border-subtle focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
+         >
           West (Left)
         </button>
       </div>
@@ -139,7 +139,7 @@ export function ActionPopover({
       ref={popoverRef}
       role="menu"
       aria-label="Character Actions"
-      className="fixed z-50 bg-[#1e1e1e] border border-[#333] rounded-lg shadow-xl p-2 min-w-[140px] flex flex-col gap-1"
+      className="fixed z-50 bg-surface-popover border border-border-subtle rounded-lg shadow-xl p-2 min-w-popover flex flex-col gap-1"
       style={{
         top: Math.max(10, Math.min(window.innerHeight - 200, y)),
         left: Math.max(10, Math.min(window.innerWidth - 150, x)),
@@ -151,7 +151,7 @@ export function ActionPopover({
         aria-disabled={!canMove}
         disabled={!canMove}
         onClick={(e) => { e.stopPropagation(); onMove(); }}
-        className="w-full text-left px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
+        className="w-full text-left px-3 py-2 rounded text-white bg-transparent hover:bg-border-subtle disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
       >
         Move
       </button>
@@ -161,7 +161,7 @@ export function ActionPopover({
         aria-disabled={!canAttack}
         disabled={!canAttack}
         onClick={(e) => { e.stopPropagation(); onAttack(); }}
-        className="w-full text-left px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
+        className="w-full text-left px-3 py-2 rounded text-white bg-transparent hover:bg-border-subtle disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
       >
         Attack
       </button>
@@ -171,18 +171,18 @@ export function ActionPopover({
         aria-disabled={!canDefend}
         disabled={!canDefend}
         onClick={(e) => { e.stopPropagation(); setPendingFacingAction('defend'); }}
-        className="w-full text-left px-3 py-2 rounded text-white bg-transparent hover:bg-[#333] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
+        className="w-full text-left px-3 py-2 rounded text-white bg-transparent hover:bg-border-subtle disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
       >
         Defend
       </button>
-      <div className="h-px bg-[#333] my-1" role="separator" />
+      <div className="h-px bg-border-subtle my-1" role="separator" />
       <button
         role="menuitem"
         aria-label="End Turn Action"
         aria-disabled={!canEndTurn}
         disabled={!canEndTurn}
         onClick={(e) => { e.stopPropagation(); setPendingFacingAction('endTurn'); }}
-        className="w-full text-left px-3 py-2 rounded text-[#4ade80] bg-transparent hover:bg-[#333] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#4ade80] transition-colors"
+        className="w-full text-left px-3 py-2 rounded text-accent-green bg-transparent hover:bg-border-subtle disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
       >
         End Turn
       </button>

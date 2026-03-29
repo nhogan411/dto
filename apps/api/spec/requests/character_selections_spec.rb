@@ -149,8 +149,8 @@ RSpec.describe "CharacterSelections", type: :request do
       challenger_chars = game.game_characters.where(user_id: challenger.id).order(:id)
       challenged_chars = game.game_characters.where(user_id: challenged.id).order(:id)
 
-      expect(challenger_chars.map(&:icon)).to eq([ "warrior", "rogue" ])
-      expect(challenged_chars.map(&:icon)).to eq([ "rogue", "warrior" ])
+      expect(challenger_chars.map(&:icon)).to eq([ "warrior", "scout" ])
+      expect(challenged_chars.map(&:icon)).to eq([ "scout", "warrior" ])
     end
 
     context 'when both players select characters with different archetypes' do

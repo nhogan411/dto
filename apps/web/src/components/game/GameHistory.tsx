@@ -1,6 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { useAppSelector } from '../../store/hooks';
 
+function formatTimestamp(iso: string): string {
+  const d = new Date(iso);
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  const ms = String(d.getMilliseconds()).padStart(3, '0');
+  return `${hh}:${mm}:${ss}.${ms}`;
+}
+
 export function GameHistory() {
   const gameActions = useAppSelector((state) => state.game.gameActions);
   const gameState = useAppSelector((state) => state.game.gameState);
@@ -101,7 +110,7 @@ export function GameHistory() {
         className="flex-1 overflow-y-auto flex flex-col gap-2 pr-2"
       >
         {gameActions.map((action) => {
-          const charName = gameState?.characters.find(c => c.id === action.character_id)?.name ?? '';
+          const charName = gameState?.characters.find(c => c.id === action.game_character_id)?.name ?? '';
           return (
             <div key={action.id} className="p-2 bg-neutral-700 rounded text-sm">
               <div className="text-neutral-300 text-xs mb-0.5">
@@ -110,6 +119,16 @@ export function GameHistory() {
               <div>
                 <strong>{charName ? `${charName} ` : ''}{action.action_type}:</strong> {renderActionDescription(action)}
               </div>
+              {action.created_at && (
+                <div className="text-neutral-400 text-xs mt-0.5">
+                  Sent: {formatTimestamp(action.created_at)}
+                </div>
+              )}
+              {action.received_at && (
+                <div className="text-neutral-400 text-xs">
+                  Received: {formatTimestamp(action.received_at)}
+                </div>
+              )}
             </div>
           );
         })}

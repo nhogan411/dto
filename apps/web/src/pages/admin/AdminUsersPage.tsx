@@ -51,28 +51,28 @@ export default function AdminUsersPage() {
   };
 
   if (loading) return <div>Loading users...</div>;
-  if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
+   if (error) return <div className="text-red-500">Error: {error}</div>;
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="p-5">
       <h1>Admin: Users</h1>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+      <table className="w-full border-collapse mt-5">
         <thead>
-          <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
-            <th style={{ padding: '10px' }}>ID</th>
-            <th style={{ padding: '10px' }}>Email</th>
-            <th style={{ padding: '10px' }}>Username</th>
-            <th style={{ padding: '10px' }}>Role</th>
-            <th style={{ padding: '10px' }}>Actions</th>
+          <tr className="border-b-2 border-neutral-400 text-left">
+            <th className="p-2.5">ID</th>
+            <th className="p-2.5">Email</th>
+            <th className="p-2.5">Username</th>
+            <th className="p-2.5">Role</th>
+            <th className="p-2.5">Actions</th>
           </tr>
         </thead>
         <tbody>
           {users.map((user) => (
-            <tr key={user.id} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: '10px' }}>{user.id}</td>
-              <td style={{ padding: '10px' }}>{user.email}</td>
-              <td style={{ padding: '10px' }}>{user.username}</td>
-              <td style={{ padding: '10px' }}>
+            <tr key={user.id} className="border-b border-neutral-200">
+              <td className="p-2.5">{user.id}</td>
+              <td className="p-2.5">{user.email}</td>
+              <td className="p-2.5">{user.username}</td>
+              <td className="p-2.5">
                 <select
                   value={user.role}
                   onChange={(e) => handleRoleChange(user.id, e.target.value)}
@@ -82,9 +82,9 @@ export default function AdminUsersPage() {
                   <option value="admin">admin</option>
                 </select>
               </td>
-              <td style={{ padding: '10px' }}>
+              <td className="p-2.5">
                 {user.id !== currentUserId && (
-                  <button type="button" onClick={() => handleDelete(user.id)} style={{ color: 'red' }}>
+                  <button type="button" onClick={() => handleDelete(user.id)} className="text-red-500">
                     Delete
                   </button>
                 )}

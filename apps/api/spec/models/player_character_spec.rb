@@ -38,10 +38,10 @@ RSpec.describe PlayerCharacter, type: :model do
       expect(player_character.icon).to eq('warrior')
     end
 
-    it 'sets icon to rogue when archetype is scout' do
+    it 'sets icon to scout when archetype is scout' do
       player_character.archetype = 'scout'
       player_character.valid?
-      expect(player_character.icon).to eq('rogue')
+      expect(player_character.icon).to eq('scout')
     end
   end
 
@@ -57,10 +57,10 @@ RSpec.describe PlayerCharacter, type: :model do
   end
 
   describe '.provision_for' do
-    it 'creates six characters all with warrior archetype by default' do
+    it 'creates six characters all with valid archetypes' do
       user = create(:user)
       provisioned = described_class.provision_for(user)
-      expect(provisioned.map(&:archetype).uniq).to eq([ 'warrior' ])
+      expect(provisioned.map(&:archetype)).to all(be_in(ArchetypeDefinitions::VALID_ARCHETYPES))
     end
 
     it 'creates six unlocked player characters using seeded names and derived icons' do
@@ -74,7 +74,8 @@ RSpec.describe PlayerCharacter, type: :model do
       expect(provisioned.map(&:user_id).uniq).to eq([ user.id ])
       expect(provisioned.map(&:name).uniq.size).to eq(6)
       expect(provisioned.map(&:name)).to all(be_in(described_class::AVAILABLE_NAMES))
-      expect(provisioned.map(&:icon).uniq).to eq([ 'warrior' ])
+      valid_icons = ArchetypeDefinitions::VALID_ARCHETYPES.map { |a| ArchetypeDefinitions.icon_for(a) }
+      expect(provisioned.map(&:icon)).to all(be_in(valid_icons))
       expect(provisioned).to all(have_attributes(locked: false))
     end
   end

@@ -13,46 +13,30 @@ export default function Layout() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#121212', color: '#fff', fontFamily: 'sans-serif' }}>
+    <div className="min-h-screen bg-[#121212] text-white font-sans">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-white focus:text-black">Skip to main content</a>
-      <nav aria-label="Main navigation" style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        padding: '1rem 2rem', 
-        backgroundColor: '#1e1e1e',
-        borderBottom: '1px solid #333' 
-      }}>
-        <Link to="/" style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#4ade80', textDecoration: 'none' }} className="focus-ring rounded px-1">
+      <nav aria-label="Main navigation" className="flex justify-between items-center px-8 py-4 bg-surface-popover border-b border-border-subtle">
+         <Link to="/" className="focus-ring rounded px-1 text-xl font-bold text-accent-green no-underline">
           DTO
         </Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <Link to="/characters" style={{ color: '#d4d4d4', textDecoration: 'none', fontWeight: 600 }} className="focus-ring rounded px-1">
+         <div className="flex items-center gap-6">
+           <Link to="/characters" className="focus-ring rounded px-1 text-neutral-300 no-underline font-semibold">
             Characters
           </Link>
-          <Link to="/profile" style={{ color: '#d4d4d4', textDecoration: 'none', fontWeight: 600 }} className="focus-ring rounded px-1">
+           <Link to="/profile" className="focus-ring rounded px-1 text-neutral-300 no-underline font-semibold">
             Profile
           </Link>
-          {user && <span style={{ color: '#d4d4d4' }}>{user.username}</span>}
-          <button 
-            onClick={handleLogout}
-            className="focus-ring"
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: 'transparent',
-              color: '#f87171',
-              border: '1px solid #f87171',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              transition: 'all 0.2s'
-            }}
-          >
+           {user && <span className="text-neutral-300">{user.username}</span>}
+           <button 
+             type="button"
+             onClick={handleLogout}
+             className="focus-ring px-4 py-2 bg-transparent text-red-400 border border-red-400 rounded cursor-pointer font-bold transition-all duration-200"
+           >
             Logout
           </button>
         </div>
       </nav>
-      <main id="main-content" tabIndex={-1} style={{ padding: '0' }}>
+       <main id="main-content" tabIndex={-1}>
         <Outlet />
       </main>
     </div>

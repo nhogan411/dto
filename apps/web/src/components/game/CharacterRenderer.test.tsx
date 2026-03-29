@@ -25,54 +25,36 @@ describe('CharacterRenderer', () => {
   describe('Icon emoji mapping', () => {
     it('renders ⚔️ emoji for warrior icon', () => {
       const { container } = renderChar({ icon: 'warrior' });
-      const emojiDiv = container.querySelector('foreignObject div');
+      const emojiDiv = container.querySelector('[data-testid="icon-emoji"]');
       expect(emojiDiv?.textContent).toBe('⚔️');
     });
 
-    it('renders 🗡️ emoji for rogue icon', () => {
-      const { container } = renderChar({ icon: 'rogue' });
-      const emojiDiv = container.querySelector('foreignObject div');
-      expect(emojiDiv?.textContent).toBe('🗡️');
-    });
-
-    it('renders 🔮 emoji for mage icon', () => {
-      const { container } = renderChar({ icon: 'mage' });
-      const emojiDiv = container.querySelector('foreignObject div');
-      expect(emojiDiv?.textContent).toBe('🔮');
-    });
-
-    it('renders 🏹 emoji for archer icon', () => {
-      const { container } = renderChar({ icon: 'archer' });
-      const emojiDiv = container.querySelector('foreignObject div');
+    it('renders 🏹 emoji for scout icon', () => {
+      const { container } = renderChar({ icon: 'scout' });
+      const emojiDiv = container.querySelector('[data-testid="icon-emoji"]');
       expect(emojiDiv?.textContent).toBe('🏹');
-    });
-
-    it('renders 🛡️ emoji for paladin icon', () => {
-      const { container } = renderChar({ icon: 'paladin' });
-      const emojiDiv = container.querySelector('foreignObject div');
-      expect(emojiDiv?.textContent).toBe('🛡️');
-    });
-
-    it('renders 🌿 emoji for ranger icon', () => {
-      const { container } = renderChar({ icon: 'ranger' });
-      const emojiDiv = container.querySelector('foreignObject div');
-      expect(emojiDiv?.textContent).toBe('🌿');
     });
 
     it('renders ❓ emoji for unknown icon', () => {
       const { container } = renderChar({ icon: 'unknown' });
-      const emojiDiv = container.querySelector('foreignObject div');
+      const emojiDiv = container.querySelector('[data-testid="icon-emoji"]');
       expect(emojiDiv?.textContent).toBe('❓');
     });
 
-    it('renders different emojis for warrior and rogue', () => {
+    it('renders different emojis for warrior and scout', () => {
       const { container: container1 } = render(<CharacterRenderer {...baseProps} icon="warrior" />);
-      const warriorEmoji = container1.querySelector('foreignObject div')?.textContent;
+      const warriorEmoji = container1.querySelector('[data-testid="icon-emoji"]')?.textContent;
 
-      const { container: container2 } = render(<CharacterRenderer {...baseProps} icon="rogue" />);
-      const rogueEmoji = container2.querySelector('foreignObject div')?.textContent;
+      const { container: container2 } = render(<CharacterRenderer {...baseProps} icon="scout" />);
+      const scoutEmoji = container2.querySelector('[data-testid="icon-emoji"]')?.textContent;
 
-      expect(warriorEmoji).not.toBe(rogueEmoji);
+      expect(warriorEmoji).not.toBe(scoutEmoji);
+    });
+
+    it('applies 160% font size to icon container', () => {
+      const { container } = renderChar({ icon: 'warrior' });
+      const emojiDiv = container.querySelector('[data-testid="icon-emoji"]') as HTMLElement;
+      expect(emojiDiv?.style.fontSize).toBe('160%');
     });
   });
 

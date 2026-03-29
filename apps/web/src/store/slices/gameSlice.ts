@@ -349,7 +349,10 @@ const gameSlice = createSlice({
           if (incomingAction && isRecord(incomingAction) && typeof incomingAction.id === 'number') {
             const alreadyExists = state.gameActions.some((a) => a.id === (incomingAction as { id: number }).id);
             if (!alreadyExists) {
-              state.gameActions.push(incomingAction as unknown as GameHistoryAction);
+              state.gameActions.push({
+                ...(incomingAction as unknown as GameHistoryAction),
+                received_at: new Date().toISOString(),
+              });
             }
           }
 

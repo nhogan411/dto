@@ -35,7 +35,6 @@ export function CharacterInfo() {
   const isChallenged = character.userId === currentGame?.challenged_id;
   const teamColor = isChallenger ? 'var(--team-blue)' : isChallenged ? 'var(--team-green)' : '#d4d4d4';
   const teamTextClass = isChallenger ? 'text-blue-400' : isChallenged ? 'text-emerald-400' : 'text-neutral-300';
-  const teamName = isChallenger ? 'Challenger' : isChallenged ? 'Challenged' : 'Unknown';
 
   return (
     <div
@@ -48,7 +47,7 @@ export function CharacterInfo() {
     >
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
-          <h3 className={`m-0 text-lg font-semibold ${teamTextClass}`}>{teamName}</h3>
+          <h3 className={`m-0 text-lg font-semibold ${teamTextClass}`}>{character.name}</h3>
           {isDead && <span className="bg-neutral-600 text-neutral-300 px-1.5 py-0.5 rounded text-xs font-bold">DEAD</span>}
         </div>
         <button
@@ -81,7 +80,7 @@ export function CharacterInfo() {
       </div>
 
       {character.stats && (
-        <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm" style={{ color: '#d4d4d4' }}>
+        <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-neutral-300">
           <span><strong>MOV</strong> {character.stats.movement ?? '—'}</span>
           <span><strong>STR</strong> {character.stats.str ?? '—'}</span>
           <span><strong>DEX</strong> {character.stats.dex ?? '—'}</span>

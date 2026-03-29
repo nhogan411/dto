@@ -17,7 +17,7 @@ export default function CharactersPage() {
   }, [dispatch, status]);
 
   return (
-    <div style={{ padding: '2rem' }} className="max-w-6xl mx-auto p-8 text-white bg-neutral-900 min-h-screen">
+    <div className="max-w-6xl mx-auto p-8 text-white bg-neutral-900 min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-green-400 m-0">Characters</h1>
       </div>

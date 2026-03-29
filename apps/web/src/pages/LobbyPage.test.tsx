@@ -9,6 +9,9 @@ const mockNavigate = vi.fn();
 const currentUserId = 1;
 const opponentUserId = 2;
 
+// Module-level callback capture for WebSocket
+let capturedOnMessage: ((msg: unknown) => void) | null = null;
+
 // Mock state factory
 const getMockCurrentGame = vi.fn(() => ({
   id: 1,
@@ -92,11 +95,19 @@ vi.mock('../hooks/usePageTitle', () => ({
   usePageTitle: vi.fn(),
 }));
 
+vi.mock('../cable/useGameChannel', () => ({
+  useGameChannel: vi.fn((_gameId: unknown, onMessage: (msg: unknown) => void) => {
+    capturedOnMessage = onMessage;
+  }),
+}));
+
 import { gameApi } from '../api/game';
+import { useGameChannel } from '../cable/useGameChannel';
 
 describe('LobbyPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    capturedOnMessage = null;
     getMockCurrentGame.mockReturnValue({
       id: 1,
       challenger_id: currentUserId,
@@ -275,5 +286,57 @@ describe('LobbyPage', () => {
     // Should still be enabled with 2 characters
     expect(lockInButton).not.toBeDisabled();
     expect(screen.getByText('/ 2 selected')).toBeInTheDocument();
+  });
+
+  it('Test 5: useGameChannel is called with parsedGameId on mount', () => {
+    render(
+      <MemoryRouter initialEntries={['/lobby/1']}>
+        <Routes>
+          <Route path="/lobby/:id" element={<LobbyPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(vi.mocked(useGameChannel).mock.calls[0][0]).toBe(1);
+  });
+
+  it('Test 6: game_updated with status active triggers navigation to /games/:id', async () => {
+    const { rerender } = render(
+      <MemoryRouter initialEntries={['/lobby/1']}>
+        <Routes>
+          <Route path="/lobby/:id" element={<LobbyPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(capturedOnMessage).toBeTruthy();
+    
+    getMockCurrentGame.mockReturnValue({
+      id: 1,
+      challenger_id: currentUserId,
+      challenged_id: opponentUserId,
+      status: 'active' as never,
+      challenger_username: 'player1',
+      challenged_username: 'player2',
+      challenger_picks: [1, 2] as unknown as null,
+      challenged_picks: [3, 4] as unknown as null,
+      board_config: {
+        tiles: Array.from({ length: 12 }, () =>
+          Array.from({ length: 12 }, () => ({ type: 'open' }))
+        ),
+      },
+    });
+
+    rerender(
+      <MemoryRouter initialEntries={['/lobby/1']}>
+        <Routes>
+          <Route path="/lobby/:id" element={<LobbyPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/games/1');
+    });
   });
 });

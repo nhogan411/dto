@@ -7,10 +7,10 @@ import gameReducer, { gameActionsReceived, updateGameState } from '../../store/s
 import type { CharacterState } from '../../store/slices/gameSlice';
 import { GameHistory } from './GameHistory';
 
-const makeAttackAction = (overrides: Partial<GameHistoryAction> = {}): GameHistoryAction => ({
+const makeAttackAction = (overrides: Partial<any> = {}): GameHistoryAction => ({
   id: 1,
   game_id: 1,
-  character_id: 1,
+  game_character_id: 1,
   action_type: 'attack',
   turn_number: 1,
   sequence_number: 1,
@@ -134,7 +134,7 @@ describe('GameHistory D20 attack display', () => {
 describe('GameHistory character name rendering', () => {
   it('renders character name before action type', () => {
     renderWithActionsAndCharacters(
-      [makeAttackAction({ character_id: 1 })],
+      [makeAttackAction({ game_character_id: 1 })],
       [makeCharacterState({ id: 1, name: 'Thorin' })]
     );
     expect(screen.getByText(/Thorin attack/i)).toBeInTheDocument();
@@ -142,7 +142,7 @@ describe('GameHistory character name rendering', () => {
 
   it('renders without crashing when character not in state', () => {
     renderWithActionsAndCharacters(
-      [makeAttackAction({ character_id: 99 })],
+      [makeAttackAction({ game_character_id: 99 })],
       [] // no characters in state
     );
     // Should not render "undefined" anywhere
