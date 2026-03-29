@@ -16,6 +16,7 @@ class PlayerCharacter < ApplicationRecord
     Taylor Alexander Cage Miles Morales Hobie Ross Barnes Monroe Nico
   ].freeze
   belongs_to :user
+  has_many :player_character_items, dependent: :destroy
 
   validates :name, presence: true
   validates :archetype, presence: true, inclusion: { in: ArchetypeDefinitions::VALID_ARCHETYPES }
