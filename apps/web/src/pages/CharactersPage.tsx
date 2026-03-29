@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchPlayerCharactersThunk } from '../store/slices/playerCharactersSlice';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { RACE_LABELS } from '../constants/races';
 
 export default function CharactersPage() {
   usePageTitle('Characters');
@@ -44,6 +45,9 @@ export default function CharactersPage() {
               <div>
                 <h2 className="text-xl font-bold m-0 text-white">{character.name}</h2>
                 <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                    {RACE_LABELS[character.race] ?? character.race}
+                  </span>
                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide
                     ${character.archetype === 'warrior'
                       ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'

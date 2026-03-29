@@ -1,5 +1,6 @@
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectCharacter } from '../../store/slices/gameSlice';
+import { RACE_LABELS } from '../../constants/races';
 
 function getFacingDirection(pos: { x: number; y: number }, facing: { x: number; y: number }): string {
   if (facing.y > pos.y) return 'North';
@@ -46,9 +47,15 @@ export function CharacterInfo() {
       }}
     >
       <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center gap-2">
-          <h3 className={`m-0 text-lg font-semibold ${teamTextClass}`}>{character.name}</h3>
-          {isDead && <span className="bg-neutral-600 text-neutral-300 px-1.5 py-0.5 rounded text-xs font-bold">DEAD</span>}
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <h3 className={`m-0 text-lg font-semibold ${teamTextClass}`}>{character.name}</h3>
+            {isDead && <span className="bg-neutral-600 text-neutral-300 px-1.5 py-0.5 rounded text-xs font-bold">DEAD</span>}
+          </div>
+          <p className="m-0 text-xs text-neutral-500">
+            {RACE_LABELS[character.race] ?? character.race}
+            {character.icon ? ` · ${character.icon.charAt(0).toUpperCase()}${character.icon.slice(1)}` : ''}
+          </p>
         </div>
         <button
           onClick={() => dispatch(selectCharacter(null))}
