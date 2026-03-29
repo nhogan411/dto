@@ -78,5 +78,15 @@ RSpec.describe PlayerCharacter, type: :model do
       expect(provisioned.map(&:icon)).to all(be_in(valid_icons))
       expect(provisioned).to all(have_attributes(locked: false))
     end
+
+    it 'gives each provisioned character an equipped shortsword' do
+      user = create(:user)
+      provisioned = described_class.provision_for(user)
+      provisioned.each do |pc|
+        item = pc.player_character_items.find_by(equipped: true)
+        expect(item).to be_present
+        expect(item.item_slug).to eq('shortsword')
+      end
+    end
   end
 end

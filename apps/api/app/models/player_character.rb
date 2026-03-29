@@ -31,7 +31,9 @@ class PlayerCharacter < ApplicationRecord
 
     transaction do
       names.map do |name|
-        create!(user: user, name: name, archetype: ArchetypeDefinitions::VALID_ARCHETYPES.sample, locked: false)
+        pc = create!(user: user, name: name, archetype: ArchetypeDefinitions::VALID_ARCHETYPES.sample, locked: false)
+        pc.player_character_items.create!(item_slug: "shortsword", equipped: true)
+        pc
       end
     end
   end
