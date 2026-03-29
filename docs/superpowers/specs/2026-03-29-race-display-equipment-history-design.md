@@ -54,14 +54,21 @@ params.require(:player_character).permit(:name, :archetype, :race)
 **`Admin::PlayerCharactersController`**
 Apply the same serializer fix (add `:race` to `only:`).
 
-**`CharacterSelectionsController#serialize_character`**
-Add `race` as a top-level field in the game character serialization, sourced from the associated `player_character`:
+**`CharacterSelectionsController#character_attributes_for`**
+`GameCharacter` has no foreign key back to `PlayerCharacter` (it copies `name`, `icon`, etc. at creation time). Race follows the same pattern — store it in `stats["race"]` alongside other snapshot data:
 
 ```ruby
-race: game_character.player_character.race
+stats[:race] = player_character.race
 ```
 
-This makes `race` available in Redux `CharacterState` for in-game display.
+**`CharacterSelectionsController#serialize_character`**
+Add `race` as a top-level field read from `stats`:
+
+```ruby
+race: character.stats["race"]
+```
+
+This makes `race` available in Redux `CharacterState` for in-game display without requiring an association traversal.
 
 #### Frontend
 
