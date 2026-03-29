@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_29_220200) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_29_234353) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -85,6 +85,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_29_220200) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
+  create_table "player_character_items", force: :cascade do |t|
+    t.bigint "player_character_id", null: false
+    t.string "item_slug", null: false
+    t.boolean "equipped", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["player_character_id", "item_slug"], name: "index_pc_items_on_pc_id_and_slug", unique: true
+    t.index ["player_character_id"], name: "index_player_character_items_on_player_character_id"
   end
 
   create_table "player_characters", force: :cascade do |t|
@@ -254,6 +264,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_29_220200) do
   add_foreign_key "games", "users", column: "current_turn_user_id"
   add_foreign_key "games", "users", column: "winner_id"
   add_foreign_key "notifications", "users"
+  add_foreign_key "player_character_items", "player_characters"
   add_foreign_key "player_characters", "users"
   add_foreign_key "refresh_tokens", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
