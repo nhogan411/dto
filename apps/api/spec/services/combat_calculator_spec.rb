@@ -1,121 +1,228 @@
 require "rails_helper"
 
 RSpec.describe CombatCalculator do
-  describe ".success_rate" do
-    let(:attacker_facing) { { x: 4, y: 4 } }
-    let(:defender_pos) { { x: 4, y: 4 } }
-    let(:defender_facing) { { x: 4, y: 3 } }
+  # Test fixtures: warrior and scout archetypes with D&D 5e stats
+  let(:warrior_stats) do
+    {
+      "str" => 14,
+      "dex" => 8,
+      "attack_stat" => "str",
+      "ac" => 15,
+      "damage_die" => 6,
+      "proficiency_bonus" => 2
+    }
+  end
 
-    it "returns 11 for front attack without defense" do
-      attacker_pos = { x: 4, y: 3 }
+  let(:scout_stats) do
+    {
+      "str" => 8,
+      "dex" => 14,
+      "attack_stat" => "dex",
+      "ac" => 12,
+      "damage_die" => 6,
+      "proficiency_bonus" => 2
+    }
+  end
 
-      rate = described_class.success_rate(attacker_pos, attacker_facing, defender_pos, defender_facing, false)
+  let(:warrior) do
+    build(:game_character, stats: warrior_stats, is_defending: false)
+  end
 
-      expect(rate).to eq(11)
-    end
-
-    it "returns 7 for side attack without defense" do
-      attacker_pos = { x: 5, y: 4 }
-
-      rate = described_class.success_rate(attacker_pos, attacker_facing, defender_pos, defender_facing, false)
-
-      expect(rate).to eq(7)
-    end
-
-    it "returns 3 for back attack without defense" do
-      attacker_pos = { x: 4, y: 5 }
-
-      rate = described_class.success_rate(attacker_pos, attacker_facing, defender_pos, defender_facing, false)
-
-      expect(rate).to eq(3)
-    end
-
-    it "returns 17 for front attack against defending target" do
-      attacker_pos = { x: 4, y: 3 }
-
-      rate = described_class.success_rate(attacker_pos, attacker_facing, defender_pos, defender_facing, true)
-
-      expect(rate).to eq(17)
-    end
-
-    it "returns 13 for side attack against defending target" do
-      attacker_pos = { x: 5, y: 4 }
-
-      rate = described_class.success_rate(attacker_pos, attacker_facing, defender_pos, defender_facing, true)
-
-      expect(rate).to eq(13)
-    end
-
-    it "returns 9 for back attack against defending target" do
-      attacker_pos = { x: 4, y: 5 }
-
-      rate = described_class.success_rate(attacker_pos, attacker_facing, defender_pos, defender_facing, true)
-
-      expect(rate).to eq(9)
-    end
+  let(:scout) do
+    build(:game_character, stats: scout_stats, is_defending: false)
   end
 
   describe ".roll_attack" do
-    it "returns a miss below threshold" do
-      result = described_class.roll_attack(11, rand_val: 5)
+    context "natural 1 (auto-miss)" do
+      it "always misses regardless of bonuses or target AC" do
+        result = described_class.roll_attack(
+          warrior,
+          scout,
+          position: :front,
+          rand_val: { d20: 1, damage: 6 }
+        )
 
-      expect(result).to eq(hit: false, critical: false, damage: 0, roll: 5)
+        expect(result[:hit]).to eq(false)
+        expect(result[:critical]).to eq(false)
+        expect(result[:damage]).to eq(0)
+        expect(result[:natural_roll]).to eq(1)
+      end
     end
 
-    it "returns a hit at threshold" do
-      result = described_class.roll_attack(11, rand_val: 11)
+    context "natural 20 (auto-hit + critical)" do
+      it "always hits and doubles damage dice" do
+        result = described_class.roll_attack(
+          warrior,
+          scout,
+          position: :front,
+          rand_val: { d20: 20, damage: 4 }
+        )
 
-      expect(result).to eq(hit: true, critical: false, damage: 1, roll: 11)
+        # Warrior attack_bonus = (14-10)/2 + 2 = 4
+        # Warrior damage_bonus = (14-10)/2 = 2
+        # Crit damage = (4 * 2) + 2 = 10
+        expect(result[:hit]).to eq(true)
+        expect(result[:critical]).to eq(true)
+        expect(result[:natural_roll]).to eq(20)
+        expect(result[:damage]).to eq(10)
+      end
     end
 
-    it "returns a hit above threshold" do
-      result = described_class.roll_attack(11, rand_val: 15)
+    context "normal hit" do
+      it "hits when total attack roll meets or exceeds target AC" do
+        result = described_class.roll_attack(
+          warrior,
+          scout,
+          position: :front,
+          rand_val: { d20: 15, damage: 3 }
+        )
 
-      expect(result).to eq(hit: true, critical: false, damage: 1, roll: 15)
+        # Warrior attack_bonus = 4
+        # Scout AC = 12
+        # Total = 15 + 4 = 19 >= 12
+        # Damage = 3 + 2 = 5
+        expect(result[:hit]).to eq(true)
+        expect(result[:critical]).to eq(false)
+        expect(result[:natural_roll]).to eq(15)
+        expect(result[:total]).to eq(19)
+        expect(result[:target_ac]).to eq(12)
+        expect(result[:damage]).to eq(5)
+      end
     end
 
-    it "returns a critical hit on natural 20" do
-      result = described_class.roll_attack(11, rand_val: 20)
+    context "normal miss" do
+      it "misses when total attack roll is below target AC" do
+        result = described_class.roll_attack(
+          warrior,
+          scout,
+          position: :front,
+          rand_val: { d20: 5, damage: 3 }
+        )
 
-      expect(result).to eq(hit: true, critical: true, damage: 2, roll: 20)
+        # Total = 5 + 4 = 9 < 12
+        expect(result[:hit]).to eq(false)
+        expect(result[:critical]).to eq(false)
+        expect(result[:damage]).to eq(0)
+      end
     end
 
-    it "lets natural 20 hit even against threshold 21" do
-      result = described_class.roll_attack(21, rand_val: 20)
+    context "positional bonus: side attack" do
+      it "applies +1 bonus for side position" do
+        result = described_class.roll_attack(
+          warrior,
+          scout,
+          position: :side,
+          rand_val: { d20: 7, damage: 3 }
+        )
 
-      expect(result).to eq(hit: true, critical: true, damage: 2, roll: 20)
+        # Total = 7 + 4 (attack_bonus) + 1 (side) = 12 >= 12
+        expect(result[:hit]).to eq(true)
+        expect(result[:total]).to eq(12)
+        expect(result[:positional_bonus]).to eq(1)
+      end
     end
 
-    it "returns a miss on roll 1 below threshold" do
-      result = described_class.roll_attack(11, rand_val: 1)
+    context "positional bonus: back attack" do
+      it "applies +2 bonus for back position" do
+        result = described_class.roll_attack(
+          warrior,
+          scout,
+          position: :back,
+          rand_val: { d20: 6, damage: 3 }
+        )
 
-      expect(result).to eq(hit: false, critical: false, damage: 0, roll: 1)
+        # Total = 6 + 4 (attack_bonus) + 2 (back) = 12 >= 12
+        expect(result[:hit]).to eq(true)
+        expect(result[:total]).to eq(12)
+        expect(result[:positional_bonus]).to eq(2)
+      end
     end
 
-    it "includes the roll in the result hash" do
-      result = described_class.roll_attack(11, rand_val: 15)
+    context "defending target" do
+      it "uses effective_ac (base + 2) when target is defending" do
+        defending_scout = build(:game_character, stats: scout_stats, is_defending: true)
 
-      expect(result[:roll]).to eq(15)
+        # Hit case: roll high enough to beat defended AC
+        hit_result = described_class.roll_attack(
+          warrior,
+          defending_scout,
+          position: :front,
+          rand_val: { d20: 10, damage: 3 }
+        )
+
+        # Defending scout AC = 12 + 2 = 14
+        # Total = 10 + 4 = 14 >= 14
+        expect(hit_result[:hit]).to eq(true)
+        expect(hit_result[:target_ac]).to eq(14)
+
+        # Miss case: same roll vs non-defending scout would hit
+        miss_result = described_class.roll_attack(
+          warrior,
+          defending_scout,
+          position: :front,
+          rand_val: { d20: 8, damage: 3 }
+        )
+
+        # Total = 8 + 4 = 12 < 14
+        expect(miss_result[:hit]).to eq(false)
+      end
+    end
+
+    context "result hash structure" do
+      it "includes all required keys in result hash" do
+        result = described_class.roll_attack(
+          warrior,
+          scout,
+          position: :front,
+          rand_val: { d20: 15, damage: 3 }
+        )
+
+        expect(result).to include(
+          :natural_roll,
+          :total,
+          :attack_bonus,
+          :positional_bonus,
+          :target_ac,
+          :hit,
+          :critical,
+          :damage,
+          :damage_roll,
+          :damage_bonus
+        )
+      end
     end
   end
 
-  describe ".attack_direction" do
-    it "returns front when attacker is on the defender front tile" do
-      direction = described_class.attack_direction({ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 4, y: 3 })
+  describe ".success_rate" do
+    it "returns a Float between 0.0 and 1.0" do
+      rate = described_class.success_rate(warrior, scout, position: :front)
 
-      expect(direction).to eq(:front)
+      expect(rate).to be_a(Float)
+      expect(rate).to be >= 0.0
+      expect(rate).to be <= 1.0
     end
 
-    it "returns side when attacker is on a defender side tile" do
-      direction = described_class.attack_direction({ x: 5, y: 4 }, { x: 4, y: 4 }, { x: 4, y: 3 })
+    it "returns lower success rate when target is defending" do
+      defending_scout = build(:game_character, stats: scout_stats, is_defending: true)
 
-      expect(direction).to eq(:side)
+      normal_rate = described_class.success_rate(warrior, scout, position: :front)
+      defended_rate = described_class.success_rate(warrior, defending_scout, position: :front)
+
+      # Defending increases AC by 2, lowering success rate
+      expect(defended_rate).to be < normal_rate
     end
 
-    it "returns back when attacker is on the defender back tile" do
-      direction = described_class.attack_direction({ x: 4, y: 5 }, { x: 4, y: 4 }, { x: 4, y: 3 })
+    context "positional impact on success rate" do
+      it "has different success rates for front, side, back positions" do
+        front_rate = described_class.success_rate(warrior, scout, position: :front)
+        side_rate = described_class.success_rate(warrior, scout, position: :side)
+        back_rate = described_class.success_rate(warrior, scout, position: :back)
 
-      expect(direction).to eq(:back)
+        # Back attacks should have highest success rate, front lowest
+        # (because positional bonuses make back attacks more likely to hit)
+        expect(back_rate).to be > side_rate
+        expect(side_rate).to be > front_rate
+      end
     end
   end
 end
