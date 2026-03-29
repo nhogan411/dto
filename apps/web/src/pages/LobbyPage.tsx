@@ -26,8 +26,11 @@ export default function LobbyPage() {
   const onGameChannelMessage = useCallback(
     (data: GameChannelMessage) => {
       dispatch(handleGameChannelMessage(data));
+      if (data.event === 'game_accepted' && parsedGameId !== null && !Number.isNaN(parsedGameId)) {
+        void dispatch(fetchGameThunk(parsedGameId));
+      }
     },
-    [dispatch],
+    [dispatch, parsedGameId],
   );
   useGameChannel(parsedGameId, onGameChannelMessage);
 
