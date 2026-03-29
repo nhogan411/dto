@@ -143,6 +143,9 @@ export default function GamePage() {
         }
         setShowForfeitModal(false);
         setIsForfeiting(false);
+        if (parsedGameId !== null) {
+          void dispatch(fetchGameStateThunk(parsedGameId));
+        }
       }
     },
     [dispatch],
