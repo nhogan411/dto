@@ -1,15 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useAppSelector } from '../../store/hooks';
 
-function formatTimestamp(iso: string): string {
-  const d = new Date(iso);
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  const ss = String(d.getSeconds()).padStart(2, '0');
-  const ms = String(d.getMilliseconds()).padStart(3, '0');
-  return `${hh}:${mm}:${ss}.${ms}`;
-}
-
 export function GameHistory() {
   const gameActions = useAppSelector((state) => state.game.gameActions);
   const gameState = useAppSelector((state) => state.game.gameState);
@@ -127,9 +118,9 @@ export function GameHistory() {
     }
   };
 
-   return (
-     <div className="p-4 border border-neutral-700 rounded-lg bg-neutral-800 flex flex-col h-full max-h-[400px]">
-       <h3 className="m-0 mb-2 text-lg font-semibold flex-shrink-0 text-white">Game History</h3>
+  return (
+    <div className="p-4 border border-neutral-700 rounded-lg bg-neutral-800 flex flex-col h-full">
+      <h3 className="m-0 mb-2 text-lg font-semibold flex-shrink-0 text-white">Game History</h3>
       <div 
         ref={listRef}
         role="log"
@@ -140,24 +131,84 @@ export function GameHistory() {
       >
         {gameActions.map((action) => {
           const charName = gameState?.characters.find(c => c.id === action.game_character_id)?.name ?? '';
+
+          if (action.action_type === 'attack' && action.result_data?.natural_roll !== undefined) {
+            const rd = action.result_data;
+            const directionStr = rd.direction as string | undefined;
+            const directionLabel = directionStr ? directionStr.charAt(0).toUpperCase() + directionStr.slice(1) : 'Front';
+            const naturalRoll = rd.natural_roll as number;
+            const attackBonusNum = rd.attack_bonus as number;
+            const total = naturalRoll + attackBonusNum;
+            const targetAc = rd.target_ac as number;
+            const targetId = rd.target_id as string | number | undefined;
+            const targetName = gameState?.characters.find(c => String(c.id) === String(targetId))?.name ?? "Unknown";
+            const hit = rd.hit as boolean;
+            const critical = rd.critical as boolean;
+            const damage = rd.damage as number | undefined;
+
+            const formatBonus = (n: number) => n >= 0 ? `+${n}` : `${n}`;
+
+            const attacker = gameState?.characters.find(c => c.id === action.game_character_id);
+            const attackStat = attacker?.stats?.attack_stat as string | undefined;
+            const statValue = attackStat ? (attacker?.stats?.[attackStat] as number | undefined) : undefined;
+            const abilityMod = statValue !== undefined ? Math.floor((statValue - 10) / 2) : undefined;
+            const profBonus = attacker?.stats?.proficiency_bonus as number | undefined;
+            const positionalBonus = { front: 0, side: 1, back: 2 }[directionStr as 'front'|'side'|'back'] ?? 0;
+            const statLabel = attackStat?.toUpperCase() ?? 'STR';
+
+            const hasStats = abilityMod !== undefined && profBonus !== undefined;
+
+            return (
+              <div key={action.id} className="p-2 bg-neutral-700 rounded text-sm text-left">
+                <div className="text-neutral-300 text-xs mb-1">
+                  Turn {action.turn_number}
+                </div>
+                <div className="font-semibold mb-1">
+                  {charName ? `${charName} ` : ''}{directionLabel} Attacks {targetName}
+                </div>
+                <div className="text-neutral-200">
+                  <div>Attack Roll: {naturalRoll}</div>
+                  <div className="relative inline-block group cursor-help">
+                    <span>Attack Modifier: {formatBonus(attackBonusNum)}</span>
+                    <span className="ml-1 text-neutral-500 text-xs">[?]</span>
+                    {hasStats && (
+                      <div className="absolute left-0 bottom-full mb-1 hidden group-hover:block
+                                      bg-neutral-900 border border-neutral-600 rounded p-2
+                                      text-xs text-neutral-200 whitespace-nowrap z-50 shadow-lg">
+                        <div>{statLabel} Modifier: {formatBonus(abilityMod!)}</div>
+                        <div>Proficiency Bonus: {formatBonus(profBonus!)}</div>
+                        <div>Positional Bonus ({directionLabel}): {formatBonus(positionalBonus)}</div>
+                        <div className="border-t border-neutral-600 mt-1 pt-1">
+                          Total Modifier: {formatBonus(abilityMod! + profBonus! + positionalBonus)}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div>Total: {total}{critical ? ' (Critical!)' : ''}</div>
+                  <div>Target AC: {targetAc}</div>
+                  <div className="mt-1">
+                    Result:{' '}
+                    {critical ? (
+                      <span className="text-yellow-400">Critical Hit — {damage} damage</span>
+                    ) : hit ? (
+                      <span className="text-green-400">Hit — {damage} damage</span>
+                    ) : (
+                      <span className="text-neutral-400">Miss</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
           return (
-            <div key={action.id} className="p-2 bg-neutral-700 rounded text-sm">
+            <div key={action.id} className="p-2 bg-neutral-700 rounded text-sm text-left">
               <div className="text-neutral-300 text-xs mb-0.5">
                 Turn {action.turn_number}
               </div>
               <div>
                 <strong>{charName ? `${charName} ` : ''}{action.action_type}:</strong> {renderActionDescription(action)}
               </div>
-              {action.created_at && (
-                <div className="text-neutral-400 text-xs mt-0.5">
-                  Sent: {formatTimestamp(action.created_at)}
-                </div>
-              )}
-              {action.received_at && (
-                <div className="text-neutral-400 text-xs">
-                  Received: {formatTimestamp(action.received_at)}
-                </div>
-              )}
             </div>
           );
         })}
