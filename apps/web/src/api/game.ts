@@ -24,6 +24,7 @@ export interface ApiGameCharacter {
   name?: string;
   alive?: boolean;
   stats?: Record<string, unknown>;
+  race?: string;
 }
 
 export interface ApiGame {
@@ -109,6 +110,8 @@ export interface GameHistoryAction {
   created_at?: string;
   /** ISO timestamp of when the client received this action via WebSocket (WS actions only) */
   received_at?: string;
+  /** Weapon slug used in this attack (if equipped) */
+  weapon_slug?: string;
 }
 
 export const gameApi = {

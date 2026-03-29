@@ -6,11 +6,13 @@ export interface PlayerCharacter {
   icon: string;
   archetype: 'warrior' | 'scout';
   locked: boolean;
+  race: string;
 }
 
 export interface UpdatePlayerCharacterPayload {
   name?: string;
   archetype?: 'warrior' | 'scout';
+  race?: string;
 }
 
 export const playerCharactersApi = {
