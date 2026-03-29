@@ -49,6 +49,35 @@ export function GameHistory() {
           const damage = action.result_data.damage;
           const direction = action.result_data.direction;
 
+          const naturalRoll = action.result_data?.natural_roll as number | undefined;
+          const attackBonus = action.result_data?.attack_bonus as number | undefined;
+          const targetAc = action.result_data?.target_ac as number | undefined;
+
+          // D&D 5e extended display
+          if (naturalRoll !== undefined && attackBonus !== undefined && targetAc !== undefined) {
+            const directionLabel = direction ? String(direction).charAt(0).toUpperCase() + String(direction).slice(1) : 'Melee';
+            
+            if (critical) {
+              return (
+                <span style={{ color: '#FFD700' }}>
+                  {`${directionLabel} attack — CRITICAL HIT! Rolled ${naturalRoll} — ${String(damage)} damage`}
+                </span>
+              );
+            } else if (hit) {
+              return (
+                <span style={{ color: '#4CAF50' }}>
+                  {`${directionLabel} attack — Rolled ${naturalRoll} + ${attackBonus} vs AC ${targetAc} — Hit! ${String(damage)} damage`}
+                </span>
+              );
+            } else {
+              return (
+                <span style={{ color: '#d4d4d4' }}>
+                  {`${directionLabel} attack — Rolled ${naturalRoll} + ${attackBonus} vs AC ${targetAc} — Miss`}
+                </span>
+              );
+            }
+          }
+
           // D20 display
           if (roll !== undefined && threshold !== undefined && direction !== undefined) {
             const directionLabel = String(direction).charAt(0).toUpperCase() + String(direction).slice(1);

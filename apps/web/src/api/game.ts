@@ -94,6 +94,12 @@ export interface GameHistoryAction {
     * hit: boolean, critical: boolean, damage: number
     */
   result_data: Record<string, unknown> | null;
+  /** D&D 5e extended attack fields (if available in result_data or top-level depending on sync method) */
+  natural_roll?: number;
+  attack_bonus?: number;
+  target_ac?: number;
+  damage_roll?: number;
+  damage_bonus?: number;
   /** ISO timestamp of when the server created/broadcast this action */
   created_at?: string;
   /** ISO timestamp of when the client received this action via WebSocket (WS actions only) */
