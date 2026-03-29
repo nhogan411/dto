@@ -112,7 +112,9 @@ class CharacterSelectionsController < ApplicationController
         ac:                archetype_stats[:ac],
         damage_die:        archetype_stats[:damage_die],
         proficiency_bonus: archetype_stats[:proficiency_bonus],
-        range:             archetype_stats[:range]
+        range:             archetype_stats[:range],
+        race:              player_character.race,
+        weapon_slug:       player_character.player_character_items.find_by(equipped: true)&.item_slug
       },
       position: { x: x, y: y },
       facing_tile: facing,
@@ -156,7 +158,8 @@ class CharacterSelectionsController < ApplicationController
       max_hp: character.max_hp,
       is_defending: character.is_defending,
       stats: character.stats,
-      icon: character.icon
+      icon: character.icon,
+      race: character.stats["race"]
     }
   end
 

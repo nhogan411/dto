@@ -39,7 +39,8 @@ module ActionValidators
         target_ac: roll[:target_ac],
         damage_roll: roll[:damage_roll],
         damage_bonus: roll[:damage_bonus],
-        target_id: target.id
+        target_id: target.id,
+        weapon_slug: character.stats["weapon_slug"]
       }
     end
 
