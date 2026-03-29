@@ -5,7 +5,9 @@ module ActionValidators
     end
 
     def build_result
-      {}
+      {
+        turn_number: game.game_actions.where(action_type: [:end_turn, :defend]).count + 2
+      }
     end
 
     def apply!(result:)
