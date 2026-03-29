@@ -26,10 +26,10 @@ class PlayerCharactersController < ApplicationController
   end
 
   def player_character_params
-    params.permit(:name, :archetype)
+    params.permit(:name, :archetype, :race)
   end
 
   def serialize_player_character(character)
-    character.as_json(only: [ :id, :name, :icon, :locked, :archetype ])
+    character.as_json(only: [ :id, :name, :icon, :locked, :archetype, :race ])
   end
 end

@@ -54,7 +54,7 @@ module Admin
     end
 
     def serialize_player_character(character)
-      character.as_json(only: [ :id, :user_id, :name, :icon, :locked, :archetype ])
+      character.as_json(only: [ :id, :user_id, :name, :icon, :locked, :archetype, :race ])
     end
   end
 end
