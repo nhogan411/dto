@@ -126,9 +126,9 @@ RSpec.describe "GameActions", type: :request do
         "target_hp_remaining" => 3
       )
       expect(result["roll"]).to eq(20)
-      expect(result["threshold"]).to eq(11)
+      expect(result["threshold"]).to eq(12)
       expect(result["direction"]).to eq("front")
-      expect(result["success_rate"]).to eq(11)
+      expect(result["success_rate"]).to eq(12)
       expect(challenged_character.reload.current_hp).to eq(3)
     end
 
@@ -152,7 +152,7 @@ RSpec.describe "GameActions", type: :request do
 
       expect(response).to have_http_status(:ok)
       result = json_response.dig("data", "action", "result_data")
-      expect(result["threshold"]).to eq(17)
+      expect(result["threshold"]).to eq(14)
     end
 
     it "rejects second combat action in same turn with 422" do
@@ -457,7 +457,7 @@ RSpec.describe "GameActions", type: :request do
       expect(response).to have_http_status(:ok)
       data = json_response.dig("data")
       expect(data["direction"]).to eq("front")
-      expect(data["threshold"]).to eq(11)
+      expect(data["threshold"]).to eq(12)
       expect(data["hit_chance_percent"]).to eq(50)
       expect(data).to have_key("is_defending")
     end

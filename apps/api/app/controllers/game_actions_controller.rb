@@ -90,19 +90,16 @@ class GameActionsController < ApplicationController
     raise ActionValidators::BaseValidator::ValidationError, "Cannot preview attack on own character" if target.user_id == current_user.id
     raise ActionValidators::BaseValidator::ValidationError, "Target is not alive" unless target.alive?
 
-    threshold = CombatCalculator.success_rate(
+    direction = CombatCalculator.attack_direction(
       actor.position.with_indifferent_access,
       actor.facing_tile.with_indifferent_access,
       target.position.with_indifferent_access,
-      target.facing_tile.with_indifferent_access,
-      target.is_defending
-    )
-    direction = CombatCalculator.attack_direction(
-      actor.position.with_indifferent_access,
-      target.position.with_indifferent_access,
       target.facing_tile.with_indifferent_access
     )
-    hit_chance_percent = threshold > 20 ? 5 : [ ((21 - threshold) / 20.0 * 100).round, 5 ].max
+
+    success_rate = CombatCalculator.success_rate(actor, target, position: direction)
+    hit_chance_percent = (success_rate * 100).round
+    threshold = target.effective_ac - actor.attack_bonus - CombatCalculator::POSITIONAL_BONUS[direction]
 
     render json: {
       data: {

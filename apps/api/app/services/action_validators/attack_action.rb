@@ -6,30 +6,35 @@ module ActionValidators
 
     def build_result
       target = game.game_characters.find(target_id)
-      success_rate = CombatCalculator.success_rate(
+
+      direction = CombatCalculator.attack_direction(
         character.position.with_indifferent_access,
         character.facing_tile.with_indifferent_access,
         target.position.with_indifferent_access,
-        target.facing_tile.with_indifferent_access,
-        target.is_defending
-      )
-      roll = CombatCalculator.roll_attack(success_rate, rand_val: action_data.with_indifferent_access[:rand_val])
-      target_hp_remaining = [ target.current_hp - roll[:damage].to_i, 0 ].max
-      direction = CombatCalculator.attack_direction(
-        character.position.with_indifferent_access,
-        target.position.with_indifferent_access,
         target.facing_tile.with_indifferent_access
       )
+
+      success_rate = CombatCalculator.success_rate(character, target, position: direction)
+      roll = CombatCalculator.roll_attack(
+        character,
+        target,
+        position: direction,
+        rand_val: action_data.with_indifferent_access[:rand_val]
+      )
+
+      target_hp_remaining = [ target.current_hp - roll[:damage].to_i, 0 ].max
+
+      threshold_roll = target.effective_ac - character.attack_bonus - CombatCalculator::POSITIONAL_BONUS[direction]
 
       {
         hit: roll[:hit],
         critical: roll[:critical],
         damage: roll[:damage],
-        roll: roll[:roll],
-        threshold: success_rate,
+        roll: roll[:natural_roll],
+        threshold: threshold_roll,
         direction: direction.to_s,
         target_hp_remaining:,
-        success_rate:,
+        success_rate: threshold_roll,
         target_id: target.id
       }
     end

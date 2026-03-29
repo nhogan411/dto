@@ -7,6 +7,16 @@ FactoryBot.define do
     current_hp { 10 }
     is_defending { false }
     max_hp { 10 }
-    stats { { "movement" => 3 } }
+    stats do
+      {
+        "movement" => 3,
+        "str" => 14,
+        "dex" => 8,
+        "attack_stat" => "str",
+        "ac" => 16,
+        "damage_die" => 6,
+        "proficiency_bonus" => 2
+      }
+    end
   end
 end
