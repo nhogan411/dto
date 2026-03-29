@@ -191,6 +191,35 @@ RSpec.describe CombatCalculator do
         )
       end
     end
+
+    context "when attacker has weapon_slug in stats" do
+      let(:attacker_with_weapon) do
+        build(:game_character, stats: warrior_stats.merge("weapon_slug" => "shortsword"), is_defending: false)
+      end
+
+      it "uses the weapon damage_die from EquipmentDefinitions instead of archetype damage_die" do
+        result = described_class.roll_attack(
+          attacker_with_weapon,
+          scout,
+          position: :front,
+          rand_val: { d20: 15, damage: 4 }
+        )
+
+        expect(result[:hit]).to eq(true)
+        expect(result[:damage_roll]).to eq(4)
+      end
+
+      it "falls back to archetype damage_die when weapon_slug is absent" do
+        result = described_class.roll_attack(
+          warrior,
+          scout,
+          position: :front,
+          rand_val: { d20: 15, damage: 3 }
+        )
+
+        expect(result[:damage_roll]).to eq(3)
+      end
+    end
   end
 
   describe ".success_rate" do

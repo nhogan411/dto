@@ -28,6 +28,11 @@ class CombatCalculator
       target_ac = target.effective_ac
       damage_bonus = old_format ? 0 : attacker.stat_modifier(attacker.stats["attack_stat"])
 
+      # Resolve damage die: prefer equipped weapon over archetype default
+      weapon_slug = attacker.stats["weapon_slug"] || attacker.stats[:weapon_slug]
+      weapon_item = weapon_slug ? EquipmentDefinitions::ITEMS[weapon_slug.to_s] : nil
+      effective_damage_die = weapon_item ? weapon_item[:damage_die] : attacker.damage_die
+
       if natural_roll == 1
         return {
           natural_roll: 1,
@@ -48,7 +53,7 @@ class CombatCalculator
           damage = 2
           damage_roll = 2
         else
-          damage_val = damage_roll_val || rand(1..attacker.damage_die)
+          damage_val = damage_roll_val || rand(1..effective_damage_die)
           damage_roll = damage_val * 2
           damage = damage_roll + damage_bonus
         end
@@ -75,7 +80,7 @@ class CombatCalculator
           damage = 1
           damage_roll = 1
         else
-          damage_roll = damage_roll_val || rand(1..attacker.damage_die)
+          damage_roll = damage_roll_val || rand(1..effective_damage_die)
           damage = damage_roll + damage_bonus
         end
       else
