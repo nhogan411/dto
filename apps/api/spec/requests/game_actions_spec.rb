@@ -128,7 +128,6 @@ RSpec.describe "GameActions", type: :request do
       expect(result["roll"]).to eq(20)
       expect(result["threshold"]).to eq(12)
       expect(result["direction"]).to eq("front")
-      expect(result["success_rate"]).to eq(12)
       expect(challenged_character.reload.current_hp).to eq(3)
     end
 

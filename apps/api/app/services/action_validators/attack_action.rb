@@ -34,7 +34,11 @@ module ActionValidators
         threshold: threshold_roll,
         direction: direction.to_s,
         target_hp_remaining:,
-        success_rate: threshold_roll,
+        natural_roll: roll[:natural_roll],
+        attack_bonus: roll[:attack_bonus],
+        target_ac: roll[:target_ac],
+        damage_roll: roll[:damage_roll],
+        damage_bonus: roll[:damage_bonus],
         target_id: target.id
       }
     end
