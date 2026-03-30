@@ -78,7 +78,7 @@ RSpec.describe "Admin::PlayerCharacters", type: :request do
         body = JSON.parse(response.body)
         character = body["data"].first
 
-        expect(character.keys).to match_array(%w[id user_id name icon locked archetype])
+        expect(character.keys).to match_array(%w[id user_id name icon locked archetype race])
         expect(character["id"]).to be_a(Integer)
         expect(character["user_id"]).to be_a(Integer)
         expect(character["name"]).to be_a(String)
