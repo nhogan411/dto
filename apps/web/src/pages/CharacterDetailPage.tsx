@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchPlayerCharactersThunk, updatePlayerCharacterThunk, resetUpdateStatus } from '../store/slices/playerCharactersSlice';
 import { ArchetypePicker } from '../components/characters/ArchetypePicker';
+import { RacePicker } from '../components/characters/RacePicker';
 import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function CharacterDetailPage() {
@@ -16,6 +17,7 @@ export default function CharacterDetailPage() {
 
   const [name, setName] = useState('');
   const [archetype, setArchetype] = useState<'warrior' | 'scout'>('warrior');
+  const [race, setRace] = useState<string>('human');
 
   useEffect(() => {
     if (status === 'idle') {
@@ -27,6 +29,7 @@ export default function CharacterDetailPage() {
     if (character) {
       setName(character.name);
       setArchetype(character.archetype);
+      setRace(character.race ?? 'human');
     }
   }, [character]);
 
@@ -42,7 +45,7 @@ export default function CharacterDetailPage() {
     
     await dispatch(updatePlayerCharacterThunk({
       id: character.id,
-      payload: { name, archetype },
+      payload: { name, archetype, race },
     }));
   };
 
@@ -129,6 +132,17 @@ export default function CharacterDetailPage() {
           <ArchetypePicker
             value={archetype}
             onChange={setArchetype}
+            disabled={character?.locked || updateStatus === 'loading'}
+          />
+        </div>
+
+        <div className="mb-8">
+          <label className="block text-sm font-medium text-neutral-300 mb-2">
+            Character Race
+          </label>
+          <RacePicker
+            value={race}
+            onChange={setRace}
             disabled={character?.locked || updateStatus === 'loading'}
           />
         </div>
