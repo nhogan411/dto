@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useAppSelector } from '../../store/hooks';
+import { getEquipmentDisplayName } from '../../constants/equipment';
 
 export function GameHistory() {
   const gameActions = useAppSelector((state) => state.game.gameActions);
@@ -164,7 +165,13 @@ export function GameHistory() {
                   Turn {action.turn_number}
                 </div>
                 <div className="font-semibold mb-1">
-                  {charName ? `${charName} ` : ''}{directionLabel} Attacks {targetName}
+                  {(() => {
+                    const weaponName = getEquipmentDisplayName(rd.weapon_slug);
+                    if (weaponName) {
+                      return `${charName ? `${charName} ` : ''}used ${weaponName} to attack ${targetName} from the ${directionLabel.toLowerCase()}`;
+                    }
+                    return `${charName ? `${charName} ` : ''}${directionLabel} Attacks ${targetName}`;
+                  })()}
                 </div>
                 <div className="text-neutral-200">
                   <div>Attack Roll: {naturalRoll}</div>
@@ -197,6 +204,17 @@ export function GameHistory() {
                     )}
                   </div>
                 </div>
+                {(action.created_at ?? action.received_at) && (
+                  <div className="text-xs text-neutral-500 mt-2 border-t border-neutral-600 pt-1.5">
+                    {action.created_at && (
+                      <span>Sent {new Date(action.created_at).toLocaleTimeString()}</span>
+                    )}
+                    {action.created_at && action.received_at && <span className="mx-1">·</span>}
+                    {action.received_at && (
+                      <span>Received {new Date(action.received_at).toLocaleTimeString()}</span>
+                    )}
+                  </div>
+                )}
               </div>
             );
           }
@@ -209,6 +227,17 @@ export function GameHistory() {
               <div>
                 <strong>{charName ? `${charName} ` : ''}{action.action_type}:</strong> {renderActionDescription(action)}
               </div>
+              {(action.created_at ?? action.received_at) && (
+                <div className="text-xs text-neutral-500 mt-2 border-t border-neutral-600 pt-1.5">
+                  {action.created_at && (
+                    <span>Sent {new Date(action.created_at).toLocaleTimeString()}</span>
+                  )}
+                  {action.created_at && action.received_at && <span className="mx-1">·</span>}
+                  {action.received_at && (
+                    <span>Received {new Date(action.received_at).toLocaleTimeString()}</span>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
