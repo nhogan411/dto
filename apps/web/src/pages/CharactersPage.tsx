@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchPlayerCharactersThunk } from '../store/slices/playerCharactersSlice';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { RACE_LABELS } from '../constants/races';
+import { XP_THRESHOLDS } from '../constants/xp';
 
 export default function CharactersPage() {
   usePageTitle('Characters');
@@ -57,10 +58,7 @@ export default function CharactersPage() {
                   </span>
                 </div>
                 <div className="text-neutral-400 text-sm mt-2 flex gap-3">
-                  <span>HP {character.archetype === 'warrior' ? 16 : 10}</span>
-                  <span>MOV {character.archetype === 'warrior' ? 3 : 5}</span>
-                  <span>STR {character.archetype === 'warrior' ? 14 : 8}</span>
-                  <span>DEX {character.archetype === 'warrior' ? 8 : 14}</span>
+                  <span>HP {character.max_hp}</span>
                 </div>
               </div>
               {character.locked && (
@@ -69,12 +67,36 @@ export default function CharactersPage() {
                 </span>
               )}
             </div>
+
+            <div className="mt-2">
+              <div className="flex items-center justify-between text-sm mb-1">
+                <span className="font-bold text-white">Level {character.level}</span>
+                {character.level < 20 ? (
+                  <span className="text-neutral-400 text-xs">
+                    {character.xp - (XP_THRESHOLDS[character.level] ?? 0)} / {(XP_THRESHOLDS[character.level + 1] ?? 0) - (XP_THRESHOLDS[character.level] ?? 0)} XP to next level
+                  </span>
+                ) : (
+                  <span className="text-yellow-400 text-xs font-bold">Max Level</span>
+                )}
+              </div>
+              {character.level < 20 && (
+                <div className="w-full h-1.5 bg-neutral-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-green-500 rounded-full transition-[width] duration-300"
+                    style={{
+                      width: `${Math.min(100, ((character.xp - (XP_THRESHOLDS[character.level] ?? 0)) / ((XP_THRESHOLDS[character.level + 1] ?? 1) - (XP_THRESHOLDS[character.level] ?? 0))) * 100)}%`
+                    }}
+                  />
+                </div>
+              )}
+            </div>
             
             <button
+              type="button"
               onClick={() => navigate(`/characters/${character.id}`)}
-              className="focus-ring mt-2 bg-blue-600 hover:bg-blue-500 text-white border-none py-2 px-4 rounded-md font-bold cursor-pointer transition-colors w-full"
+              className="focus-ring mt-2 bg-neutral-700 hover:bg-neutral-600 text-white border-none py-2 px-4 rounded-md font-bold cursor-pointer transition-colors w-full"
             >
-              Edit Character
+              View Character
             </button>
           </div>
         ))}
