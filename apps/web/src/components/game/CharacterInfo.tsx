@@ -61,6 +61,7 @@ export function CharacterInfo() {
           </p>
         </div>
         <button
+          type="button"
           onClick={() => dispatch(selectCharacter(null))}
           aria-label="Close character info panel"
           className="bg-transparent border-none text-neutral-300 cursor-pointer text-base hover:text-white focus-ring"
