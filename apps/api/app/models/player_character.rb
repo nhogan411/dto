@@ -34,6 +34,7 @@ class PlayerCharacter < ApplicationRecord
   validates :race, inclusion: { in: RaceDefinitions::VALID_RACES }
 
   before_validation :derive_icon_from_archetype
+  before_create :set_default_xp_stats
 
   scope :for_owner, ->(user_or_id) { where(user_id: user_or_id.is_a?(User) ? user_or_id.id : user_or_id) }
 
@@ -77,5 +78,11 @@ class PlayerCharacter < ApplicationRecord
 
   def derive_icon_from_archetype
     self.icon = ArchetypeDefinitions.icon_for(archetype) if archetype.present?
+  end
+
+  def set_default_xp_stats
+    self.xp    ||= 0
+    self.level ||= 1
+    self.max_hp ||= ArchetypeDefinitions.stats_for(archetype)[:max_hp] if archetype.present?
   end
 end
