@@ -16,6 +16,16 @@ class User < ApplicationRecord
            dependent: :destroy
   has_many :game_characters, dependent: :destroy
   has_many :player_characters, class_name: "PlayerCharacter", foreign_key: :user_id, dependent: :destroy
+  has_many :games_as_challenger,
+           class_name: "Game",
+           foreign_key: :challenger_id,
+           inverse_of: :challenger,
+           dependent: :nullify
+  has_many :games_as_challenged,
+           class_name: "Game",
+           foreign_key: :challenged_id,
+           inverse_of: :challenged,
+           dependent: :nullify
   has_many :notifications, dependent: :destroy
 
   validates :email,
