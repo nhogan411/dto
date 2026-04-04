@@ -1,11 +1,12 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { clearCredentials } from '../store/slices/authSlice';
+import { clearCredentials, selectIsAdmin } from '../store/slices/authSlice';
 
 export default function Layout() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
+  const isAdmin = useAppSelector(selectIsAdmin);
 
   const handleLogout = () => {
     dispatch(clearCredentials());
@@ -26,6 +27,11 @@ export default function Layout() {
            <Link to="/profile" className="focus-ring rounded px-1 text-neutral-300 no-underline font-semibold">
             Profile
           </Link>
+           {isAdmin && (
+             <Link to="/admin" className="focus-ring rounded px-1 text-neutral-300 no-underline font-semibold">
+               Admin
+             </Link>
+           )}
            {user && <span className="text-neutral-300">{user.username}</span>}
            <button 
              type="button"
