@@ -44,6 +44,23 @@ RSpec.describe "Admin::Users", type: :request do
         expect(users.first).not_to have_key("password_digest")
         expect(users.map { |u| u["id"] }).to eq([ player.id, admin.id, target_user.id ])
       end
+
+      it "includes game stats for each user" do
+        challenger = create(:user)
+        challenged = create(:user)
+        create(:game, challenger: challenger, challenged: challenged, status: :completed, winner: challenger)
+        create(:game, challenger: challenged, challenged: challenger, status: :forfeited, winner: nil)
+
+        access_token = JsonWebToken.encode(user_id: admin.id)
+        get "/admin/users", headers: { "Authorization" => "Bearer #{access_token}" }
+        data = response.parsed_body["data"]
+
+        challenger_data = data.find { |u| u["id"] == challenger.id }
+        expect(challenger_data["games_count"]).to eq(2)
+        expect(challenger_data["wins"]).to eq(1)
+        expect(challenger_data["losses"]).to eq(0)
+        expect(challenger_data["forfeits"]).to eq(1)
+      end
     end
   end
 

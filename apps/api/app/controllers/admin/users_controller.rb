@@ -4,7 +4,13 @@ module Admin
 
     # GET /admin/users
     def index
-      users = User.order(created_at: :asc)
+      users = User.select(
+        "users.*",
+        "(SELECT COUNT(*) FROM games WHERE challenger_id = users.id OR challenged_id = users.id) AS games_count",
+        "(SELECT COUNT(*) FROM games WHERE winner_id = users.id) AS wins",
+        "(SELECT COUNT(*) FROM games WHERE (challenger_id = users.id OR challenged_id = users.id) AND status = #{Game.statuses[:forfeited]}) AS forfeits"
+      ).order(created_at: :asc)
+
       render json: { data: users.map { |user| serialize_user(user) } }
     end
 
@@ -46,7 +52,18 @@ module Admin
     end
 
     def serialize_user(user)
+      games_count = user.respond_to?(:games_count) ? user.games_count.to_i : Game.where("challenger_id = :id OR challenged_id = :id", id: user.id).count
+      wins        = user.respond_to?(:wins)        ? user.wins.to_i        : Game.where(winner_id: user.id).count
+      forfeits    = user.respond_to?(:forfeits)    ? user.forfeits.to_i    : Game.where("(challenger_id = :id OR challenged_id = :id) AND status = :status", id: user.id, status: Game.statuses[:forfeited]).count
+      losses      = games_count - wins - forfeits
+
       user.as_json(only: [ :id, :email, :username, :role, :created_at ])
+          .merge(
+            games_count: games_count,
+            wins: wins,
+            losses: losses,
+            forfeits: forfeits
+          )
     end
   end
 end
