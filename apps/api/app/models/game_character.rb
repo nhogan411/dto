@@ -1,6 +1,7 @@
 class GameCharacter < ApplicationRecord
   belongs_to :game
   belongs_to :user
+  belongs_to :player_character, optional: true
 
   has_many :game_actions, dependent: :destroy
 
