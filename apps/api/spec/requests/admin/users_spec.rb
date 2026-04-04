@@ -114,6 +114,30 @@ RSpec.describe "Admin::Users", type: :request do
         body = JSON.parse(response.body)
         expect(body["errors"]).to include("Not found")
       end
+
+      it "returns user with characters and game compositions" do
+        user = create(:user)
+        pc1  = create(:player_character, user: user, archetype: "warrior", level: 3)
+        pc2  = create(:player_character, user: user, archetype: "scout",   level: 5)
+        other = create(:user)
+        create(:game,
+          challenger: user,
+          challenged: other,
+          status: :completed,
+          winner: user,
+          challenger_picks: [ pc1.id, pc2.id ],
+          challenged_picks: []
+        )
+
+        access_token = JsonWebToken.encode(user_id: admin.id)
+        get "/admin/users/#{user.id}", headers: { "Authorization" => "Bearer #{access_token}" }
+        data = response.parsed_body["data"]
+
+        expect(data["characters"].length).to eq(2)
+        expect(data["characters"].first).to include("level", "xp", "archetype", "race")
+        expect(data["winning_compositions"]).to be_an(Array)
+        expect(data["games_count"]).to eq(1)
+      end
     end
   end
 

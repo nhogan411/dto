@@ -16,7 +16,7 @@ module Admin
 
     # GET /admin/users/:id
     def show
-      render json: { data: serialize_user(@user) }
+      render json: { data: serialize_user_detail(@user) }
     end
 
     # PATCH/PUT /admin/users/:id
@@ -42,7 +42,7 @@ module Admin
     private
 
     def set_user
-      @user = User.find(params[:id])
+      @user = User.includes(:player_characters).find(params[:id])
     rescue ActiveRecord::RecordNotFound
       render json: { errors: [ "Not found" ] }, status: :not_found
     end
@@ -64,6 +64,52 @@ module Admin
             losses: losses,
             forfeits: forfeits
           )
+    end
+
+    def serialize_user_detail(user)
+      games = Game.where("challenger_id = :id OR challenged_id = :id", id: user.id)
+      games_count = games.count
+      wins        = games.where(winner_id: user.id).count
+      forfeits    = games.where(status: :forfeited).count
+      losses      = games_count - wins - forfeits
+
+      characters = user.player_characters.map do |pc|
+        pc.as_json(only: [ :id, :name, :archetype, :race, :level, :xp, :max_hp, :icon, :locked ])
+      end
+
+      winning_compositions = build_winning_compositions(user, games)
+
+      user.as_json(only: [ :id, :email, :username, :role, :created_at ])
+          .merge(
+            games_count: games_count,
+            wins: wins,
+            losses: losses,
+            forfeits: forfeits,
+            characters: characters,
+            winning_compositions: winning_compositions
+          )
+    end
+
+    def build_winning_compositions(user, games)
+      winning_games = games.where(winner_id: user.id)
+        .where.not(challenger_picks: [], challenged_picks: [])
+
+      pc_cache = PlayerCharacter.where(id: winning_games.flat_map { |g|
+        g.challenger_id == user.id ? Array(g.challenger_picks) : Array(g.challenged_picks)
+      }).index_by(&:id)
+
+      composition_counts = Hash.new(0)
+
+      winning_games.each do |game|
+        picks = game.challenger_id == user.id ? Array(game.challenger_picks) : Array(game.challenged_picks)
+        archetypes = picks.filter_map { |id| pc_cache[id]&.archetype }.sort
+        composition_counts[archetypes] += 1
+      end
+
+      composition_counts
+        .sort_by { |_, count| -count }
+        .first(5)
+        .map { |archetypes, count| { archetypes: archetypes, count: count } }
     end
   end
 end
