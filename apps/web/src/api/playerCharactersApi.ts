@@ -7,6 +7,9 @@ export interface PlayerCharacter {
   archetype: 'warrior' | 'scout';
   locked: boolean;
   race: string;
+  xp: number;
+  level: number;
+  max_hp: number;
 }
 
 export interface UpdatePlayerCharacterPayload {
