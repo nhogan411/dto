@@ -1,5 +1,7 @@
 module Admin
   class UsersController < Admin::BaseController
+    include WinningCompositions
+
     before_action :set_user, only: [ :show, :update, :destroy ]
 
     # GET /admin/users
@@ -77,7 +79,11 @@ module Admin
         pc.as_json(only: [ :id, :name, :archetype, :race, :level, :xp, :max_hp, :icon, :locked ])
       end
 
-      winning_compositions = build_winning_compositions(user, games)
+      winning_compositions = build_compositions(
+        games.where(winner_id: user.id)
+      ) { |g|
+        g.challenger_id == user.id ? Array(g.challenger_picks) : Array(g.challenged_picks)
+      }
 
       user.as_json(only: [ :id, :email, :username, :role, :created_at ])
           .merge(
@@ -88,28 +94,6 @@ module Admin
             characters: characters,
             winning_compositions: winning_compositions
           )
-    end
-
-    def build_winning_compositions(user, games)
-      winning_games = games.where(winner_id: user.id)
-        .where.not(challenger_picks: [], challenged_picks: [])
-
-      pc_cache = PlayerCharacter.where(id: winning_games.flat_map { |g|
-        g.challenger_id == user.id ? Array(g.challenger_picks) : Array(g.challenged_picks)
-      }).index_by(&:id)
-
-      composition_counts = Hash.new(0)
-
-      winning_games.each do |game|
-        picks = game.challenger_id == user.id ? Array(game.challenger_picks) : Array(game.challenged_picks)
-        archetypes = picks.filter_map { |id| pc_cache[id]&.archetype }.sort
-        composition_counts[archetypes] += 1
-      end
-
-      composition_counts
-        .sort_by { |_, count| -count }
-        .first(5)
-        .map { |archetypes, count| { archetypes: archetypes, count: count } }
     end
   end
 end

@@ -26,11 +26,11 @@ RSpec.describe "GET /admin/stats", type: :request do
     expect(data["total_games"]).to eq(4)
     expect(data["active_games"]).to eq(1)
     expect(data["games_last_7_days"]).to eq(4)
-    expect(data["forfeit_rate"]).to be_a(Float)
-    expect(data["avg_games_per_user"]).to be_a(Float)
+    expect(data["forfeit_rate"]).to eq(0.3333)   # 1 forfeit / 3 completed+forfeited
+    expect(data["avg_games_per_user"]).to eq(1.0)   # 4 games / 4 users
     expect(data["users_with_no_games"]).to eq(2)   # admin and u3 never played
-    expect(data["avg_character_level"]).to be_a(Float)
-    expect(data["avg_level_by_archetype"]).to be_a(Hash)
+    expect(data["avg_character_level"]).to eq(3.0)   # (4+2)/2
+    expect(data["avg_level_by_archetype"]).to eq("warrior" => 4.0, "scout" => 2.0)
     expect(data["top_users_by_games"]).to be_an(Array)
     expect(data["top_winning_compositions"]).to be_an(Array)
   end

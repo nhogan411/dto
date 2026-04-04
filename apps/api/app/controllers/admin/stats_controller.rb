@@ -1,5 +1,7 @@
 module Admin
   class StatsController < Admin::BaseController
+    include WinningCompositions
+
     def index
       user_count  = User.count
       total_games = Game.count
@@ -25,7 +27,10 @@ module Admin
       avg_level_by_arch = PlayerCharacter.group(:archetype).average(:level)
                             .transform_values { |v| v.to_f.round(2) }
 
-      top_compositions = build_top_winning_compositions
+      winning_games = Game.where(status: :completed).where.not(winner_id: nil)
+      top_compositions = build_compositions(winning_games) { |g|
+        g.winner_id == g.challenger_id ? Array(g.challenger_picks) : Array(g.challenged_picks)
+      }
 
       render json: {
         data: {
@@ -41,29 +46,6 @@ module Admin
           top_winning_compositions: top_compositions
         }
       }
-    end
-
-    private
-
-    def build_top_winning_compositions
-      completed = Game.where(status: :completed).where.not(winner_id: nil)
-        .where.not(challenger_picks: [], challenged_picks: [])
-
-      pc_ids = completed.flat_map { |g| Array(g.challenger_picks) + Array(g.challenged_picks) }.uniq
-      pc_cache = PlayerCharacter.where(id: pc_ids).index_by(&:id)
-
-      composition_counts = Hash.new(0)
-
-      completed.each do |game|
-        winner_picks = game.winner_id == game.challenger_id ? Array(game.challenger_picks) : Array(game.challenged_picks)
-        archetypes = winner_picks.filter_map { |id| pc_cache[id]&.archetype }.sort
-        composition_counts[archetypes] += 1 unless archetypes.empty?
-      end
-
-      composition_counts
-        .sort_by { |_, count| -count }
-        .first(5)
-        .map { |archetypes, count| { archetypes: archetypes, count: count } }
     end
   end
 end
