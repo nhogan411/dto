@@ -55,12 +55,12 @@ const mockState = {
 };
 
 describe('TurnOrderStrip', () => {
-  let mockDispatch: any;
+  let mockDispatch: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     mockDispatch = vi.fn();
-    (useAppDispatch as any).mockReturnValue(mockDispatch);
-    (useAppSelector as any).mockImplementation((selector: any) => selector(mockState));
+    vi.mocked(useAppDispatch).mockReturnValue(mockDispatch as never);
+    vi.mocked(useAppSelector).mockImplementation((selector) => selector(mockState as never));
   });
 
   it('Test 1: Renders a slot for each character in turnOrder', () => {
@@ -105,7 +105,7 @@ describe('TurnOrderStrip', () => {
         },
       },
     };
-    (useAppSelector as any).mockImplementation((selector: any) => selector(stateWithDead));
+    vi.mocked(useAppSelector).mockImplementation((selector) => selector(stateWithDead as never));
     render(<TurnOrderStrip />);
     const deadSlot = screen.getByTestId('turn-slot-dead');
     expect(deadSlot).toHaveClass('opacity-50');
@@ -129,7 +129,7 @@ describe('TurnOrderStrip', () => {
         },
       },
     };
-    (useAppSelector as any).mockImplementation((selector: any) => selector(stateWithDefending));
+    vi.mocked(useAppSelector).mockImplementation((selector) => selector(stateWithDefending as never));
     render(<TurnOrderStrip />);
     expect(screen.getAllByText('🛡️').length).toBeGreaterThanOrEqual(1);
   });
@@ -158,7 +158,7 @@ describe('TurnOrderStrip', () => {
         },
       },
     };
-    (useAppSelector as any).mockImplementation((selector: any) => selector(stateWithEmpty));
+    vi.mocked(useAppSelector).mockImplementation((selector) => selector(stateWithEmpty as never));
     const { container } = render(<TurnOrderStrip />);
     expect(container.firstChild).toBeNull();
   });
@@ -174,7 +174,7 @@ describe('TurnOrderStrip', () => {
         },
       },
     };
-    (useAppSelector as any).mockImplementation((selector: any) => selector(stateWithNull));
+    vi.mocked(useAppSelector).mockImplementation((selector) => selector(stateWithNull as never));
     render(<TurnOrderStrip />);
     expect(screen.queryByTestId('turn-slot-active')).not.toBeInTheDocument();
   });
@@ -194,7 +194,7 @@ describe('TurnOrderStrip', () => {
         },
       },
     };
-    (useAppSelector as any).mockImplementation((selector: any) => selector(stateWithReorderedTurn));
+    vi.mocked(useAppSelector).mockImplementation((selector) => selector(stateWithReorderedTurn as never));
     render(<TurnOrderStrip />);
     const slots = screen.getAllByTestId(/turn-slot-/);
     expect(slots[0]).toHaveAttribute('data-testid', 'turn-slot-2');

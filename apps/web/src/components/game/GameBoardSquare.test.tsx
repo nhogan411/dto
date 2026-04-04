@@ -19,6 +19,7 @@ describe('GameBoardSquare', () => {
     x: 1,
     y: 1,
     isBlocked: false,
+    isAttackable: false,
     isSelected: false,
     isHighlighted: false,
     character: baseCharacter,
@@ -62,6 +63,7 @@ describe('GameBoardSquare', () => {
           x={1}
           y={1}
           isBlocked={false}
+          isAttackable={false}
           isSelected={false}
           isHighlighted={false}
         />

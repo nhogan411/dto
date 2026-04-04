@@ -11,6 +11,7 @@ import CharactersPage from './pages/CharactersPage';
 import CharacterDetailPage from './pages/CharacterDetailPage';
 import CharacterViewPage from './pages/CharacterViewPage';
 import ProfilePage from './pages/ProfilePage';
+import AdminHomePage from './pages/admin/AdminHomePage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminPlayerCharactersPage from './pages/admin/AdminPlayerCharactersPage';
 import AdminFriendshipsPage from './pages/admin/AdminFriendshipsPage';
@@ -32,6 +33,7 @@ function App() {
         </Route>
       </Route>
       <Route element={<AdminRoute />}>
+        <Route path="/admin" element={<AdminHomePage />} />
         <Route path="/admin/users" element={<AdminUsersPage />} />
         <Route path="/admin/player-characters" element={<AdminPlayerCharactersPage />} />
         <Route path="/admin/friendships" element={<AdminFriendshipsPage />} />
