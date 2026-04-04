@@ -408,7 +408,7 @@ const gameSlice = createSlice({
             state.gameState.winnerId = winnerId;
           }
 
-          const xpAwards = (action.payload as Record<string, unknown>).xp_awards ?? payloadData?.xp_awards;
+          const xpAwards = (action.payload as unknown as Record<string, unknown>).xp_awards ?? payloadData?.xp_awards;
           if (Array.isArray(xpAwards)) {
             state.xpAwards = xpAwards as XpAward[];
           }

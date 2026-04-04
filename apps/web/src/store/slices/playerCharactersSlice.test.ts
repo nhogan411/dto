@@ -38,7 +38,7 @@ describe('playerCharactersSlice', () => {
 
     it('should handle fulfilled', () => {
       const mockCharacters: PlayerCharacter[] = [
-        { id: 1, name: 'Hero', icon: 'warrior', locked: false },
+        { id: 1, name: 'Hero', icon: 'warrior', locked: false, archetype: 'warrior', race: 'human' },
       ];
       expect(
         reducer(initialState, {
@@ -69,7 +69,7 @@ describe('playerCharactersSlice', () => {
   describe('updatePlayerCharacterThunk', () => {
     const stateWithCharacters = {
       ...initialState,
-      characters: [{ id: 1, name: 'Hero', icon: 'warrior', locked: false }],
+      characters: [{ id: 1, name: 'Hero', icon: 'warrior', locked: false, archetype: 'warrior' as const, race: 'human' }],
     };
 
     it('should handle pending', () => {
@@ -81,7 +81,7 @@ describe('playerCharactersSlice', () => {
     });
 
     it('should handle fulfilled', () => {
-      const updatedCharacter: PlayerCharacter = { id: 1, name: 'Super Hero', icon: 'mage', locked: false };
+      const updatedCharacter: PlayerCharacter = { id: 1, name: 'Super Hero', icon: 'mage', locked: false, archetype: 'warrior', race: 'human' };
       expect(
         reducer(stateWithCharacters, {
           type: updatePlayerCharacterThunk.fulfilled.type,
