@@ -67,7 +67,7 @@ export function GameOverScreen({ winnerId, currentUserId, xpAwards }: Props) {
   const iWon = winnerId === currentUserId;
 
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/75">
+    <div role="dialog" aria-label="Game Over" className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/75">
       <div className="w-full max-w-2xl rounded-xl bg-neutral-900 border border-neutral-700 p-6 shadow-2xl text-white">
         <h2 className="mb-6 text-center text-2xl font-bold">
           {iWon ? '🏆 Victory!' : '💀 Defeat'}

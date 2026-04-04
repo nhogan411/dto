@@ -54,7 +54,7 @@ describe('CharacterRenderer', () => {
     it('applies 160% font size to icon container', () => {
       const { container } = renderChar({ icon: 'warrior' });
       const emojiDiv = container.querySelector('[data-testid="icon-emoji"]') as HTMLElement;
-      expect(emojiDiv?.style.fontSize).toBe('160%');
+      expect(emojiDiv?.className).toContain('text-[160%]');
     });
   });
 

@@ -75,8 +75,8 @@ describe('gameSlice', () => {
          isDefending: false,
            icon: 'warrior',
            alive: true,
-           race: 'human',
-           stats: { movement: 3 },
+            race: '',
+            stats: { movement: 3, str: undefined, dex: undefined },
          },
        ],
      turnNumber: 1,
@@ -124,6 +124,7 @@ describe('gameSlice', () => {
       replayQueue: [],
       selectedCharacterId: null,
       gameActions: [],
+      xpAwards: null,
     });
   });
 
