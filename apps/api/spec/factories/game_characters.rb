@@ -15,7 +15,8 @@ FactoryBot.define do
         "attack_stat" => "str",
         "ac" => 16,
         "damage_die" => 6,
-        "proficiency_bonus" => 2
+        "proficiency_bonus" => 2,
+        "level" => 1
       }
     end
   end

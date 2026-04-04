@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_29_234946) do
+ActiveRecord::Schema[8.0].define(version: 2026_04_04_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -52,7 +52,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_29_234946) do
     t.datetime "updated_at", null: false
     t.string "icon", default: "warrior", null: false
     t.string "name", default: "", null: false
+    t.bigint "player_character_id"
     t.index ["game_id"], name: "index_game_characters_on_game_id"
+    t.index ["player_character_id"], name: "index_game_characters_on_player_character_id"
     t.index ["user_id"], name: "index_game_characters_on_user_id"
   end
 
@@ -71,6 +73,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_29_234946) do
     t.datetime "expires_at"
     t.jsonb "challenger_picks", default: [], null: false
     t.jsonb "challenged_picks", default: [], null: false
+    t.boolean "xp_awarded", default: false, null: false
     t.index ["challenged_id"], name: "index_games_on_challenged_id"
     t.index ["challenger_id"], name: "index_games_on_challenger_id"
     t.index ["current_turn_user_id"], name: "index_games_on_current_turn_user_id"
@@ -106,6 +109,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_29_234946) do
     t.datetime "updated_at", null: false
     t.string "archetype", default: "warrior", null: false
     t.string "race", default: "human", null: false
+    t.integer "xp", default: 0, null: false
+    t.integer "level", default: 1, null: false
+    t.integer "max_hp", null: false
     t.index ["user_id"], name: "index_player_characters_on_user_id"
   end
 
@@ -258,6 +264,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_29_234946) do
   add_foreign_key "game_actions", "game_characters"
   add_foreign_key "game_actions", "games"
   add_foreign_key "game_characters", "games"
+  add_foreign_key "game_characters", "player_characters", on_delete: :nullify
   add_foreign_key "game_characters", "users"
   add_foreign_key "games", "users", column: "challenged_id"
   add_foreign_key "games", "users", column: "challenger_id"

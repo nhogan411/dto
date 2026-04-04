@@ -97,8 +97,9 @@ class CharacterSelectionsController < ApplicationController
 
     {
       user: user,
-      max_hp: archetype_stats[:max_hp],
-      current_hp: archetype_stats[:max_hp],
+      player_character: player_character,
+      max_hp: player_character.max_hp,
+      current_hp: player_character.max_hp,
       is_defending: false,
       stats: {
         movement:          archetype_stats[:movement],
@@ -114,7 +115,8 @@ class CharacterSelectionsController < ApplicationController
         proficiency_bonus: archetype_stats[:proficiency_bonus],
         range:             archetype_stats[:range],
         race:              player_character.race,
-        weapon_slug:       player_character.player_character_items.find_by(equipped: true)&.item_slug
+        weapon_slug:       player_character.player_character_items.find_by(equipped: true)&.item_slug,
+        level:             player_character.level
       },
       position: { x: x, y: y },
       facing_tile: facing,

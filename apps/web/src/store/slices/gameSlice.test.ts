@@ -73,11 +73,12 @@ describe('gameSlice', () => {
          currentHp: 10,
          maxHp: 10,
          isDefending: false,
-          icon: 'warrior',
-          alive: true,
-          stats: { movement: 3 },
-        },
-      ],
+           icon: 'warrior',
+           alive: true,
+           race: 'human',
+           stats: { movement: 3 },
+         },
+       ],
      turnNumber: 1,
     winnerId: null,
     actingCharacterActions: null,
@@ -349,6 +350,7 @@ describe('gameSlice', () => {
       replayQueue: [],
       selectedCharacterId: null,
       gameActions: [],
+      xpAwards: null,
     });
   });
 

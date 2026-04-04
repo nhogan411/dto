@@ -89,4 +89,67 @@ RSpec.describe PlayerCharacter, type: :model do
       end
     end
   end
+
+  describe '#calculate_level' do
+    it 'is 1 at 0 XP' do
+      pc = build(:player_character, xp: 0)
+      expect(pc.calculate_level).to eq(1)
+    end
+
+    it 'is 2 at 300 XP' do
+      pc = build(:player_character, xp: 300)
+      expect(pc.calculate_level).to eq(2)
+    end
+
+    it 'is 3 at 900 XP' do
+      pc = build(:player_character, xp: 900)
+      expect(pc.calculate_level).to eq(3)
+    end
+
+    it 'is 5 at 6500 XP' do
+      pc = build(:player_character, xp: 6500)
+      expect(pc.calculate_level).to eq(5)
+    end
+
+    it 'is capped at 20 even at 999_999 XP' do
+      pc = build(:player_character, xp: 999_999)
+      expect(pc.calculate_level).to eq(20)
+    end
+  end
+
+  describe '#award_xp!' do
+    it 'adds XP and recalculates level' do
+      pc = create(:player_character, xp: 0, level: 1, archetype: 'warrior')
+      pc.award_xp!(300)
+      expect(pc.reload.xp).to eq(300)
+      expect(pc.reload.level).to eq(2)
+    end
+
+    it 'recalculates max_hp on level up for warrior (hit_die 10)' do
+      pc = create(:player_character, xp: 0, level: 1, archetype: 'warrior')
+      pc.award_xp!(300)
+      # warrior hit_die=10 → hp_per_level = 10/2+1 = 6. level 2 → 16 + (2-1)*6 = 22
+      expect(pc.reload.max_hp).to eq(22)
+    end
+
+    it 'recalculates max_hp on level up for scout (hit_die 8)' do
+      pc = create(:player_character, xp: 0, level: 1, archetype: 'scout', max_hp: 10)
+      pc.award_xp!(300)
+      # scout hit_die=8 → hp_per_level = 8/2+1 = 5. level 2 → 10 + (2-1)*5 = 15
+      expect(pc.reload.max_hp).to eq(15)
+    end
+
+    it 'does not change level when XP stays below next threshold' do
+      pc = create(:player_character, xp: 0, level: 1, archetype: 'scout', max_hp: 10)
+      pc.award_xp!(100)
+      expect(pc.reload.level).to eq(1)
+      expect(pc.reload.max_hp).to eq(10)
+    end
+
+    it 'does not exceed level 20' do
+      pc = create(:player_character, xp: 354_999, level: 19, archetype: 'warrior', max_hp: 106)
+      pc.award_xp!(50_000)
+      expect(pc.reload.level).to eq(20)
+    end
+  end
 end

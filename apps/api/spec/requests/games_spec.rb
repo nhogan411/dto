@@ -235,7 +235,7 @@ RSpec.describe "Games", type: :request do
       expect(response).to have_http_status(:ok)
       expect(json_response.dig("data", "game", "status")).to eq("forfeited")
       expect(json_response.dig("data", "game", "winner_id")).to eq(challenged.id)
-      expect(Broadcaster).to have_received(:game_over).with(game).once
+      expect(Broadcaster).to have_received(:game_over).with(game, xp_awards: kind_of(Array)).once
     end
 
     it "returns 404 when a non-player attempts to forfeit" do

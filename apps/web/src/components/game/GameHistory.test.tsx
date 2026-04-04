@@ -37,6 +37,7 @@ const makeCharacterState = (overrides: Partial<CharacterState> = {}): CharacterS
   icon: 'warrior',
   name: 'Thorin',
   alive: true,
+  race: 'human',
   stats: {},
   ...overrides,
 });

@@ -107,19 +107,20 @@ RSpec.describe Broadcaster do
        described_class.turn_changed(game)
      end
 
-     it "broadcasts game over events" do
-       expect(ActionCable.server).to receive(:broadcast).with(
-         GameChannel.broadcasting_for(game),
-         {
-           event: "game_over",
-           game_id: game.id,
-           winner_id: challenger.id,
-           status: game.status
-         }
-       )
+      it "broadcasts game over events" do
+        expect(ActionCable.server).to receive(:broadcast).with(
+          GameChannel.broadcasting_for(game),
+          {
+            event: "game_over",
+            game_id: game.id,
+            winner_id: challenger.id,
+            status: game.status,
+            xp_awards: []
+          }
+        )
 
-       described_class.game_over(game)
-     end
+        described_class.game_over(game)
+      end
 
     it "broadcasts game updates" do
       expect(ActionCable.server).to receive(:broadcast).with(

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchGameThunk,
@@ -13,6 +13,7 @@ import {
   forfeitGameThunk,
   type GameChannelMessage,
 } from '../store/slices/gameSlice';
+import { GameOverScreen } from '../components/game/GameOverScreen';
 import { GameBoard } from '../components/game/GameBoard';
 import { TurnReplay } from '../components/game/TurnReplay';
 import { TurnOrderStrip } from '../components/game/TurnOrderStrip';
@@ -31,9 +32,9 @@ import { getMoveBudget } from '../utils/character';
 export default function GamePage() {
   usePageTitle('Game');
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { currentGame, gameState, status, error, isSubmitting } = useAppSelector((state) => state.game);
+  const xpAwards = useAppSelector((state) => state.game.xpAwards);
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
   const gameId = id ? Number.parseInt(id, 10) : null;
   const parsedGameId = gameId !== null && !Number.isNaN(gameId) ? gameId : null;
@@ -42,7 +43,6 @@ export default function GamePage() {
   const [activeMode, setActiveMode] = useState<'move' | 'attack' | null>(null);
   const [popoverState, setPopoverState] = useState<{ x: number; y: number } | null>(null);
   const [attackPreview, setAttackPreview] = useState<AttackPreviewResponse | null>(null);
-  const [previewTarget, setPreviewTarget] = useState<number | null>(null);
   const [reachableSquares, setReachableSquares] = useState<Coordinate[]>([]);
   const [attackableSquares, setAttackableSquares] = useState<Coordinate[]>([]);
   const [selectedAttackTarget, setSelectedAttackTarget] = useState<{
@@ -53,9 +53,7 @@ export default function GamePage() {
     label: string;
     onConfirm: () => void;
   } | null>(null);
-  const gameOverModalRef = useRef<HTMLDivElement>(null);
   const isGameOver = gameState?.status === 'completed' || gameState?.status === 'forfeited';
-  useFocusTrap(gameOverModalRef, isGameOver, () => navigate('/'));
 
   const [showForfeitModal, setShowForfeitModal] = useState(false);
   const [isForfeiting, setIsForfeiting] = useState(false);
@@ -320,7 +318,6 @@ export default function GamePage() {
       }
 
       setSelectedAttackTarget({ charId: char.id, position: { x, y } });
-      setPreviewTarget(char.id);
       if (parsedGameId !== null) {
         gameApi.getAttackPreview(parsedGameId, char.id)
           .then((res) => setAttackPreview(res.data.data))
@@ -336,7 +333,6 @@ export default function GamePage() {
 
   useEffect(() => {
     if (activeMode !== 'attack') {
-      setPreviewTarget(null);
       setAttackPreview(null);
     }
     setPendingAction(null);
@@ -397,18 +393,6 @@ export default function GamePage() {
   if (!boardConfig) {
     return null;
   }
-
-  const isWinner = gameState.winnerId !== null && gameState.winnerId === currentUserId;
-
-  const gameOverMessage = (() => {
-    if (gameState.status === 'forfeited') {
-      return isWinner
-        ? 'Opponent forfeited. You win!'
-        : 'You forfeited. Your opponent wins.';
-    }
-
-    return isWinner ? '🎉 You won!' : 'You lost.';
-  })();
 
   const handlePopoverMove = () => {
     if (actingCharacter) {
@@ -586,27 +570,12 @@ export default function GamePage() {
         </div>
       )}
 
-      {isGameOver && (
-        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[2000]">
-          <div 
-            ref={gameOverModalRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Game Over"
-            className="bg-neutral-900 border border-neutral-700 rounded-xl p-8 min-w-[320px] text-center text-white"
-          >
-            <h2 className={`mt-0 mb-4 ${isWinner ? 'text-green-400' : 'text-red-400'}`}>
-              {gameOverMessage}
-            </h2>
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="bg-blue-500 hover:bg-blue-600 text-white border-0 rounded-md px-5 py-3 font-bold cursor-pointer focus-ring"
-            >
-              Back to Dashboard
-            </button>
-          </div>
-        </div>
+      {isGameOver && currentUserId && (
+        <GameOverScreen
+          winnerId={gameState.winnerId}
+          currentUserId={currentUserId}
+          xpAwards={xpAwards ?? []}
+        />
       )}
 
       {popoverState && actingCharacter && (

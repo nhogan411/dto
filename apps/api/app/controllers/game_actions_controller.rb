@@ -48,7 +48,10 @@ class GameActionsController < ApplicationController
 
     Broadcaster.game_action_completed(game.reload, action)
     Broadcaster.turn_changed(game) if turn_changed
-    Broadcaster.game_over(game) if game_over
+    if game_over
+      xp_awards = GameCompletionService.call(game)
+      Broadcaster.game_over(game, xp_awards: xp_awards)
+    end
 
     render json: {
       data: {

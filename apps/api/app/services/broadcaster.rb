@@ -14,8 +14,14 @@ class Broadcaster
     })
   end
 
-  def self.game_over(game)
-    broadcast_to_game(game, { event: "game_over", game_id: game.id, winner_id: game.winner_id, status: game.status })
+  def self.game_over(game, xp_awards: [])
+    broadcast_to_game(game, {
+      event:     "game_over",
+      game_id:   game.id,
+      winner_id: game.winner_id,
+      status:    game.status,
+      xp_awards: xp_awards
+    })
   end
 
   def self.game_updated(game, data = {})

@@ -121,7 +121,8 @@ class GamesController < ApplicationController
       return render json: { errors: [ "Game state changed, please retry" ] }, status: :unprocessable_entity
     end
 
-    Broadcaster.game_over(@game)
+    xp_awards = GameCompletionService.call(@game)
+    Broadcaster.game_over(@game, xp_awards: xp_awards)
 
     render json: { data: { game: @game.as_json(only: [ :id, :status, :winner_id ]) } }
   rescue ActiveRecord::RecordInvalid => e

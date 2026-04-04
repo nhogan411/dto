@@ -30,6 +30,6 @@ class PlayerCharactersController < ApplicationController
   end
 
   def serialize_player_character(character)
-    character.as_json(only: [ :id, :name, :icon, :locked, :archetype, :race ])
+    character.as_json(only: [ :id, :name, :icon, :locked, :archetype, :race, :xp, :level, :max_hp ])
   end
 end

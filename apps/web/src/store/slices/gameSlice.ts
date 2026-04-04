@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { gameApi, type ApiGame, type ApiGameCharacter, type ApiGameSnapshot, type GameHistoryAction } from '../../api/game';
 import type { GameAction } from '../../services/replayService';
+import type { XpAward } from '../../constants/xp';
 
 export interface CharacterState {
   id: number;
@@ -46,6 +47,7 @@ export interface GameSliceState {
   replayQueue: GameAction[];
   selectedCharacterId: number | null;
   gameActions: import('../../api/game').GameHistoryAction[];
+  xpAwards: XpAward[] | null;
 }
 
 export interface GameChannelMessage {
@@ -67,6 +69,7 @@ const initialState: GameSliceState = {
   replayQueue: [],
   selectedCharacterId: null,
   gameActions: [],
+  xpAwards: null,
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -405,6 +408,11 @@ const gameSlice = createSlice({
             state.gameState.winnerId = winnerId;
           }
 
+          const xpAwards = (action.payload as unknown as Record<string, unknown>).xp_awards ?? payloadData?.xp_awards;
+          if (Array.isArray(xpAwards)) {
+            state.xpAwards = xpAwards as XpAward[];
+          }
+
           break;
         }
         case 'game_updated': {
@@ -434,6 +442,7 @@ const gameSlice = createSlice({
       state.selectedCharacterId = null;
       state.replayInProgress = false;
       state.replayQueue = [];
+      state.xpAwards = null;
     },
     optimisticMove: (state, action: PayloadAction<{ characterId: number; newPosition: { x: number; y: number } }>) => {
       if (state.gameState) {
