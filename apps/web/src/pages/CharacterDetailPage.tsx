@@ -62,7 +62,8 @@ export default function CharacterDetailPage() {
       <div className="max-w-4xl mx-auto p-8 text-red-400 bg-neutral-900 min-h-screen">
         Character not found.
         <div className="mt-4">
-          <button 
+          <button
+            type="button"
             onClick={() => navigate('/characters')}
             className="text-blue-400 hover:text-blue-300 underline cursor-pointer bg-transparent border-none p-0"
           >
@@ -77,7 +78,8 @@ export default function CharacterDetailPage() {
     <div className="max-w-4xl mx-auto p-8 text-white bg-neutral-900 min-h-screen">
       <div className="mb-8 flex items-center gap-4">
         <button
-          onClick={() => navigate('/characters')}
+          type="button"
+          onClick={() => navigate(`/characters/${id}`)}
           className="focus-ring bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-2 rounded-md border border-neutral-700 cursor-pointer transition-colors"
         >
           &larr; Back

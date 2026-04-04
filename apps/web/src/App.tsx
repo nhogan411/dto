@@ -9,6 +9,7 @@ import GamePage from './pages/GamePage';
 import LobbyPage from './pages/LobbyPage';
 import CharactersPage from './pages/CharactersPage';
 import CharacterDetailPage from './pages/CharacterDetailPage';
+import CharacterViewPage from './pages/CharacterViewPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminPlayerCharactersPage from './pages/admin/AdminPlayerCharactersPage';
@@ -25,7 +26,8 @@ function App() {
           <Route path="/games/:id" element={<GamePage />} />
           <Route path="/games/:id/lobby" element={<LobbyPage />} />
           <Route path="/characters" element={<CharactersPage />} />
-          <Route path="/characters/:id" element={<CharacterDetailPage />} />
+          <Route path="/characters/:id" element={<CharacterViewPage />} />
+          <Route path="/characters/:id/edit" element={<CharacterDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
