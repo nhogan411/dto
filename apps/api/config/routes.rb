@@ -40,5 +40,6 @@ Rails.application.routes.draw do
     resources :users, only: [ :index, :show, :update, :destroy ]
     resources :player_characters
     resources :friendships, only: [ :index, :show ]
+    get "stats", to: "stats#index"
   end
 end
