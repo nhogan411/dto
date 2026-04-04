@@ -181,8 +181,8 @@ RSpec.describe "CharacterSelections", type: :request do
         end
 
         scout_gcs.each do |gc|
-          expect(gc.max_hp).to eq(10)
-          expect(gc.current_hp).to eq(10)
+          expect(gc.max_hp).to eq(16)  # uses player_character.max_hp, not archetype base
+          expect(gc.current_hp).to eq(16)
           expect(gc.stats["movement"]).to eq(5)
           expect(gc.stats["str"]).to eq(9)   # 8 base + 1 human bonus
           expect(gc.stats["dex"]).to eq(15)  # 14 base + 1 human bonus
