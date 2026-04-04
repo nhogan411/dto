@@ -31,12 +31,12 @@ function App() {
           <Route path="/characters/:id/edit" element={<CharacterDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
-      </Route>
-      <Route element={<AdminRoute />}>
-        <Route path="/admin" element={<AdminHomePage />} />
-        <Route path="/admin/users" element={<AdminUsersPage />} />
-        <Route path="/admin/player-characters" element={<AdminPlayerCharactersPage />} />
-        <Route path="/admin/friendships" element={<AdminFriendshipsPage />} />
+        <Route element={<AdminRoute />}>
+          <Route path="/admin" element={<AdminHomePage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/player-characters" element={<AdminPlayerCharactersPage />} />
+          <Route path="/admin/friendships" element={<AdminFriendshipsPage />} />
+        </Route>
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
