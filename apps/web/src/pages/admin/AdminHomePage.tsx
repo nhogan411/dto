@@ -33,8 +33,8 @@ export default function AdminHomePage() {
       });
   }, []);
 
-  if (loading) return <div>Loading dashboard...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
+  if (loading) return <div className="p-5 bg-[#121212] min-h-screen text-white">Loading dashboard...</div>;
+  if (error) return <div className="p-5 bg-[#121212] min-h-screen text-red-400">Error: {error}</div>;
 
   const recentUsers = [...(data?.users ?? [])].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -47,14 +47,14 @@ export default function AdminHomePage() {
   ];
 
   return (
-    <div className="p-5">
+    <div className="p-5 bg-[#121212] min-h-screen text-white">
       <h1>Admin: Dashboard</h1>
 
       <div className="mt-5 flex gap-5">
         {STATS.map(({ label, value }) => (
-          <div key={label} className="border border-neutral-400 p-4 min-w-32">
+          <div key={label} className="border border-neutral-600 p-4 min-w-32">
             <div className="text-2xl font-bold">{value}</div>
-            <div className="text-sm text-neutral-600">{label}</div>
+            <div className="text-sm text-neutral-400">{label}</div>
           </div>
         ))}
       </div>
@@ -63,7 +63,7 @@ export default function AdminHomePage() {
         <h2 className="text-lg font-semibold mb-2">Recent Users</h2>
         <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b-2 border-neutral-400 text-left">
+            <tr className="border-b-2 border-neutral-600 text-left">
               <th className="p-2.5">ID</th>
               <th className="p-2.5">Username</th>
               <th className="p-2.5">Email</th>
@@ -73,7 +73,7 @@ export default function AdminHomePage() {
           </thead>
           <tbody>
             {recentUsers.map((user) => (
-              <tr key={user.id} className="border-b border-neutral-200">
+              <tr key={user.id} className="border-b border-neutral-700">
                 <td className="p-2.5">{user.id}</td>
                 <td className="p-2.5">{user.username}</td>
                 <td className="p-2.5">{user.email}</td>
@@ -92,7 +92,7 @@ export default function AdminHomePage() {
             <Link
               key={href}
               to={href}
-              className="border border-neutral-400 p-4 hover:bg-neutral-100"
+              className="border border-neutral-600 p-4 text-white hover:bg-neutral-800"
             >
               {label}
             </Link>

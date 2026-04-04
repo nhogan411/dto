@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useEffect, useState, useCallback, type FormEvent } from 'react';
 import type { AdminPlayerCharacter } from '../../api/admin';
 import {
@@ -30,8 +31,8 @@ export default function AdminPlayerCharactersPage() {
       setError(null);
       const chars = await getAdminPlayerCharacters(userId);
       setCharacters(chars);
-    } catch (err: any) {
-      setError(err.response?.data?.errors?.[0] || 'Failed to fetch characters');
+    } catch (err: unknown) {
+      setError(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to fetch characters' : 'Failed to fetch characters');
     } finally {
       setLoading(false);
     }
@@ -74,8 +75,8 @@ export default function AdminPlayerCharactersPage() {
       
       const parsedFilter = parseInt(filterUserId, 10);
       await fetchCharacters(isNaN(parsedFilter) ? undefined : parsedFilter);
-    } catch (err: any) {
-      alert(err.response?.data?.errors?.[0] || 'Failed to create character');
+    } catch (err: unknown) {
+      alert(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to create character' : 'Failed to create character');
     }
   };
 
@@ -100,8 +101,8 @@ export default function AdminPlayerCharactersPage() {
       setEditingId(null);
       const parsedFilter = parseInt(filterUserId, 10);
       await fetchCharacters(isNaN(parsedFilter) ? undefined : parsedFilter);
-    } catch (err: any) {
-      alert(err.response?.data?.errors?.[0] || 'Failed to update character');
+    } catch (err: unknown) {
+      alert(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to update character' : 'Failed to update character');
     }
   };
 
@@ -111,16 +112,16 @@ export default function AdminPlayerCharactersPage() {
       await deleteAdminPlayerCharacter(id);
       const parsedFilter = parseInt(filterUserId, 10);
       await fetchCharacters(isNaN(parsedFilter) ? undefined : parsedFilter);
-    } catch (err: any) {
-      alert(err.response?.data?.errors?.[0] || 'Failed to delete character');
+    } catch (err: unknown) {
+      alert(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to delete character' : 'Failed to delete character');
     }
   };
 
   return (
-    <div className="p-5">
+    <div className="p-5 bg-[#121212] min-h-screen text-white">
       <h1>Admin: Player Characters</h1>
       
-      <div className="mb-5 p-2.5 border border-neutral-400">
+      <div className="mb-5 p-2.5 border border-neutral-600">
         <h3>Create New Character</h3>
         <form onSubmit={handleCreate}>
           <input
@@ -129,7 +130,7 @@ export default function AdminPlayerCharactersPage() {
             value={newUserId}
             onChange={(e) => setNewUserId(e.target.value)}
             required
-            className="mr-2.5"
+            className="mr-2.5 bg-neutral-800 text-white border border-neutral-600 rounded px-2 py-1 placeholder:text-neutral-500"
           />
           <input
             type="text"
@@ -137,7 +138,7 @@ export default function AdminPlayerCharactersPage() {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             required
-            className="mr-2.5"
+            className="mr-2.5 bg-neutral-800 text-white border border-neutral-600 rounded px-2 py-1 placeholder:text-neutral-500"
           />
           <input
             type="text"
@@ -145,17 +146,18 @@ export default function AdminPlayerCharactersPage() {
             value={newIcon}
             onChange={(e) => setNewIcon(e.target.value)}
             required
-            className="mr-2.5"
+            className="mr-2.5 bg-neutral-800 text-white border border-neutral-600 rounded px-2 py-1 placeholder:text-neutral-500"
           />
           <label className="mr-2.5">
             <input
               type="checkbox"
               checked={newLocked}
               onChange={(e) => setNewLocked(e.target.checked)}
+              className="mr-1"
             />
             Locked
           </label>
-          <button type="submit">Create</button>
+          <button type="submit" className="text-white border border-neutral-600 px-3 py-1 hover:bg-neutral-800 rounded">Create</button>
         </form>
       </div>
 
@@ -166,16 +168,16 @@ export default function AdminPlayerCharactersPage() {
             placeholder="Filter by User ID"
             value={filterUserId}
             onChange={(e) => setFilterUserId(e.target.value)}
-            className="mr-2.5"
+            className="mr-2.5 bg-neutral-800 text-white border border-neutral-600 rounded px-2 py-1 placeholder:text-neutral-500"
           />
-          <button type="submit">Filter</button>
+          <button type="submit" className="text-white border border-neutral-600 px-3 py-1 hover:bg-neutral-800 rounded">Filter</button>
           <button
             type="button"
             onClick={() => {
               setFilterUserId('');
               fetchCharacters();
             }}
-            className="ml-2.5"
+            className="ml-2.5 text-white border border-neutral-600 px-3 py-1 hover:bg-neutral-800 rounded"
           >
             Clear Filter
           </button>
@@ -185,11 +187,11 @@ export default function AdminPlayerCharactersPage() {
       {loading ? (
         <div>Loading characters...</div>
       ) : error ? (
-        <div className="text-red-500">Error: {error}</div>
+        <div className="text-red-400">Error: {error}</div>
       ) : (
         <table className="w-full border-collapse mt-5">
           <thead>
-            <tr className="border-b-2 border-neutral-400 text-left">
+            <tr className="border-b-2 border-neutral-600 text-left">
               <th className="p-2.5">ID</th>
               <th className="p-2.5">User ID</th>
               <th className="p-2.5">Name</th>
@@ -200,7 +202,7 @@ export default function AdminPlayerCharactersPage() {
           </thead>
           <tbody>
             {characters.map((char) => (
-              <tr key={char.id} className="border-b border-neutral-200">
+              <tr key={char.id} className="border-b border-neutral-700">
                 <td className="p-2.5">{char.id}</td>
                 <td className="p-2.5">{char.user_id}</td>
                 <td className="p-2.5">
@@ -209,6 +211,7 @@ export default function AdminPlayerCharactersPage() {
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
+                      className="bg-neutral-800 text-white border border-neutral-600 rounded px-2 py-1"
                     />
                   ) : (
                     char.name
@@ -220,6 +223,7 @@ export default function AdminPlayerCharactersPage() {
                       type="text"
                       value={editIcon}
                       onChange={(e) => setEditIcon(e.target.value)}
+                      className="bg-neutral-800 text-white border border-neutral-600 rounded px-2 py-1"
                     />
                   ) : (
                     char.icon
@@ -239,19 +243,19 @@ export default function AdminPlayerCharactersPage() {
                 <td className="p-2.5">
                   {editingId === char.id ? (
                     <>
-                      <button type="button" onClick={() => handleEditSave(char.id)} className="mr-1.5">
+                      <button type="button" onClick={() => handleEditSave(char.id)} className="mr-1.5 text-white border border-neutral-600 px-2 py-0.5 hover:bg-neutral-800 rounded">
                         Save
                       </button>
-                      <button type="button" onClick={handleEditCancel}>
+                      <button type="button" onClick={handleEditCancel} className="text-white border border-neutral-600 px-2 py-0.5 hover:bg-neutral-800 rounded">
                         Cancel
                       </button>
                     </>
                   ) : (
                     <>
-                      <button type="button" onClick={() => handleEditClick(char)} className="mr-1.5">
+                      <button type="button" onClick={() => handleEditClick(char)} className="mr-1.5 text-white border border-neutral-600 px-2 py-0.5 hover:bg-neutral-800 rounded">
                         Edit
                       </button>
-                      <button type="button" onClick={() => handleDelete(char.id)} className="text-red-500">
+                      <button type="button" onClick={() => handleDelete(char.id)} className="text-red-400 hover:text-red-300">
                         Delete
                       </button>
                     </>
