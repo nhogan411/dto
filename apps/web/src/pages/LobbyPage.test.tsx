@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import LobbyPage from './LobbyPage';
+import LobbyPage, { TILE_CONFIG } from './LobbyPage';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 const mockDispatch = vi.fn((action) => Promise.resolve(action));
@@ -338,5 +338,23 @@ describe('LobbyPage', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/games/1');
     });
+  });
+
+  it('Test 7: TILE_CONFIG has correct label and color for spawn_challenger', () => {
+    expect(TILE_CONFIG['spawn_challenger']).toEqual({
+      label: 'A',
+      color: 'var(--team-blue)',
+    });
+  });
+
+  it('Test 8: TILE_CONFIG has correct label and color for spawn_challenged', () => {
+    expect(TILE_CONFIG['spawn_challenged']).toEqual({
+      label: 'B',
+      color: 'var(--team-green)',
+    });
+  });
+
+  it('Test 9: TILE_CONFIG returns undefined for unknown tile type', () => {
+    expect(TILE_CONFIG['unknown_type']).toBeUndefined();
   });
 });

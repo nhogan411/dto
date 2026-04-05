@@ -7,6 +7,16 @@ import { gameApi } from '../api/game';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { useGameChannel } from '../cable/useGameChannel';
 
+export type TileConfig = {
+  label?: string;
+  color?: string;
+};
+
+export const TILE_CONFIG: Record<string, TileConfig> = {
+  spawn_challenger: { label: 'A', color: 'var(--team-blue)' },
+  spawn_challenged: { label: 'B', color: 'var(--team-green)' },
+};
+
 export default function LobbyPage() {
   usePageTitle('Game Lobby');
   const { id } = useParams<{ id: string }>();
@@ -129,16 +139,9 @@ export default function LobbyPage() {
       for (let x = 1; x <= 12; x++) {
         const tileType = boardConfig.tiles[y - 1]?.[x - 1]?.type ?? 'open';
         const isBlocked = tileType === 'blocked';
-        let startPosLabel: string | null = null;
-        let startPosColor: string | null = null;
-
-        if (tileType === 'spawn_challenger') {
-          startPosLabel = 'A';
-          startPosColor = 'var(--team-blue)';
-        } else if (tileType === 'spawn_challenged') {
-          startPosLabel = 'B';
-          startPosColor = 'var(--team-green)';
-        }
+        const tileConfig = TILE_CONFIG[tileType];
+        const startPosLabel = tileConfig?.label ?? null;
+        const startPosColor = tileConfig?.color ?? null;
 
         squares.push(
           <div
