@@ -9,7 +9,7 @@ type RetryableRequestConfig = InternalAxiosRequestConfig & {
 };
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:4000',
+  baseURL: import.meta.env.VITE_API_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
