@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import GamePage from './GamePage';
+import GamePage, { DIRECTION_DELTAS } from './GamePage';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { getMoveBudget } from '../utils/character';
 
@@ -407,6 +407,17 @@ describe('GamePage', () => {
   it('getMoveBudget: Character with empty stats returns fallback of 3', () => {
     const characterWithEmptyStats = { stats: {} };
     expect(getMoveBudget(characterWithEmptyStats)).toBe(3);
+  });
+
+  it('DIRECTION_DELTAS covers all four cardinal directions', () => {
+    expect(DIRECTION_DELTAS['north']).toEqual({ dx: 0, dy: -1 });
+    expect(DIRECTION_DELTAS['south']).toEqual({ dx: 0, dy:  1 });
+    expect(DIRECTION_DELTAS['east']).toEqual({ dx: 1, dy:  0 });
+    expect(DIRECTION_DELTAS['west']).toEqual({ dx: -1, dy: 0 });
+  });
+
+  it('DIRECTION_DELTAS returns undefined for unknown directions', () => {
+    expect(DIRECTION_DELTAS['diagonal']).toBeUndefined();
   });
 });
 

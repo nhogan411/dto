@@ -29,6 +29,13 @@ import { getReachableSquares, getShortestPathToTarget, type Coordinate } from '.
 import { usePageTitle } from '../hooks/usePageTitle';
 import { getMoveBudget } from '../utils/character';
 
+export const DIRECTION_DELTAS: Record<string, { dx: number; dy: number }> = {
+  north: { dx:  0, dy: -1 },
+  south: { dx:  0, dy:  1 },
+  east:  { dx:  1, dy:  0 },
+  west:  { dx: -1, dy:  0 },
+};
+
 export default function GamePage() {
   usePageTitle('Game');
   const { id } = useParams<{ id: string }>();
@@ -408,10 +415,11 @@ export default function GamePage() {
     if (parsedGameId !== null && actingCharacter) {
       const facingTile = { ...actingCharacter.position };
 
-      if (direction === 'north') facingTile.y -= 1;
-      else if (direction === 'south') facingTile.y += 1;
-      else if (direction === 'east') facingTile.x += 1;
-      else if (direction === 'west') facingTile.x -= 1;
+      const delta = DIRECTION_DELTAS[direction];
+      if (delta) {
+        facingTile.x += delta.dx;
+        facingTile.y += delta.dy;
+      }
 
       const directionLabel = direction.charAt(0).toUpperCase() + direction.slice(1);
       setPendingAction({
@@ -432,10 +440,11 @@ export default function GamePage() {
     if (parsedGameId !== null && actingCharacter) {
       const facingTile = { ...actingCharacter.position };
       
-      if (direction === 'north') facingTile.y -= 1;
-      else if (direction === 'south') facingTile.y += 1;
-      else if (direction === 'east') facingTile.x += 1;
-      else if (direction === 'west') facingTile.x -= 1;
+      const delta = DIRECTION_DELTAS[direction];
+      if (delta) {
+        facingTile.x += delta.dx;
+        facingTile.y += delta.dy;
+      }
       
       void dispatch(submitActionThunk({
         gameId: parsedGameId,
