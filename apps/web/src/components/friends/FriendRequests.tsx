@@ -4,13 +4,13 @@ import { fetchFriendRequestsThunk, acceptFriendRequestThunk, declineFriendReques
 
 export const FriendRequests: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { pendingRequests, status } = useAppSelector((state) => state.friends);
+  const { pendingRequests, fetchStatus } = useAppSelector((state) => state.friends);
 
   useEffect(() => {
-    if (status === 'idle') {
+    if (fetchStatus === 'idle') {
       void dispatch(fetchFriendRequestsThunk());
     }
-  }, [dispatch, status]);
+  }, [dispatch, fetchStatus]);
 
   const handleAccept = (id: number) => {
     void dispatch(acceptFriendRequestThunk(id)).then(() => {
@@ -26,11 +26,11 @@ export const FriendRequests: React.FC = () => {
     <div className="bg-neutral-900 p-6 rounded-lg border border-neutral-800">
       <h2 className="text-white m-0 mb-6 text-xl">Friend Requests</h2>
 
-      {status === 'loading' && (
+      {fetchStatus === 'loading' && (
         <div className="text-neutral-300 py-8 text-center" aria-live="polite">Loading requests...</div>
       )}
       
-      {status === 'succeeded' && pendingRequests.length === 0 && (
+      {fetchStatus === 'succeeded' && pendingRequests.length === 0 && (
         <div className="text-neutral-300 text-center py-8">No pending requests.</div>
       )}
 

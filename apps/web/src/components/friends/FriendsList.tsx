@@ -6,16 +6,16 @@ import { gameApi } from '../../api/game';
 
 export const FriendsList: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { friends, status, error } = useAppSelector((state) => state.friends);
+  const { friends, fetchStatus, error } = useAppSelector((state) => state.friends);
   const [invitingFriendId, setInvitingFriendId] = useState<number | null>(null);
   const [inviteErrors, setInviteErrors] = useState<Record<number, string | null>>({});
 
   useEffect(() => {
-    if (status === 'idle') {
+    if (fetchStatus === 'idle') {
       void dispatch(fetchFriendsThunk());
     }
     // TODO: wire NotificationChannel in Task 20
-  }, [dispatch, status]);
+  }, [dispatch, fetchStatus]);
 
   const handleInvite = async (friendId: number) => {
     setInvitingFriendId(friendId);
@@ -36,15 +36,15 @@ export const FriendsList: React.FC = () => {
     <div className="bg-neutral-900 p-6 rounded-lg border border-neutral-800">
       <h2 className="text-white m-0 mb-6 text-xl">Friends</h2>
       
-      {status === 'loading' && (
+      {fetchStatus === 'loading' && (
         <div className="text-neutral-300 py-8 text-center" aria-live="polite">Loading friends...</div>
       )}
       
-      {status === 'failed' && (
+      {fetchStatus === 'failed' && (
         <div className="text-red-400 py-8 text-center bg-red-500/10 rounded-md border border-red-500/20" aria-live="assertive">{error}</div>
       )}
       
-      {status === 'succeeded' && friends.length === 0 && (
+      {fetchStatus === 'succeeded' && friends.length === 0 && (
         <div className="text-neutral-300 text-center py-8">You have no friends yet.</div>
       )}
 

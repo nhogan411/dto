@@ -4,7 +4,7 @@ import { searchUsersThunk, sendFriendRequestThunk, clearSearchResults } from '..
 
 export const FriendSearch: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { searchResults, status } = useAppSelector((state) => state.friends);
+  const { searchResults, fetchStatus } = useAppSelector((state) => state.friends);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
@@ -54,7 +54,7 @@ export const FriendSearch: React.FC = () => {
         aria-label="Search users"
       />
 
-      {status === 'loading' && debouncedQuery && (
+      {fetchStatus === 'loading' && debouncedQuery && (
         <div className="text-neutral-300 py-4 text-center" aria-live="polite">Searching...</div>
       )}
 
@@ -88,7 +88,7 @@ export const FriendSearch: React.FC = () => {
         </ul>
       )}
       
-      {debouncedQuery.trim() && searchResults.length === 0 && status !== 'loading' && (
+      {debouncedQuery.trim() && searchResults.length === 0 && fetchStatus !== 'loading' && (
         <div className="text-neutral-300 text-center py-8">No users found.</div>
       )}
     </div>

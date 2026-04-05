@@ -7,7 +7,8 @@ export interface FriendsState {
   friends: Friend[];
   pendingRequests: Friendship[];
   searchResults: UserSearch[];
-  status: RequestStatus;
+  fetchStatus: RequestStatus;
+  mutationStatus: RequestStatus;
   error: string | null;
 }
 
@@ -15,7 +16,8 @@ const initialState: FriendsState = {
   friends: [],
   pendingRequests: [],
   searchResults: [],
-  status: 'idle',
+  fetchStatus: 'idle',
+  mutationStatus: 'idle',
   error: null,
 };
 
@@ -78,52 +80,57 @@ const friendsSlice = createSlice({
       state.friends = [];
       state.pendingRequests = [];
       state.searchResults = [];
-      state.status = 'idle';
+      state.fetchStatus = 'idle';
+      state.mutationStatus = 'idle';
       state.error = null;
     }
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchFriendsThunk.pending, (state) => {
-        state.status = 'loading';
+        state.fetchStatus = 'loading';
       })
       .addCase(fetchFriendsThunk.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.fetchStatus = 'succeeded';
         state.friends = action.payload;
       })
       .addCase(fetchFriendsThunk.rejected, (state, action) => {
-        state.status = 'failed';
+        state.fetchStatus = 'failed';
         state.error = action.error.message || 'Failed to fetch friends';
       })
       .addCase(searchUsersThunk.pending, (state) => {
-        state.status = 'loading';
+        state.fetchStatus = 'loading';
       })
       .addCase(searchUsersThunk.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.fetchStatus = 'succeeded';
         state.searchResults = action.payload;
       })
       .addCase(searchUsersThunk.rejected, (state, action) => {
-        state.status = 'failed';
+        state.fetchStatus = 'failed';
         state.error = action.error.message || 'Failed to search users';
       })
       .addCase(fetchFriendRequestsThunk.pending, (state) => {
-        state.status = 'loading';
+        state.fetchStatus = 'loading';
       })
       .addCase(fetchFriendRequestsThunk.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.fetchStatus = 'succeeded';
         state.pendingRequests = action.payload;
       })
       .addCase(fetchFriendRequestsThunk.rejected, (state, action) => {
-        state.status = 'failed';
+        state.fetchStatus = 'failed';
         state.error = action.error.message || 'Failed to fetch friend requests';
       })
-      .addCase(sendFriendRequestThunk.fulfilled, () => {})
+      .addCase(sendFriendRequestThunk.fulfilled, (state) => {
+        state.mutationStatus = 'succeeded';
+      })
       .addCase(acceptFriendRequestThunk.fulfilled, (state, action) => {
+        state.mutationStatus = 'succeeded';
         state.pendingRequests = state.pendingRequests.filter(
           (req) => req.id !== action.payload.id
         );
       })
       .addCase(declineFriendRequestThunk.fulfilled, (state, action) => {
+        state.mutationStatus = 'succeeded';
         state.pendingRequests = state.pendingRequests.filter(
           (req) => req.id !== action.payload.id
         );

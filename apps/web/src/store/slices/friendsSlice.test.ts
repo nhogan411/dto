@@ -9,13 +9,21 @@ import friendsReducer, {
 } from './friendsSlice';
 
 describe('friendsSlice', () => {
+  it('has separate fetchStatus and mutationStatus fields', () => {
+    const state = friendsReducer(undefined, { type: '@@INIT' });
+    expect(state).toHaveProperty('fetchStatus');
+    expect(state).toHaveProperty('mutationStatus');
+    expect(state).not.toHaveProperty('status');
+  });
+
   it('returns initial state', () => {
     const state = friendsReducer(undefined, { type: '@@INIT' });
     expect(state).toEqual({
       friends: [],
       pendingRequests: [],
       searchResults: [],
-      status: 'idle',
+      fetchStatus: 'idle',
+      mutationStatus: 'idle',
       error: null,
     });
   });
@@ -25,7 +33,8 @@ describe('friendsSlice', () => {
       friends: [],
       pendingRequests: [],
       searchResults: [{ id: 1, email: 'test@example.com', username: 'test' }],
-      status: 'succeeded' as const,
+      fetchStatus: 'succeeded' as const,
+      mutationStatus: 'idle' as const,
       error: null,
     };
     
@@ -38,7 +47,8 @@ describe('friendsSlice', () => {
       friends: [{ id: 1, email: 'test@example.com', username: 'test', friendship_id: 1 }],
       pendingRequests: [{ id: 2, requester_id: 3, recipient_id: 1, status: 'pending' as const }],
       searchResults: [{ id: 4, email: 'search@example.com', username: 'search' }],
-      status: 'failed' as const,
+      fetchStatus: 'failed' as const,
+      mutationStatus: 'succeeded' as const,
       error: 'An error occurred',
     };
     
@@ -47,7 +57,8 @@ describe('friendsSlice', () => {
       friends: [],
       pendingRequests: [],
       searchResults: [],
-      status: 'idle',
+      fetchStatus: 'idle',
+      mutationStatus: 'idle',
       error: null,
     });
   });
@@ -57,7 +68,7 @@ describe('friendsSlice', () => {
     const action = { type: fetchFriendsThunk.fulfilled.type, payload: friends };
     const state = friendsReducer(undefined, action);
     
-    expect(state.status).toBe('succeeded');
+    expect(state.fetchStatus).toBe('succeeded');
     expect(state.friends).toEqual(friends);
   });
 
@@ -66,7 +77,7 @@ describe('friendsSlice', () => {
     const action = { type: fetchFriendRequestsThunk.fulfilled.type, payload: requests };
     const state = friendsReducer(undefined, action);
     
-    expect(state.status).toBe('succeeded');
+    expect(state.fetchStatus).toBe('succeeded');
     expect(state.pendingRequests).toEqual(requests);
   });
 
@@ -78,7 +89,8 @@ describe('friendsSlice', () => {
         { id: 2, requester_id: 4, recipient_id: 3, status: 'pending' as const },
       ],
       searchResults: [],
-      status: 'idle' as const,
+      fetchStatus: 'idle' as const,
+      mutationStatus: 'idle' as const,
       error: null,
     };
 
@@ -99,7 +111,8 @@ describe('friendsSlice', () => {
         { id: 1, requester_id: 2, recipient_id: 3, status: 'pending' as const },
       ],
       searchResults: [],
-      status: 'idle' as const,
+      fetchStatus: 'idle' as const,
+      mutationStatus: 'idle' as const,
       error: null,
     };
 
