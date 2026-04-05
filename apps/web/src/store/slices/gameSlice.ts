@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, type PayloadAction, type WritableDraft } from '@reduxjs/toolkit';
 import { gameApi, type ApiGame, type ApiGameCharacter, type ApiGameSnapshot, type GameHistoryAction } from '../../api/game';
 import type { GameAction } from '../../services/replayService';
 import type { XpAward } from '../../constants/xp';
@@ -233,6 +233,106 @@ const syncCurrentGameFromGameState = (
   };
 };
 
+type GameEventHandler = (state: WritableDraft<GameSliceState>, payload: GameChannelMessage) => void;
+
+const GAME_EVENT_HANDLER_MAP: Record<string, GameEventHandler> = {
+  action_completed: (state, payload) => {
+    if (!state.gameState) return;
+
+    const payloadData = isRecord(payload.data) ? payload.data : undefined;
+    const updatedGameState = mapIncomingGameState(payloadData?.game_state ?? payloadData?.gameState);
+
+    if (updatedGameState) {
+      state.gameState = updatedGameState;
+    }
+
+    const incomingAction = payloadData?.action;
+    if (incomingAction && isRecord(incomingAction) && typeof incomingAction.id === 'number') {
+      const alreadyExists = state.gameActions.some((a) => a.id === (incomingAction as { id: number }).id);
+      if (!alreadyExists) {
+        state.gameActions.push({
+          ...(incomingAction as unknown as GameHistoryAction),
+          received_at: new Date().toISOString(),
+        });
+      }
+    }
+
+    state.currentGame = syncCurrentGameFromGameState(state.currentGame, state.gameState);
+  },
+  turn_changed: (state, payload) => {
+    if (!state.gameState) return;
+
+    const payloadData = isRecord(payload.data) ? payload.data : undefined;
+    const nextPlayerId = parseNumber(
+      payload.current_turn_user_id ?? payloadData?.current_turn_user_id ?? payloadData?.next_player_id,
+    );
+    const nextCharacterId = parseNumber(payloadData?.next_character_id ?? payloadData?.acting_character_id);
+    const nextTurnNumber = parseNumber(payloadData?.turn_number ?? payloadData?.next_turn_number);
+    const currentTurnIndex = parseNumber(payloadData?.current_turn_index);
+    const turnOrder = Array.isArray(payloadData?.turn_order)
+      ? payloadData.turn_order.map((entry) => parseNumber(entry)).filter((entry): entry is number => entry !== undefined)
+      : undefined;
+
+    if (nextPlayerId !== undefined) {
+      state.gameState.currentTurnUserId = nextPlayerId;
+    }
+
+    if (nextCharacterId !== undefined) {
+      state.gameState.actingCharacterId = nextCharacterId;
+    }
+
+    if (currentTurnIndex !== undefined) {
+      state.gameState.currentTurnIndex = currentTurnIndex;
+    }
+
+    if (turnOrder !== undefined) {
+      state.gameState.turnOrder = turnOrder;
+    }
+
+    if (nextTurnNumber !== undefined) {
+      state.gameState.turnNumber = nextTurnNumber;
+    }
+
+    state.currentGame = syncCurrentGameFromGameState(state.currentGame, state.gameState);
+  },
+  game_over: (state, payload) => {
+    if (!state.gameState) return;
+
+    const payloadData = isRecord(payload.data) ? payload.data : undefined;
+    state.gameState.status =
+      payload.status ??
+      (typeof payloadData?.status === 'string' ? (payloadData.status as GameState['status']) : undefined) ??
+      'completed';
+
+    const winnerId = parseNullableNumber(payload.winner_id ?? payloadData?.winner_id);
+
+    if (winnerId !== undefined) {
+      state.gameState.winnerId = winnerId;
+    }
+
+    const xpAwards = (payload as unknown as Record<string, unknown>).xp_awards ?? payloadData?.xp_awards;
+    if (Array.isArray(xpAwards)) {
+      state.xpAwards = xpAwards as XpAward[];
+    }
+
+    state.currentGame = syncCurrentGameFromGameState(state.currentGame, state.gameState);
+  },
+  game_updated: (state, payload) => {
+    if (!state.gameState) return;
+
+    const payloadData = isRecord(payload.data) ? payload.data : undefined;
+    const updatedGameState = mapIncomingGameState(
+      payloadData?.game_state ?? payloadData?.gameState ?? payload.data ?? payload,
+    );
+
+    if (updatedGameState) {
+      state.gameState = updatedGameState;
+    }
+
+    state.currentGame = syncCurrentGameFromGameState(state.currentGame, state.gameState);
+  },
+};
+
 export const fetchGameThunk = createAsyncThunk<ApiGame, number>('game/fetchGame', async (id) => {
   const response = await gameApi.getGame(id);
   return response.data.data.game;
@@ -342,97 +442,8 @@ const gameSlice = createSlice({
         return;
       }
 
-      const payloadData = isRecord(action.payload.data) ? action.payload.data : undefined;
-
-      switch (action.payload.event) {
-        case 'action_completed': {
-          const updatedGameState = mapIncomingGameState(payloadData?.game_state ?? payloadData?.gameState);
-
-          if (updatedGameState) {
-            state.gameState = updatedGameState;
-          }
-
-          const incomingAction = payloadData?.action;
-          if (incomingAction && isRecord(incomingAction) && typeof incomingAction.id === 'number') {
-            const alreadyExists = state.gameActions.some((a) => a.id === (incomingAction as { id: number }).id);
-            if (!alreadyExists) {
-              state.gameActions.push({
-                ...(incomingAction as unknown as GameHistoryAction),
-                received_at: new Date().toISOString(),
-              });
-            }
-          }
-
-          break;
-        }
-        case 'turn_changed': {
-          const nextPlayerId = parseNumber(
-            action.payload.current_turn_user_id ?? payloadData?.current_turn_user_id ?? payloadData?.next_player_id,
-          );
-          const nextCharacterId = parseNumber(payloadData?.next_character_id ?? payloadData?.acting_character_id);
-          const nextTurnNumber = parseNumber(payloadData?.turn_number ?? payloadData?.next_turn_number);
-          const currentTurnIndex = parseNumber(payloadData?.current_turn_index);
-          const turnOrder = Array.isArray(payloadData?.turn_order)
-            ? payloadData.turn_order.map((entry) => parseNumber(entry)).filter((entry): entry is number => entry !== undefined)
-            : undefined;
-
-          if (nextPlayerId !== undefined) {
-            state.gameState.currentTurnUserId = nextPlayerId;
-          }
-
-          if (nextCharacterId !== undefined) {
-            state.gameState.actingCharacterId = nextCharacterId;
-          }
-
-          if (currentTurnIndex !== undefined) {
-            state.gameState.currentTurnIndex = currentTurnIndex;
-          }
-
-          if (turnOrder !== undefined) {
-            state.gameState.turnOrder = turnOrder;
-          }
-
-          if (nextTurnNumber !== undefined) {
-            state.gameState.turnNumber = nextTurnNumber;
-          }
-
-          break;
-        }
-        case 'game_over': {
-          state.gameState.status =
-            action.payload.status ??
-            (typeof payloadData?.status === 'string' ? (payloadData.status as GameState['status']) : undefined) ??
-            'completed';
-
-          const winnerId = parseNullableNumber(action.payload.winner_id ?? payloadData?.winner_id);
-
-          if (winnerId !== undefined) {
-            state.gameState.winnerId = winnerId;
-          }
-
-          const xpAwards = (action.payload as unknown as Record<string, unknown>).xp_awards ?? payloadData?.xp_awards;
-          if (Array.isArray(xpAwards)) {
-            state.xpAwards = xpAwards as XpAward[];
-          }
-
-          break;
-        }
-        case 'game_updated': {
-          const updatedGameState = mapIncomingGameState(
-            payloadData?.game_state ?? payloadData?.gameState ?? action.payload.data ?? action.payload,
-          );
-
-          if (updatedGameState) {
-            state.gameState = updatedGameState;
-          }
-
-          break;
-        }
-        default:
-          break;
-      }
-
-      state.currentGame = syncCurrentGameFromGameState(state.currentGame, state.gameState);
+      const handler = GAME_EVENT_HANDLER_MAP[action.payload.event];
+      if (handler) handler(state, action.payload);
     },
     clearGame: (state) => {
       state.currentGame = null;
