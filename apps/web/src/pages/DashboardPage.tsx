@@ -6,6 +6,7 @@ import { FriendRequests } from '../components/friends/FriendRequests';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useNotificationChannel } from '../cable/useNotificationChannel';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import type { AppDispatch } from '../store';
 import {
   addFriendRequestAcceptedNotification,
   addFriendRequestNotification,
@@ -27,6 +28,57 @@ interface NotificationChannelMessage {
   from_username?: string;
   by_username?: string;
 }
+
+type NotificationHandler = (data: NotificationChannelMessage, dispatch: AppDispatch) => void;
+
+const NOTIFICATION_HANDLER_MAP: Record<string, NotificationHandler> = {
+  game_invitation_received: (data, dispatch) => {
+    if (typeof data.game_id === 'number') {
+      dispatch(
+        addGameInvitation({
+          gameId: data.game_id,
+          challengerUsername: data.challenger_username ?? 'A friend',
+        }),
+      );
+      void dispatch(fetchGamesThunk());
+    }
+  },
+  friend_request_received: (data, dispatch) => {
+    dispatch(
+      addFriendRequestNotification({
+        friendshipId: data.friendship_id ?? Date.now(),
+        requesterUsername: data.requester_username ?? data.from_username ?? 'A player',
+      }),
+    );
+    void dispatch(fetchFriendRequestsThunk());
+    void dispatch(fetchFriendsThunk());
+  },
+  your_turn: (data, dispatch) => {
+    if (typeof data.game_id === 'number') {
+      dispatch(markYourTurn({ gameId: data.game_id }));
+      void dispatch(fetchGamesThunk());
+    }
+  },
+  friend_request_accepted: (data, dispatch) => {
+    dispatch(
+      addFriendRequestAcceptedNotification({
+        friendshipId: data.friendship_id,
+        accepterUsername: data.by_username ?? 'A friend',
+      }),
+    );
+    void dispatch(fetchFriendRequestsThunk());
+    void dispatch(fetchFriendsThunk());
+  },
+  position_pick_needed: (data, dispatch) => {
+    if (typeof data.game_id === 'number') {
+      dispatch(addPositionPickNeeded({ gameId: data.game_id }));
+      void dispatch(fetchGamesThunk());
+    }
+  },
+  invite_expired: (_data, dispatch) => {
+    void dispatch(fetchGamesThunk());
+  },
+};
 
 export default function DashboardPage() {
   usePageTitle('Dashboard');
@@ -54,62 +106,8 @@ export default function DashboardPage() {
 
   const onNotificationMessage = useCallback(
     (data: NotificationChannelMessage) => {
-      switch (data.event) {
-        case 'game_invitation_received': {
-          if (typeof data.game_id === 'number') {
-            dispatch(
-              addGameInvitation({
-                gameId: data.game_id,
-                challengerUsername: data.challenger_username ?? 'A friend',
-              }),
-            );
-            void dispatch(fetchGamesThunk());
-          }
-          break;
-        }
-        case 'friend_request_received': {
-          dispatch(
-            addFriendRequestNotification({
-              friendshipId: data.friendship_id ?? Date.now(),
-              requesterUsername: data.requester_username ?? data.from_username ?? 'A player',
-            }),
-          );
-          void dispatch(fetchFriendRequestsThunk());
-          void dispatch(fetchFriendsThunk());
-          break;
-        }
-        case 'your_turn': {
-          if (typeof data.game_id === 'number') {
-            dispatch(markYourTurn({ gameId: data.game_id }));
-            void dispatch(fetchGamesThunk());
-          }
-          break;
-        }
-        case 'friend_request_accepted': {
-          dispatch(
-            addFriendRequestAcceptedNotification({
-              friendshipId: data.friendship_id,
-              accepterUsername: data.by_username ?? 'A friend',
-            }),
-          );
-          void dispatch(fetchFriendRequestsThunk());
-          void dispatch(fetchFriendsThunk());
-          break;
-        }
-        case 'position_pick_needed': {
-          if (typeof data.game_id === 'number') {
-            dispatch(addPositionPickNeeded({ gameId: data.game_id }));
-            void dispatch(fetchGamesThunk());
-          }
-          break;
-        }
-        case 'invite_expired': {
-          void dispatch(fetchGamesThunk());
-          break;
-        }
-        default:
-          break;
-      }
+      const handler = NOTIFICATION_HANDLER_MAP[data.event];
+      if (handler) handler(data, dispatch);
     },
     [dispatch],
   );

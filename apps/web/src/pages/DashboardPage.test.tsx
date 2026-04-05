@@ -77,6 +77,9 @@ vi.mock('../store/slices/notificationSlice', async (importActual) => {
     ...actual,
     addGameInvitation: vi.fn((payload) => ({ type: 'notifications/addGameInvitation', payload })),
     markYourTurn: vi.fn((payload) => ({ type: 'notifications/markYourTurn', payload })),
+    addFriendRequestNotification: vi.fn((payload) => ({ type: 'notifications/addFriendRequestNotification', payload })),
+    addFriendRequestAcceptedNotification: vi.fn((payload) => ({ type: 'notifications/addFriendRequestAcceptedNotification', payload })),
+    addPositionPickNeeded: vi.fn((payload) => ({ type: 'notifications/addPositionPickNeeded', payload })),
   };
 });
 
@@ -135,7 +138,7 @@ vi.mock('../hooks/useFocusTrap', () => ({
 }));
 
 import { addGameInvitation, markYourTurn } from '../store/slices/notificationSlice';
-import { declineGameThunk } from '../store/slices/dashboardSlice';
+import { declineGameThunk, fetchGamesThunk } from '../store/slices/dashboardSlice';
 
 describe('DashboardPage', () => {
   beforeEach(() => {
@@ -307,4 +310,56 @@ describe('DashboardPage', () => {
       expect(screen.queryByRole('dialog', { name: 'Start New Game' })).not.toBeInTheDocument();
     });
   });
+
+  describe('NOTIFICATION_HANDLER_MAP registry tests', () => {
+    it('dispatches addGameInvitation and fetchGamesThunk for game_invitation_received', () => {
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>,
+      );
+
+      expect(capturedNotificationHandler).toBeTruthy();
+
+      vi.clearAllMocks();
+
+      // Send game_invitation_received event
+      capturedNotificationHandler!({
+        event: 'game_invitation_received',
+        game_id: 42,
+        challenger_username: 'challenger',
+      });
+
+      // Verify addGameInvitation was dispatched
+      expect(addGameInvitation).toHaveBeenCalledWith({
+        gameId: 42,
+        challengerUsername: 'challenger',
+      });
+
+      // Verify fetchGamesThunk was dispatched
+      expect(fetchGamesThunk).toHaveBeenCalled();
+    });
+
+    it('does nothing for unknown event type', () => {
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>,
+      );
+
+      expect(capturedNotificationHandler).toBeTruthy();
+
+      vi.clearAllMocks();
+
+      // Send unknown event type
+      capturedNotificationHandler!({
+        event: 'unknown_event_type',
+        game_id: 99,
+      });
+
+      // Verify no dispatch calls were made
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+  });
 });
+
