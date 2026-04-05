@@ -130,8 +130,8 @@ export default function DashboardPage() {
         setNewGameSuccess(null);
         setNewGameChallengedId('');
       }, 2000);
-    } catch (err: any) {
-      setNewGameError(err.response?.data?.error || 'Failed to create game');
+    } catch (err: unknown) {
+      setNewGameError(err instanceof Error ? err.message : (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to create game');
     } finally {
       setIsCreatingGame(false);
     }

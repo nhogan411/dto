@@ -5,12 +5,12 @@ import * as hooks from '../../store/hooks';
 
 vi.mock('../../store/hooks');
 vi.mock('../../store/slices/friendsSlice', async () => {
-  const actual = await vi.importActual('../../store/slices/friendsSlice');
+  const actual = await vi.importActual<typeof import('../../store/slices/friendsSlice')>('../../store/slices/friendsSlice');
   return {
     ...actual,
     sendFriendRequestThunk: vi.fn(),
     searchUsersThunk: vi.fn(),
-    clearSearchResults: (actual as any).clearSearchResults,
+    clearSearchResults: actual.clearSearchResults,
   };
 });
 
@@ -22,15 +22,15 @@ describe('FriendSearch', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (hooks.useAppDispatch as any).mockReturnValue(mockDispatch);
-    (hooks.useAppSelector as any).mockImplementation((selector: any) =>
+    vi.mocked(hooks.useAppDispatch).mockReturnValue(mockDispatch);
+    vi.mocked(hooks.useAppSelector).mockImplementation((selector) =>
       selector({
         friends: {
           searchResults: mockSearchResults,
           status: 'succeeded',
           error: null,
         },
-      })
+      } as never)
     );
   });
 
@@ -63,7 +63,7 @@ describe('FriendSearch', () => {
   });
 
   it('does not affect other users buttons when one request is sent', async () => {
-    (hooks.useAppSelector as any).mockImplementation((selector: any) =>
+    vi.mocked(hooks.useAppSelector).mockImplementation((selector) =>
       selector({
         friends: {
           searchResults: [
@@ -73,7 +73,7 @@ describe('FriendSearch', () => {
           status: 'succeeded',
           error: null,
         },
-      })
+      } as never)
     );
 
     const mockThunk = Object.assign(vi.fn(), {

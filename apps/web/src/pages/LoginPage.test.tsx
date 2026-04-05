@@ -15,7 +15,7 @@ vi.mock('react-router-dom', async () => {
 const mockDispatch = vi.fn();
 vi.mock('../store/hooks', () => ({
   useAppDispatch: () => mockDispatch,
-  useAppSelector: (selector: any) => selector({ auth: { status: 'idle' } }),
+  useAppSelector: (selector: (s: { auth: { status: string } }) => unknown) => selector({ auth: { status: 'idle' } }),
 }));
 
 vi.mock('../store/slices/authSlice', () => ({

@@ -13,14 +13,10 @@ interface CharacterRendererProps {
 }
 
 export function CharacterRenderer({
-  userId: _userId,
-  currentHp: _currentHp,
-  maxHp: _maxHp,
   facing,
   isCurrentUser,
   team,
   isDead,
-  mode: _mode = 'token',
   icon,
 }: CharacterRendererProps) {
   const facingRotation: Record<string, number> = {

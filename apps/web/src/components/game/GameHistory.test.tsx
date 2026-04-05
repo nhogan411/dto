@@ -7,7 +7,7 @@ import gameReducer, { gameActionsReceived, updateGameState } from '../../store/s
 import type { CharacterState } from '../../store/slices/gameSlice';
 import { GameHistory } from './GameHistory';
 
-const makeAttackAction = (overrides: Partial<any> = {}): GameHistoryAction => ({
+const makeAttackAction = (overrides: Partial<GameHistoryAction> = {}): GameHistoryAction => ({
   id: 1,
   game_id: 1,
   game_character_id: 1,

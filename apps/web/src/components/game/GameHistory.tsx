@@ -166,7 +166,7 @@ export function GameHistory() {
                 </div>
                 <div className="font-semibold mb-1">
                   {(() => {
-                    const weaponName = getEquipmentDisplayName(rd.weapon_slug);
+                    const weaponName = getEquipmentDisplayName(typeof rd.weapon_slug === 'string' ? rd.weapon_slug : undefined);
                     if (weaponName) {
                       return `${charName ? `${charName} ` : ''}used ${weaponName} to attack ${targetName} from the ${directionLabel.toLowerCase()}`;
                     }

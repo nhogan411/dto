@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { AxiosResponse } from 'axios';
 import gameReducer, {
   setCurrentGame,
   updateGameState,
@@ -13,6 +14,18 @@ import gameReducer, {
   rollbackGameState,
 } from './gameSlice';
 import { gameApi } from '../../api/game';
+
+import type { GameResponse, GameStateResponse } from '../../api/game';
+
+function mockAxiosResponse<T>(data: T): AxiosResponse<T> {
+  return {
+    data,
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as AxiosResponse['config'],
+  };
+}
 
 vi.mock('../../api/game', () => ({
   gameApi: {
@@ -97,6 +110,7 @@ describe('gameSlice', () => {
     board_config: { tiles: [[{ type: 'open' }]] },
     characters: mockApiGame.characters,
     last_action: null,
+    turn_number: 1,
   };
 
   beforeEach(() => {
@@ -250,7 +264,7 @@ describe('gameSlice', () => {
           game_state: mockBroadcastSnapshot,
           action: mockAction,
         },
-      } as any));
+      }));
 
       const state = store.getState().game;
 
@@ -278,8 +292,8 @@ describe('gameSlice', () => {
         },
       };
 
-      store.dispatch(handleGameChannelMessage(payload as any));
-      store.dispatch(handleGameChannelMessage(payload as any));
+      store.dispatch(handleGameChannelMessage(payload));
+      store.dispatch(handleGameChannelMessage(payload));
 
       expect(store.getState().game.gameActions).toHaveLength(1);
     });
@@ -297,7 +311,7 @@ describe('gameSlice', () => {
               turn_number: 2,
             },
           },
-        } as any));
+        }));
       }).not.toThrow();
 
       expect(store.getState().game.gameActions).toHaveLength(0);
@@ -363,9 +377,9 @@ describe('gameSlice', () => {
     });
 
     it('fetchGameThunk fulfilled', async () => {
-      vi.mocked(gameApi.getGame).mockResolvedValueOnce({
-        data: { data: { game: mockApiGame } } as any,
-      } as any);
+      vi.mocked(gameApi.getGame).mockResolvedValueOnce(
+        mockAxiosResponse<GameResponse>({ data: { game: mockApiGame } })
+      );
 
       const store = setupStore();
       await store.dispatch(fetchGameThunk(1));
@@ -388,9 +402,9 @@ describe('gameSlice', () => {
     });
 
     it('fetchGameStateThunk fulfilled', async () => {
-      vi.mocked(gameApi.getGameState).mockResolvedValueOnce({
-        data: { data: mockSnapshot } as any,
-      } as any);
+      vi.mocked(gameApi.getGameState).mockResolvedValueOnce(
+        mockAxiosResponse<GameStateResponse>({ data: mockSnapshot })
+      );
 
       const store = setupStore();
       await store.dispatch(fetchGameStateThunk(1));
@@ -402,9 +416,9 @@ describe('gameSlice', () => {
 
     it('fetchGameStateThunk fallback on error', async () => {
       vi.mocked(gameApi.getGameState).mockRejectedValueOnce(new Error('404 Not Found'));
-      vi.mocked(gameApi.getGame).mockResolvedValueOnce({
-        data: { data: { game: mockApiGame } } as any,
-      } as any);
+      vi.mocked(gameApi.getGame).mockResolvedValueOnce(
+        mockAxiosResponse<GameResponse>({ data: { game: mockApiGame } })
+      );
 
       const store = setupStore();
       await store.dispatch(fetchGameStateThunk(1));
@@ -425,9 +439,9 @@ describe('gameSlice', () => {
             moves_taken: 2,
           },
         };
-        vi.mocked(gameApi.getGameState).mockResolvedValueOnce({
-          data: { data: snapshotWithActions } as any,
-        } as any);
+        vi.mocked(gameApi.getGameState).mockResolvedValueOnce(
+          mockAxiosResponse<GameStateResponse>({ data: snapshotWithActions })
+        );
 
         const store = setupStore();
         await store.dispatch(fetchGameStateThunk(1));
@@ -443,14 +457,18 @@ describe('gameSlice', () => {
 
       describe('forfeitGameThunk', () => {
         it('calls forfeitGame API with correct game id', async () => {
-          vi.mocked(gameApi.forfeitGame).mockResolvedValueOnce({ data: { data: { game: mockApiGame } } } as any);
+          vi.mocked(gameApi.forfeitGame).mockResolvedValueOnce(
+            mockAxiosResponse<GameResponse>({ data: { game: mockApiGame } })
+          );
           const store = setupStore();
           await store.dispatch(forfeitGameThunk(1));
           expect(gameApi.forfeitGame).toHaveBeenCalledWith(1);
         });
 
         it('fulfills without updating game state', async () => {
-          vi.mocked(gameApi.forfeitGame).mockResolvedValueOnce({ data: { data: { game: mockApiGame } } } as any);
+          vi.mocked(gameApi.forfeitGame).mockResolvedValueOnce(
+            mockAxiosResponse<GameResponse>({ data: { game: mockApiGame } })
+          );
           const store = setupStore();
           store.dispatch(setCurrentGame(mockApiGame));
           await store.dispatch(forfeitGameThunk(1));

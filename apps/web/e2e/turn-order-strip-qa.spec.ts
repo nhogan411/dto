@@ -90,7 +90,7 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
       if (!el) throw new Error('Slot 2 not found');
       const propKey = Object.keys(el).find(k => k.startsWith('__reactProps'));
       if (!propKey) throw new Error('React props not found');
-      const onClick = (el as any)[propKey]?.onClick;
+      const onClick = (el as Record<string, { onClick?: (e: object) => void }>)[propKey]?.onClick;
       if (!onClick) throw new Error('onClick handler not found');
       onClick({});
     });
@@ -109,7 +109,7 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
       if (!el) throw new Error('Slot 3 not found');
       const propKey = Object.keys(el).find(k => k.startsWith('__reactProps'));
       if (!propKey) throw new Error('React props not found');
-      const onClick = (el as any)[propKey]?.onClick;
+      const onClick = (el as Record<string, { onClick?: (e: object) => void }>)[propKey]?.onClick;
       if (!onClick) throw new Error('onClick handler not found');
       onClick({});
     });
@@ -118,15 +118,13 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
     content = await characterInfo.textContent();
     expect(content).toMatch(/Shadow|Challenged/i);
 
-    const closeButton = characterInfo.locator('button').filter({ hasText: '✕' });
-    
     await page.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'));
       const closeBtn = buttons.find(btn => btn.textContent?.includes('✕'));
       if (!closeBtn) throw new Error('Close button not found');
       const propKey = Object.keys(closeBtn).find(k => k.startsWith('__reactProps'));
       if (!propKey) throw new Error('React props not found on close button');
-      const onClick = (closeBtn as any)[propKey]?.onClick;
+      const onClick = (closeBtn as Record<string, { onClick?: (e: object) => void }>)[propKey]?.onClick;
       if (!onClick) throw new Error('onClick handler not found on close button');
       onClick({});
     });
@@ -149,7 +147,7 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
       }
       passCount++;
       console.log('✅ Scenario 1: Strip renders with all 4 slots');
-    } catch (e) {
+    } catch {
       failures.push('Scenario 1: Strip rendering failed');
     }
 
@@ -159,7 +157,7 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
       expect(slot1Classes).toContain('border-yellow-400');
       passCount++;
       console.log('✅ Scenario 2: Active slot highlight');
-    } catch (e) {
+    } catch {
       failures.push('Scenario 2: Active slot highlight failed');
     }
 
@@ -168,7 +166,7 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
       await expect(page.locator('[data-testid="turn-slot-3"] .bg-red-500').first()).toBeVisible();
       passCount++;
       console.log('✅ Scenario 3: Team color HP bars');
-    } catch (e) {
+    } catch {
       failures.push('Scenario 3: HP bar colors failed');
     }
 
@@ -180,7 +178,7 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
       await expect(page.locator('[data-testid="turn-slot-dead"]')).toBeAttached();
       passCount++;
       console.log('✅ Scenario 4: Dead character styling');
-    } catch (e) {
+    } catch {
       failures.push('Scenario 4: Dead character styling failed');
     }
 
@@ -190,7 +188,7 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
       expect(slot1Text).toContain('🛡️');
       passCount++;
       console.log('✅ Scenario 5: Shield icon on defending character');
-    } catch (e) {
+    } catch {
       failures.push('Scenario 5: Shield icon failed');
     }
 
@@ -200,7 +198,7 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
       await expect(page.getByText("Opponent's Turn")).not.toBeVisible();
       passCount++;
       console.log('✅ Scenario 6: Old indicator gone');
-    } catch (e) {
+    } catch {
       failures.push('Scenario 6: Old indicator check failed');
     }
 
@@ -208,11 +206,11 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
       await page.waitForTimeout(500);
       const characterInfo = page.locator('div.p-4.border-2.rounded-lg.mb-4.bg-neutral-800').first();
       await expect(characterInfo).toBeVisible();
-      let content = await characterInfo.textContent();
+      const content = await characterInfo.textContent();
       expect(content).toMatch(/Thorin|Challenger/i);
       passCount++;
       console.log('✅ Scenario 7: CharacterInfo defaults to active character');
-    } catch (e) {
+    } catch {
       failures.push('Scenario 7: CharacterInfo default failed');
     }
 
@@ -220,16 +218,16 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
       await page.evaluate(() => {
         const el = document.querySelector('[data-testid="turn-slot-2"]');
         const propKey = Object.keys(el!).find(k => k.startsWith('__reactProps'));
-        const onClick = (el as any)[propKey!]?.onClick;
-        onClick({});
+        const onClick = (el as Record<string, { onClick?: (e: object) => void }>)[propKey!]?.onClick;
+        onClick?.({});
       });
       await page.waitForTimeout(300);
       const characterInfo = page.locator('div.p-4.border-2.rounded-lg.mb-4.bg-neutral-800').first();
-      let content = await characterInfo.textContent();
+      const content = await characterInfo.textContent();
       expect(content).toMatch(/Elara|75.*80/i);
       passCount++;
       console.log('✅ Scenario 8: Click slot 2 updates CharacterInfo');
-    } catch (e) {
+    } catch {
       failures.push('Scenario 8: Click slot 2 failed');
     }
 
@@ -237,16 +235,16 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
       await page.evaluate(() => {
         const el = document.querySelector('[data-testid="turn-slot-3"]');
         const propKey = Object.keys(el!).find(k => k.startsWith('__reactProps'));
-        const onClick = (el as any)[propKey!]?.onClick;
-        onClick({});
+        const onClick = (el as Record<string, { onClick?: (e: object) => void }>)[propKey!]?.onClick;
+        onClick?.({});
       });
       await page.waitForTimeout(300);
       const characterInfo = page.locator('div.p-4.border-2.rounded-lg.mb-4.bg-neutral-800').first();
-      let content = await characterInfo.textContent();
+      const content = await characterInfo.textContent();
       expect(content).toMatch(/Shadow|Challenged/i);
       passCount++;
       console.log('✅ Scenario 9: Click slot 3 shows opponent');
-    } catch (e) {
+    } catch {
       failures.push('Scenario 9: Click slot 3 failed');
     }
 
@@ -255,16 +253,16 @@ test.describe('TurnOrderStrip Visual QA - Task F3', () => {
         const buttons = Array.from(document.querySelectorAll('button'));
         const closeBtn = buttons.find(btn => btn.textContent?.includes('✕'));
         const propKey = Object.keys(closeBtn!).find(k => k.startsWith('__reactProps'));
-        const onClick = (closeBtn as any)[propKey!]?.onClick;
-        onClick({});
+        const onClick = (closeBtn as Record<string, { onClick?: (e: object) => void }>)[propKey!]?.onClick;
+        onClick?.({});
       });
       await page.waitForTimeout(300);
       const characterInfo = page.locator('div.p-4.border-2.rounded-lg.mb-4.bg-neutral-800').first();
-      let content = await characterInfo.textContent();
+      const content = await characterInfo.textContent();
       expect(content).toMatch(/Thorin|Challenger/i);
       passCount++;
       console.log('✅ Scenario 10: X button reverts to active character');
-    } catch (e) {
+    } catch {
       failures.push('Scenario 10: X button revert failed');
     }
 

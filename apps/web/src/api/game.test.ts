@@ -27,7 +27,7 @@ describe('gameApi.getAttackPreview', () => {
       },
     };
 
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockResponse as any);
+    vi.mocked(apiClient.get).mockResolvedValueOnce(mockResponse as never);
 
     const response = await gameApi.getAttackPreview(5, 9);
 
@@ -52,7 +52,7 @@ describe('gameApi.getGameActions', () => {
       },
     };
 
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockResponse as any);
+    vi.mocked(apiClient.get).mockResolvedValueOnce(mockResponse as never);
 
     const response = await gameApi.getGameActions(3);
 
@@ -76,7 +76,7 @@ describe('gameApi.submitMoveAction', () => {
       },
     };
 
-    vi.mocked(apiClient.post).mockResolvedValueOnce(mockResponse as any);
+    vi.mocked(apiClient.post).mockResolvedValueOnce(mockResponse as never);
 
     const response = await gameApi.submitMoveAction(4, {
       character_id: 77,

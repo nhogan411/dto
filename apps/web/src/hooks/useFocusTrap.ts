@@ -57,8 +57,9 @@ export function useFocusTrap(
 
     ref.current.addEventListener('keydown', handleKeyDown);
 
+    const currentRef = ref.current;
     return () => {
-      ref.current?.removeEventListener('keydown', handleKeyDown);
+      currentRef?.removeEventListener('keydown', handleKeyDown);
     };
   }, [isActive, ref, onClose]);
 

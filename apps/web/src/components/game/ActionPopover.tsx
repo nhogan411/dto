@@ -54,7 +54,6 @@ export function ActionPopover({
   useEffect(() => {
     if (prevActingId.current !== actingCharacterId) {
       onClose();
-      setPendingFacingAction(null);
     }
     prevActingId.current = actingCharacterId;
   }, [actingCharacterId, onClose]);
@@ -101,7 +100,7 @@ export function ActionPopover({
          <button
            role="menuitem"
            aria-label="Face North"
-           onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('north') : onEndTurn('north'); }}
+           onClick={(e) => { e.stopPropagation(); if (pendingFacingAction === 'defend') { onDefend('north'); } else { onEndTurn('north'); } }}
            className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-border-subtle focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
          >
           North (Up)
@@ -109,7 +108,7 @@ export function ActionPopover({
          <button
            role="menuitem"
            aria-label="Face South"
-           onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('south') : onEndTurn('south'); }}
+           onClick={(e) => { e.stopPropagation(); if (pendingFacingAction === 'defend') { onDefend('south'); } else { onEndTurn('south'); } }}
            className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-border-subtle focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
          >
           South (Down)
@@ -117,7 +116,7 @@ export function ActionPopover({
          <button
            role="menuitem"
            aria-label="Face East"
-           onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('east') : onEndTurn('east'); }}
+           onClick={(e) => { e.stopPropagation(); if (pendingFacingAction === 'defend') { onDefend('east'); } else { onEndTurn('east'); } }}
            className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-border-subtle focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
          >
           East (Right)
@@ -125,7 +124,7 @@ export function ActionPopover({
          <button
            role="menuitem"
            aria-label="Face West"
-           onClick={(e) => { e.stopPropagation(); pendingFacingAction === 'defend' ? onDefend('west') : onEndTurn('west'); }}
+           onClick={(e) => { e.stopPropagation(); if (pendingFacingAction === 'defend') { onDefend('west'); } else { onEndTurn('west'); } }}
            className="w-full text-center px-3 py-2 rounded text-white bg-transparent hover:bg-border-subtle focus:outline-none focus:ring-2 focus:ring-accent-green transition-colors"
          >
           West (Left)

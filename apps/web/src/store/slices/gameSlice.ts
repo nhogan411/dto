@@ -248,7 +248,9 @@ export const fetchGameStateThunk = createAsyncThunk<GameState, number>(
       if (mappedGameState) {
         return mappedGameState;
       }
-    } catch {}
+    } catch {
+      // getGameState not available for this game; fall through to getGame
+    }
 
     const response = await gameApi.getGame(id);
     return mapApiGameToGameState(response.data.data.game);

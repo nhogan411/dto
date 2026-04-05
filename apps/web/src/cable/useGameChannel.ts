@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { Subscription } from '@rails/actioncable';
 import { getCableConsumer } from './consumer';
 
-export function useGameChannel(gameId: number | null, onMessage: (data: any) => void) {
+export function useGameChannel<T = unknown>(gameId: number | null, onMessage: (data: T) => void) {
   const messageHandlerRef = useRef(onMessage);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export function useGameChannel(gameId: number | null, onMessage: (data: any) => 
       { channel: 'GameChannel', game_id: gameId },
       {
         received: (data) => {
-          messageHandlerRef.current(data);
+          messageHandlerRef.current(data as T);
         },
       },
     );

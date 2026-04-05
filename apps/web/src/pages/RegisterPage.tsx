@@ -28,11 +28,12 @@ export default function RegisterPage() {
     try {
       await dispatch(registerThunk({ email, username, password })).unwrap();
       navigate('/');
-    } catch (err: any) {
-      if (err?.errors && Array.isArray(err.errors)) {
-        setErrors(err.errors);
-      } else if (err?.message) {
-        setErrors([err.message]);
+    } catch (err: unknown) {
+      const e = err as { errors?: string[]; message?: string } | null;
+      if (e?.errors && Array.isArray(e.errors)) {
+        setErrors(e.errors);
+      } else if (e?.message) {
+        setErrors([e.message]);
       } else {
         setErrors(['An unknown error occurred']);
       }

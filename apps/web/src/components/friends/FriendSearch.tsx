@@ -34,7 +34,7 @@ export const FriendSearch: React.FC = () => {
     try {
       await dispatch(sendFriendRequestThunk(userId)).unwrap();
       setSentRequestIds((prev) => new Set([...prev, userId]));
-    } catch (err: unknown) {
+    } catch {
       // Error handled silently - button remains clickable
     } finally {
       setSendingToUserId(null);

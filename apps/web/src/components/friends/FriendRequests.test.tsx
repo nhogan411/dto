@@ -20,13 +20,12 @@ describe('FriendRequests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (hooks.useAppDispatch as any).mockReturnValue(mockDispatch);
+    vi.mocked(hooks.useAppDispatch).mockReturnValue(mockDispatch);
     
-    // Mock fetchFriendRequestsThunk to return a thunk-like object with unwrap
     const mockThunk = Object.assign(vi.fn(), {
       unwrap: vi.fn().mockResolvedValue([]),
     });
-    (friendsSlice.fetchFriendRequestsThunk as any).mockReturnValue(mockThunk);
+    vi.mocked(friendsSlice.fetchFriendRequestsThunk).mockReturnValue(mockThunk);
   });
 
   afterEach(() => {
@@ -49,14 +48,14 @@ describe('FriendRequests', () => {
       },
     ];
 
-    (hooks.useAppSelector as any).mockImplementation((selector: any) =>
+    vi.mocked(hooks.useAppSelector).mockImplementation((selector) =>
       selector({
         friends: {
           pendingRequests,
           status: 'succeeded',
           error: null,
         },
-      })
+      } as never)
     );
 
     render(<FriendRequests />);
@@ -76,14 +75,14 @@ describe('FriendRequests', () => {
       },
     ];
 
-    (hooks.useAppSelector as any).mockImplementation((selector: any) =>
+    vi.mocked(hooks.useAppSelector).mockImplementation((selector) =>
       selector({
         friends: {
           pendingRequests,
           status: 'succeeded',
           error: null,
         },
-      })
+      } as never)
     );
 
     render(<FriendRequests />);
@@ -106,14 +105,14 @@ describe('FriendRequests', () => {
       },
     ];
 
-    (hooks.useAppSelector as any).mockImplementation((selector: any) =>
+    vi.mocked(hooks.useAppSelector).mockImplementation((selector) =>
       selector({
         friends: {
           pendingRequests,
           status: 'succeeded',
           error: null,
         },
-      })
+      } as never)
     );
 
     render(<FriendRequests />);
@@ -138,14 +137,14 @@ describe('FriendRequests', () => {
       },
     ];
 
-    (hooks.useAppSelector as any).mockImplementation((selector: any) =>
+    vi.mocked(hooks.useAppSelector).mockImplementation((selector) =>
       selector({
         friends: {
           pendingRequests,
           status: 'succeeded',
           error: null,
         },
-      })
+      } as never)
     );
 
     render(<FriendRequests />);

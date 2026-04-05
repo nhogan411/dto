@@ -116,9 +116,9 @@ export default function LobbyPage() {
     try {
       await gameApi.selectCharacters(parsedGameId, selectedIds);
       void dispatch(fetchGameThunk(parsedGameId));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setSelectError(err.message || 'Failed to confirm picks.');
+      setSelectError(err instanceof Error ? err.message : 'Failed to confirm picks.');
       setIsProcessing(false);
     }
   };

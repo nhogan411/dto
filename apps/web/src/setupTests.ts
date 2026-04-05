@@ -13,13 +13,13 @@ if (originalStyleGetter) {
       const overrides = styleMap.get(style)!;
 
       return new Proxy(style, {
-        get(target: any, prop: string) {
+        get(target: CSSStyleDeclaration, prop: string) {
           if (overrides[prop] !== undefined) {
             return overrides[prop];
           }
           return Reflect.get(target, prop);
         },
-        set(target: any, prop: string, value: string) {
+        set(target: CSSStyleDeclaration, prop: string, value: string) {
           overrides[prop] = value;
           return Reflect.set(target, prop, value);
         },

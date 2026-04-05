@@ -24,24 +24,24 @@ describe('FriendsList', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (hooks.useAppDispatch as any).mockReturnValue(mockDispatch);
-    (hooks.useAppSelector as any).mockImplementation((selector: any) =>
+    vi.mocked(hooks.useAppDispatch).mockReturnValue(mockDispatch);
+    vi.mocked(hooks.useAppSelector).mockImplementation((selector) =>
       selector({
         friends: {
           friends: mockFriends,
           status: 'succeeded',
           error: null,
         },
-      })
+      } as never)
     );
     // Default successful mock
-    (gameApi.gameApi.createGame as any).mockResolvedValue({
+    vi.mocked(gameApi.gameApi.createGame).mockResolvedValue({
       data: { game: { id: 1, status: 'pending' } },
-    });
+    } as never);
     const mockThunk = Object.assign(vi.fn(), {
       unwrap: vi.fn().mockResolvedValue([]),
     });
-    (dashboardSlice.fetchGamesThunk as any).mockReturnValue(mockThunk);
+    vi.mocked(dashboardSlice.fetchGamesThunk).mockReturnValue(mockThunk as never);
   });
 
   afterEach(() => {
@@ -67,10 +67,10 @@ describe('FriendsList', () => {
   });
 
   it('disables button while loading', async () => {
-    (gameApi.gameApi.createGame as any).mockImplementationOnce(
+    vi.mocked(gameApi.gameApi.createGame).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
-          setTimeout(() => resolve({ data: { game: { id: 1 } } }), 100);
+          setTimeout(() => resolve({ data: { game: { id: 1 } } } as never), 100);
         })
     );
 
@@ -102,7 +102,7 @@ describe('FriendsList', () => {
 
   it('displays error message on failure', async () => {
     const errorMessage = 'Active or pending game already exists for this pair';
-    (gameApi.gameApi.createGame as any).mockRejectedValueOnce({
+    vi.mocked(gameApi.gameApi.createGame).mockRejectedValueOnce({
       response: {
         data: {
           errors: [errorMessage],
@@ -120,7 +120,7 @@ describe('FriendsList', () => {
   });
 
   it('displays generic error message when error detail is missing', async () => {
-    (gameApi.gameApi.createGame as any).mockRejectedValueOnce({
+    vi.mocked(gameApi.gameApi.createGame).mockRejectedValueOnce({
       response: {
         data: {},
       },

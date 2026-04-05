@@ -20,7 +20,7 @@ export default function LoginPage() {
     try {
       await dispatch(loginThunk({ email, password })).unwrap();
       navigate('/');
-    } catch (err) {
+    } catch {
       setError('Invalid email or password');
     }
   };

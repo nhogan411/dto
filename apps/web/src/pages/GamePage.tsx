@@ -329,38 +329,34 @@ export default function GamePage() {
     setSelectedSquare({ x, y });
   };
 
-  const handleSquareHover = (_x: number, _y: number) => {};
+  const handleSquareHover = () => {};
 
-  useEffect(() => {
+  const [prevActiveMode, setPrevActiveMode] = useState<typeof activeMode>(null);
+  const [prevActingCharacterId, setPrevActingCharacterId] = useState<number | null | undefined>(undefined);
+
+  if (activeMode !== prevActiveMode) {
+    setPrevActiveMode(activeMode);
     if (activeMode !== 'attack') {
       setAttackPreview(null);
     }
     setPendingAction(null);
-  }, [activeMode]);
+  }
 
-  useEffect(() => {
+  if (actingCharacter?.id !== prevActingCharacterId) {
+    setPrevActingCharacterId(actingCharacter?.id ?? null);
     if (activeMode !== 'attack' || !actingCharacter || actingCharacter.userId !== currentUserId) {
       setAttackableSquares([]);
       setSelectedAttackTarget(null);
       setAttackPreview(null);
-      return;
+    } else {
+      setAttackableSquares(computeAttackableSquares(actingCharacter));
     }
-    setAttackableSquares(computeAttackableSquares(actingCharacter));
-  }, [activeMode, actingCharacter, computeAttackableSquares, currentUserId]);
-
-  useEffect(() => {
-    if (activeMode !== 'move') {
+    if (activeMode !== 'move' || !actingCharacter || !currentUserId || actingCharacter.userId !== currentUserId) {
       setReachableSquares([]);
-      return;
+    } else {
+      setReachableSquares(computeReachableSquares(actingCharacter));
     }
-
-    if (!actingCharacter || !currentUserId || actingCharacter.userId !== currentUserId) {
-      setReachableSquares([]);
-      return;
-    }
-
-    setReachableSquares(computeReachableSquares(actingCharacter));
-  }, [activeMode, actingCharacter, computeReachableSquares, currentUserId]);
+  }
 
   const getHighlightedSquares = () => {
     if (activeMode !== 'move') return [];

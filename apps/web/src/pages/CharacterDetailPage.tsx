@@ -15,23 +15,23 @@ export default function CharacterDetailPage() {
   const { characters, status, updateStatus, error } = useAppSelector((state) => state.playerCharacters);
   const character = characters.find((c) => c.id === Number(id));
 
+  const [formCharacterId, setFormCharacterId] = useState<number | undefined>(undefined);
   const [name, setName] = useState('');
   const [archetype, setArchetype] = useState<'warrior' | 'scout'>('warrior');
   const [race, setRace] = useState<string>('human');
+
+  if (character && formCharacterId !== character.id) {
+    setFormCharacterId(character.id);
+    setName(character.name);
+    setArchetype(character.archetype);
+    setRace(character.race ?? 'human');
+  }
 
   useEffect(() => {
     if (status === 'idle') {
       void dispatch(fetchPlayerCharactersThunk());
     }
   }, [dispatch, status]);
-
-  useEffect(() => {
-    if (character) {
-      setName(character.name);
-      setArchetype(character.archetype);
-      setRace(character.race ?? 'human');
-    }
-  }, [character]);
 
   useEffect(() => {
     return () => {

@@ -10,7 +10,13 @@ const mockDispatch = vi.fn((action) => Promise.resolve(action));
 const mockNavigate = vi.fn();
 
 // Mock state factory
-function createMockState(overrides: any = {}) {
+interface MockStateOverrides {
+  notifications?: Partial<{ notifications: unknown[]; count: number }>;
+  auth?: Partial<{ user: { id: number; username: string }; token: string }>;
+  dashboard?: Partial<{ games: unknown[]; gamesStatus: string }>;
+  friends?: Partial<{ friends: { id: number; username: string }[] }>;
+}
+function createMockState(overrides: MockStateOverrides = {}) {
   const baseState = {
     notifications: {
       notifications: [],
