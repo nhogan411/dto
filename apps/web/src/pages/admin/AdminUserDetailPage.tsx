@@ -1,8 +1,8 @@
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { AdminUserDetail } from '../../api/admin';
 import { getAdminUserDetail } from '../../api/admin';
+import { extractApiError } from '../../utils/extractApiError';
 
 export default function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +15,7 @@ export default function AdminUserDetailPage() {
     getAdminUserDetail(Number(id))
       .then(setUser)
       .catch((err: unknown) => {
-        setError(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to load user' : 'Failed to load user');
+        setError(extractApiError(err, 'Failed to load user'));
       })
       .finally(() => setLoading(false));
   }, [id]);

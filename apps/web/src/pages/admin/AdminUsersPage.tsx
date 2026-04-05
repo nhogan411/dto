@@ -1,9 +1,9 @@
-import axios from 'axios';
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 import type { AdminUser } from '../../api/admin';
 import { getAdminUsers, updateAdminUser, deleteAdminUser } from '../../api/admin';
+import { extractApiError } from '../../utils/extractApiError';
 
 export default function AdminUsersPage() {
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
@@ -17,7 +17,7 @@ export default function AdminUsersPage() {
       setError(null);
       setUsers(await getAdminUsers());
     } catch (err: unknown) {
-      setError(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to fetch users' : 'Failed to fetch users');
+      setError(extractApiError(err, 'Failed to fetch users'));
     } finally {
       setLoading(false);
     }
@@ -30,7 +30,7 @@ export default function AdminUsersPage() {
       await updateAdminUser(id, { role: newRole });
       await fetchUsers();
     } catch (err: unknown) {
-      alert(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to update user role' : 'Failed to update user role');
+      alert(extractApiError(err, 'Failed to update user role'));
     }
   };
 
@@ -40,7 +40,7 @@ export default function AdminUsersPage() {
       await deleteAdminUser(id);
       await fetchUsers();
     } catch (err: unknown) {
-      alert(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to delete user' : 'Failed to delete user');
+      alert(extractApiError(err, 'Failed to delete user'));
     }
   };
 

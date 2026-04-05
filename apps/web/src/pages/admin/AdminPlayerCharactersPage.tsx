@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { useEffect, useState, useCallback, type FormEvent } from 'react';
 import type { AdminPlayerCharacter } from '../../api/admin';
 import {
@@ -7,6 +6,7 @@ import {
   updateAdminPlayerCharacter,
   deleteAdminPlayerCharacter
 } from '../../api/admin';
+import { extractApiError } from '../../utils/extractApiError';
 
 export default function AdminPlayerCharactersPage() {
   const [characters, setCharacters] = useState<AdminPlayerCharacter[]>([]);
@@ -32,7 +32,7 @@ export default function AdminPlayerCharactersPage() {
       const chars = await getAdminPlayerCharacters(userId);
       setCharacters(chars);
     } catch (err: unknown) {
-      setError(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to fetch characters' : 'Failed to fetch characters');
+      setError(extractApiError(err, 'Failed to fetch characters'));
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ export default function AdminPlayerCharactersPage() {
       const parsedFilter = parseInt(filterUserId, 10);
       await fetchCharacters(isNaN(parsedFilter) ? undefined : parsedFilter);
     } catch (err: unknown) {
-      alert(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to create character' : 'Failed to create character');
+      alert(extractApiError(err, 'Failed to create character'));
     }
   };
 
@@ -102,7 +102,7 @@ export default function AdminPlayerCharactersPage() {
       const parsedFilter = parseInt(filterUserId, 10);
       await fetchCharacters(isNaN(parsedFilter) ? undefined : parsedFilter);
     } catch (err: unknown) {
-      alert(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to update character' : 'Failed to update character');
+      alert(extractApiError(err, 'Failed to update character'));
     }
   };
 
@@ -113,7 +113,7 @@ export default function AdminPlayerCharactersPage() {
       const parsedFilter = parseInt(filterUserId, 10);
       await fetchCharacters(isNaN(parsedFilter) ? undefined : parsedFilter);
     } catch (err: unknown) {
-      alert(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to delete character' : 'Failed to delete character');
+      alert(extractApiError(err, 'Failed to delete character'));
     }
   };
 

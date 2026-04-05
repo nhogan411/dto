@@ -1,9 +1,9 @@
-import axios from 'axios';
 import { useEffect, useState, useCallback, type FormEvent } from 'react';
 import type { AdminFriendship } from '../../api/admin';
 import {
   getAdminFriendships
 } from '../../api/admin';
+import { extractApiError } from '../../utils/extractApiError';
 
 export default function AdminFriendshipsPage() {
   const [friendships, setFriendships] = useState<AdminFriendship[]>([]);
@@ -19,7 +19,7 @@ export default function AdminFriendshipsPage() {
       const data = await getAdminFriendships(userId);
       setFriendships(data);
     } catch (err: unknown) {
-      setError(axios.isAxiosError(err) ? (err.response?.data?.errors as string[] | undefined)?.[0] ?? 'Failed to fetch friendships' : 'Failed to fetch friendships');
+      setError(extractApiError(err, 'Failed to fetch friendships'));
     } finally {
       setLoading(false);
     }
