@@ -11,7 +11,7 @@ class FriendshipsController < ApplicationController
       .map { |friendship| friend_for(friendship) }
       .uniq(&:id)
 
-    render json: { data: friends.map { |friend| serialize_user(friend) } }
+    render json: { data: friends.map { |friend| serialize_user(friend, fields: UserSerializable::FRIENDSHIP_FIELDS) } }
   end
 
   def search
@@ -21,7 +21,7 @@ class FriendshipsController < ApplicationController
       User.none
     end
 
-    render json: { data: users.map { |user| serialize_user(user) } }
+    render json: { data: users.map { |user| serialize_user(user, fields: UserSerializable::FRIENDSHIP_FIELDS) } }
   end
 
   def friend_requests
@@ -95,12 +95,8 @@ class FriendshipsController < ApplicationController
     {
       id: friendship.id,
       status: friendship.status,
-      requester: serialize_user(friendship.requester),
-      recipient: serialize_user(friendship.recipient)
+      requester: serialize_user(friendship.requester, fields: UserSerializable::FRIENDSHIP_FIELDS),
+      recipient: serialize_user(friendship.recipient, fields: UserSerializable::FRIENDSHIP_FIELDS)
     }
-  end
-
-  def serialize_user(user)
-    user.as_json(only: [ :id, :email, :username ])
   end
 end

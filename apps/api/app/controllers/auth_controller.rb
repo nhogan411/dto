@@ -64,8 +64,4 @@ class AuthController < ApplicationController
     data[:refresh_token] = payload[:refresh_token] if include_refresh_token && payload[:refresh_token].present?
     data
   end
-
-  def serialize_user(user)
-    user.as_json(only: [ :id, :email, :username, :role ])
-  end
 end

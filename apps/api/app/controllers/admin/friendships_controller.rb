@@ -34,15 +34,8 @@ module Admin
         recipient_id: friendship.recipient_id,
         status: friendship.status,
         created_at: friendship.created_at,
-        requester: serialize_user(friendship.requester),
-        recipient: serialize_user(friendship.recipient)
-      }
-    end
-
-    def serialize_user(user)
-      {
-        id: user.id,
-        username: user.username
+        requester: serialize_user(friendship.requester, fields: UserSerializable::FRIEND_FIELDS),
+        recipient: serialize_user(friendship.recipient, fields: UserSerializable::FRIEND_FIELDS)
       }
     end
   end

@@ -13,7 +13,7 @@ module Admin
         "(SELECT COUNT(*) FROM games WHERE (challenger_id = users.id OR challenged_id = users.id) AND status = #{Game.statuses[:forfeited]}) AS forfeits"
       ).order(created_at: :asc)
 
-      render json: { data: users.map { |user| serialize_user(user) } }
+      render json: { data: users.map { |user| serialize_admin_user(user) } }
     end
 
     # GET /admin/users/:id
@@ -24,7 +24,7 @@ module Admin
     # PATCH/PUT /admin/users/:id
     def update
       if @user.update(user_params)
-        render json: { data: serialize_user(@user) }
+        render json: { data: serialize_admin_user(@user) }
       else
         render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
       end
@@ -53,7 +53,7 @@ module Admin
       params.require(:user).permit(:email, :username, :role)
     end
 
-    def serialize_user(user)
+    def serialize_admin_user(user)
       games_count = user.respond_to?(:games_count) ? user.games_count.to_i : Game.where("challenger_id = :id OR challenged_id = :id", id: user.id).count
       wins        = user.respond_to?(:wins)        ? user.wins.to_i        : Game.where(winner_id: user.id).count
       forfeits    = user.respond_to?(:forfeits)    ? user.forfeits.to_i    : Game.where("(challenger_id = :id OR challenged_id = :id) AND status = :status", id: user.id, status: Game.statuses[:forfeited]).count
