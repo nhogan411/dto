@@ -1,6 +1,4 @@
 class CharacterSelectionsController < ApplicationController
-  include JwtAuthenticatable
-
   before_action :authenticate_user!
   before_action :set_game
 
@@ -163,17 +161,5 @@ class CharacterSelectionsController < ApplicationController
       icon: character.icon,
       race: character.stats["race"]
     }
-  end
-
-  def render_unprocessable_entity(message)
-    render json: { errors: [ message ] }, status: :unprocessable_entity
-  end
-
-  def render_forbidden
-    render json: { errors: [ "Forbidden" ] }, status: :forbidden
-  end
-
-  def render_not_found
-    render json: { errors: [ "Game not found" ] }, status: :not_found
   end
 end

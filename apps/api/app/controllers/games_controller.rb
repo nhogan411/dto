@@ -1,6 +1,4 @@
 class GamesController < ApplicationController
-  include JwtAuthenticatable
-
   class GameError < StandardError; end
 
   VALID_STARTING_POSITION_INDICES = [ 0, 1 ].freeze
@@ -335,17 +333,5 @@ class GamesController < ApplicationController
     GameChannel.broadcast_to(game, { event: "game_accepted", game_id: game.id })
   rescue NameError
     nil
-  end
-
-  def render_unprocessable_entity(message)
-    render json: { errors: [ message ] }, status: :unprocessable_entity
-  end
-
-  def render_forbidden
-    render json: { errors: [ "Forbidden" ] }, status: :forbidden
-  end
-
-  def render_not_found
-    render json: { errors: [ "Game not found" ] }, status: :not_found
   end
 end
