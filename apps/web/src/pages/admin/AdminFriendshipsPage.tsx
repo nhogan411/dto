@@ -41,8 +41,8 @@ export default function AdminFriendshipsPage() {
     }
   };
 
-  return (
-    <div className="p-5 bg-[#121212] min-h-screen text-white">
+   return (
+     <div className="p-6 text-white">
       <h1>Admin: Friendships</h1>
       
       <div className="mb-5">

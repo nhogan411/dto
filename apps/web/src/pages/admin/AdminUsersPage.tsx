@@ -44,11 +44,11 @@ export default function AdminUsersPage() {
     }
   };
 
-  if (loading) return <div className="p-5 bg-[#121212] min-h-screen text-white">Loading users...</div>;
-  if (error)   return <div className="p-5 bg-[#121212] min-h-screen text-red-400">Error: {error}</div>;
+   if (loading) return <div className="p-6 text-white">Loading users...</div>;
+   if (error)   return <div className="p-6 text-red-400">Error: {error}</div>;
 
-  return (
-    <div className="p-5 bg-[#121212] min-h-screen text-white">
+   return (
+     <div className="p-6 text-white">
       <h1>Admin: Users</h1>
       <table className="w-full border-collapse mt-5">
         <thead>

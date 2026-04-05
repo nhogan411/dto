@@ -20,12 +20,12 @@ export default function AdminUserDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div className="p-5 bg-[#121212] min-h-screen text-white">Loading user...</div>;
-  if (error)   return <div className="p-5 bg-[#121212] min-h-screen text-red-400">Error: {error}</div>;
-  if (!user)   return null;
+   if (loading) return <div className="p-6 text-white">Loading user...</div>;
+   if (error)   return <div className="p-6 text-red-400">Error: {error}</div>;
+   if (!user)   return null;
 
-  return (
-    <div className="p-5 bg-[#121212] min-h-screen text-white">
+   return (
+     <div className="p-6 text-white">
       <div className="mb-4">
         <Link to="/admin/users" className="text-neutral-400 hover:text-white text-sm">← Back to Users</Link>
       </div>

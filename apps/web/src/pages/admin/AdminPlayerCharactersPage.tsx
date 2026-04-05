@@ -117,8 +117,8 @@ export default function AdminPlayerCharactersPage() {
     }
   };
 
-  return (
-    <div className="p-5 bg-[#121212] min-h-screen text-white">
+   return (
+     <div className="p-6 text-white">
       <h1>Admin: Player Characters</h1>
       
       <div className="mb-5 p-2.5 border border-neutral-600">
