@@ -36,7 +36,7 @@ function renderPage() {
 describe('AdminHomePage', () => {
   beforeEach(() => {
     vi.mocked(adminApi.getAdminUsers).mockResolvedValue([
-      { id: 1, email: 'a@a.com', username: 'alice', role: 'admin', created_at: '2026-01-01T00:00:00Z', games_count: 5, wins: 3, losses: 1, forfeits: 1 },
+      { id: 1, email: 'a@a.com', username: 'alice', role: 'admin',  created_at: '2026-01-01T00:00:00Z', games_count: 5, wins: 3, losses: 1, forfeits: 1 },
       { id: 2, email: 'b@b.com', username: 'bob',   role: 'player', created_at: '2026-01-02T00:00:00Z', games_count: 2, wins: 1, losses: 1, forfeits: 0 },
     ]);
     vi.mocked(adminApi.getAdminPlayerCharacters).mockResolvedValue([
@@ -77,23 +77,30 @@ describe('AdminHomePage', () => {
     await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
     expect(screen.getByText('Avg Games / User')).toBeInTheDocument();
     expect(screen.getByText('Users With No Games')).toBeInTheDocument();
-    expect(screen.getAllByText('alice').length).toBeGreaterThan(0);
   });
 
-  it('renders balance stats', async () => {
+  it('renders Game Balance table with archetype rows and All Characters row', async () => {
     renderPage();
     await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
     expect(screen.getByText('Avg Character Level')).toBeInTheDocument();
-    expect(screen.getAllByText(/warrior/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/scout/i).length).toBeGreaterThan(0);
+    expect(screen.getByText('warrior')).toBeInTheDocument();
+    expect(screen.getByText('scout')).toBeInTheDocument();
+    expect(screen.getByText('All Characters')).toBeInTheDocument();
   });
 
-  it('renders management links', async () => {
+  it('renders Most Active Users section (not Recent Users)', async () => {
     renderPage();
     await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
-    expect(screen.getByRole('link', { name: /users/i })).toHaveAttribute('href', '/admin/users');
-    expect(screen.getByRole('link', { name: /player characters/i })).toHaveAttribute('href', '/admin/player-characters');
-    expect(screen.getByRole('link', { name: /friendships/i })).toHaveAttribute('href', '/admin/friendships');
+    expect(screen.getByText('Most Active Users')).toBeInTheDocument();
+    expect(screen.queryByText('Recent Users')).not.toBeInTheDocument();
+    const links = screen.getAllByRole('link', { name: 'alice' });
+    expect(links.length).toBeGreaterThan(0);
+  });
+
+  it('does not render Manage nav section', async () => {
+    renderPage();
+    await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
+    expect(screen.queryByText('Manage')).not.toBeInTheDocument();
   });
 
   it('shows error message when fetch fails', async () => {

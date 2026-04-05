@@ -10,12 +10,6 @@ interface DashboardData {
   stats: AdminStats;
 }
 
-const NAV_LINKS = [
-  { label: 'Users',             href: '/admin/users' },
-  { label: 'Player Characters', href: '/admin/player-characters' },
-  { label: 'Friendships',       href: '/admin/friendships' },
-] as const;
-
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="border border-neutral-600 p-4 min-w-32">
@@ -23,6 +17,10 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
       <div className="text-sm text-neutral-400">{label}</div>
     </div>
   );
+}
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return <h2 className="text-base font-semibold mt-6 mb-2 text-neutral-400">{children}</h2>;
 }
 
 export default function AdminHomePage() {
@@ -44,13 +42,13 @@ export default function AdminHomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-5 bg-[#121212] min-h-screen text-white">Loading dashboard...</div>;
-  if (error)   return <div className="p-5 bg-[#121212] min-h-screen text-red-400">Error: {error}</div>;
+  if (loading) return <div className="p-6 text-white">Loading dashboard...</div>;
+  if (error)   return <div className="p-6 text-red-400">Error: {error}</div>;
 
   const { users, characters, friendships, stats } = data!;
 
-  const recentUsers = [...users]
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  const mostActiveUsers = [...users]
+    .sort((a, b) => b.games_count - a.games_count)
     .slice(0, 5);
 
   const OVERVIEW_STATS = [
@@ -71,124 +69,95 @@ export default function AdminHomePage() {
     { label: 'Users With No Games', value: stats.users_with_no_games },
   ];
 
-  const BALANCE_STATS = [
-    { label: 'Avg Character Level', value: stats.avg_character_level },
-  ];
-
   return (
-    <div className="p-5 bg-[#121212] min-h-screen text-white">
-      <h1>Admin: Dashboard</h1>
+    <div className="p-6 text-white">
+      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
 
-      <h2 className="text-base font-semibold mt-6 mb-2 text-neutral-400">Overview</h2>
-      <div className="flex flex-wrap gap-4">
-        {OVERVIEW_STATS.map(({ label, value }) => <StatCard key={label} label={label} value={value} />)}
-      </div>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
-      <h2 className="text-base font-semibold mt-6 mb-2 text-neutral-400">Activity</h2>
-      <div className="flex flex-wrap gap-4">
-        {ACTIVITY_STATS.map(({ label, value }) => <StatCard key={label} label={label} value={value} />)}
-      </div>
+        <div>
+          <SectionHeader>Overview</SectionHeader>
+          <div className="flex flex-wrap gap-4">
+            {OVERVIEW_STATS.map(({ label, value }) => <StatCard key={label} label={label} value={value} />)}
+          </div>
 
-      <h2 className="text-base font-semibold mt-6 mb-2 text-neutral-400">Users</h2>
-      <div className="flex flex-wrap gap-4">
-        {USER_STATS.map(({ label, value }) => <StatCard key={label} label={label} value={value} />)}
-      </div>
+          <SectionHeader>Activity</SectionHeader>
+          <div className="flex flex-wrap gap-4">
+            {ACTIVITY_STATS.map(({ label, value }) => <StatCard key={label} label={label} value={value} />)}
+          </div>
 
-      <h2 className="text-base font-semibold mt-6 mb-2 text-neutral-400">Game Balance</h2>
-      <div className="flex flex-wrap gap-4">
-        {BALANCE_STATS.map(({ label, value }) => <StatCard key={label} label={label} value={value} />)}
-        {Object.entries(stats.avg_level_by_archetype).map(([archetype, avg]) => (
-          <StatCard key={archetype} label={`Avg Level — ${archetype}`} value={avg} />
-        ))}
-      </div>
+          <SectionHeader>Users</SectionHeader>
+          <div className="flex flex-wrap gap-4">
+            {USER_STATS.map(({ label, value }) => <StatCard key={label} label={label} value={value} />)}
+          </div>
+        </div>
 
-      <div className="mt-6">
-        <h2 className="text-base font-semibold mb-2 text-neutral-400">Top Winning Compositions</h2>
-        {stats.top_winning_compositions.length === 0 ? (
-          <p className="text-neutral-500 text-sm">No completed games yet.</p>
-        ) : (
-          <table className="border-collapse">
+        <div>
+          <SectionHeader>Avg Character Level</SectionHeader>
+          <table className="w-full border-collapse">
+            <tbody>
+              {Object.entries(stats.avg_level_by_archetype).map(([archetype, avg]) => (
+                <tr key={archetype} className="border-b border-neutral-700">
+                  <td className="p-2.5 capitalize">{archetype}</td>
+                  <td className="p-2.5">{avg}</td>
+                </tr>
+              ))}
+              <tr className="border-b border-neutral-600 font-semibold">
+                <td className="p-2.5">All Characters</td>
+                <td className="p-2.5">{stats.avg_character_level}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <SectionHeader>Top Winning Compositions</SectionHeader>
+          {stats.top_winning_compositions.length === 0 ? (
+            <p className="text-neutral-500 text-sm">No completed games yet.</p>
+          ) : (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b-2 border-neutral-600 text-left">
+                  <th className="p-2.5">Archetypes</th>
+                  <th className="p-2.5">Wins</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.top_winning_compositions.map(({ archetypes, count }) => (
+                  <tr key={archetypes.join('+')} className="border-b border-neutral-700">
+                    <td className="p-2.5">{archetypes.join(' + ')}</td>
+                    <td className="p-2.5">{count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <SectionHeader>Most Active Users</SectionHeader>
+          <table className="w-full border-collapse">
             <thead>
               <tr className="border-b-2 border-neutral-600 text-left">
-                <th className="p-2.5">Archetypes</th>
-                <th className="p-2.5">Wins</th>
+                <th className="p-2.5">Username</th>
+                <th className="p-2.5">Email</th>
+                <th className="p-2.5">Role</th>
+                <th className="p-2.5">Games</th>
+                <th className="p-2.5">W / L / F</th>
               </tr>
             </thead>
             <tbody>
-              {stats.top_winning_compositions.map(({ archetypes, count }) => (
-                <tr key={archetypes.join('+')} className="border-b border-neutral-700">
-                  <td className="p-2.5">{archetypes.join(' + ')}</td>
-                  <td className="p-2.5">{count}</td>
+              {mostActiveUsers.map((user) => (
+                <tr key={user.id} className="border-b border-neutral-700">
+                  <td className="p-2.5">
+                    <Link to={`/admin/users/${user.id}`} className="hover:underline">{user.username}</Link>
+                  </td>
+                  <td className="p-2.5">{user.email}</td>
+                  <td className="p-2.5">{user.role}</td>
+                  <td className="p-2.5">{user.games_count}</td>
+                  <td className="p-2.5">{user.wins} / {user.losses} / {user.forfeits}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
-
-      <div className="mt-6">
-        <h2 className="text-base font-semibold mb-2 text-neutral-400">Top Users by Games Played</h2>
-        <table className="border-collapse">
-          <thead>
-            <tr className="border-b-2 border-neutral-600 text-left">
-              <th className="p-2.5">Username</th>
-              <th className="p-2.5">Games</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stats.top_users_by_games.map(({ id, username, games_count }) => (
-              <tr key={id} className="border-b border-neutral-700">
-                <td className="p-2.5">
-                  <Link to={`/admin/users/${id}`} className="hover:underline">{username}</Link>
-                </td>
-                <td className="p-2.5">{games_count}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mt-8">
-        <h2 className="text-base font-semibold mb-2 text-neutral-400">Recent Users</h2>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b-2 border-neutral-600 text-left">
-              <th className="p-2.5">ID</th>
-              <th className="p-2.5">Username</th>
-              <th className="p-2.5">Email</th>
-              <th className="p-2.5">Role</th>
-              <th className="p-2.5">Games</th>
-              <th className="p-2.5">W / L / F</th>
-              <th className="p-2.5">Joined</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentUsers.map((user) => (
-              <tr key={user.id} className="border-b border-neutral-700">
-                <td className="p-2.5">{user.id}</td>
-                <td className="p-2.5">
-                  <Link to={`/admin/users/${user.id}`} className="hover:underline">{user.username}</Link>
-                </td>
-                <td className="p-2.5">{user.email}</td>
-                <td className="p-2.5">{user.role}</td>
-                <td className="p-2.5">{user.games_count}</td>
-                <td className="p-2.5">{user.wins} / {user.losses} / {user.forfeits}</td>
-                <td className="p-2.5">{new Date(user.created_at).toLocaleDateString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mt-8">
-        <h2 className="text-base font-semibold mb-2 text-neutral-400">Manage</h2>
-        <div className="flex gap-4">
-          {NAV_LINKS.map(({ label, href }) => (
-            <Link key={href} to={href} className="border border-neutral-600 p-4 text-white hover:bg-neutral-800">
-              {label}
-            </Link>
-          ))}
         </div>
+
       </div>
     </div>
   );
